@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<!-- Generated from 212-closures.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>11-closures</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="scoping-and-closures">Scoping and Closures</h2>
+<h3 id="scoping">Scoping</h3>
+<p>Scoping in Scala is similar to scoping in Java: Any new block of code introduces a new nested scope:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">val</span> a = ...</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="kw">if</span> (...) {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>   <span class="kw">val</span> b = ...</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>   ... <span class="co">// &#39;a&#39; and &#39;b&#39; can be used here</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>}</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>... <span class="co">// only &#39;a&#39; can be used here, not &#39;b&#39;</span></span></code></pre></div>
+<p>One difference between Java and Scala is that Scala allows <em>variable shadowing</em> but Java does not:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="co">// this is Java</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="dt">int</span> x = ...;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="kw">if</span> (...) {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>  <span class="dt">int</span> x = ...; <span class="co">// name &#39;x&#39; already in scope</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>}</span></code></pre></div>
+<p>The Java code above will not compile but is possible in Scala:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">val</span> x = <span class="dv">42</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="kw">if</span> (...) {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>  <span class="kw">val</span> x = <span class="st">&quot;foo&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>  ... <span class="co">// &#39;x&#39; has type String&#39; and is &quot;foo&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>}</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>... <span class="co">// &#39;x&#39; has type Int and is 42</span></span></code></pre></div>
+<p>In general, variable shadowing leads to confusing code and should be avoided.</p>
+<p>This form of scoping is known as <em>lexical</em> or <em>static</em> scoping. Most programming languages follow it, but a few do not and use a form of <em>dynamic scoping</em> instead. In these languages, the actual variable a name refers to changes at runtime. This can be powerful but is also extremely confusing and has been discarded in most modern languages. You may still encounter it in Perl and Common Lisp.</p>
+<p>Another language with which you need to be careful is JavaScript. In JavaScript, only the body of a function introduces a new scope, not any block:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="co">// this is JavaScript</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="kw">var</span> a <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="kw">function</span> <span class="fu">f</span>() {</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>  <span class="kw">var</span> a <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>  <span class="cf">if</span> (<span class="kw">true</span>) {</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a>    <span class="kw">var</span> a <span class="op">=</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a>    <span class="kw">var</span> b <span class="op">=</span> <span class="dv">4</span><span class="op">;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a>  }</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a>  <span class="co">// &#39;b&#39; can be used here and is 4</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a>  <span class="co">// &#39;a&#39; is 3, not 2</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a>}</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true"></a><span class="co">// &#39;b&#39; is out of scope and cannot be used here</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true"></a><span class="co">// &#39;a&#39; is 1, not 3</span></span></code></pre></div>
+<h3 id="closures">Closures</h3>
+<p>Consider the following function:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">def</span> <span class="fu">addSomeToArg</span>(n: Int, some: Int): Int = {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  <span class="kw">def</span> <span class="fu">add</span>(x: Int) = x + some</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>  <span class="fu">add</span>(n)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>}</span></code></pre></div>
+<p>It is adding <code>some</code> to <code>n</code> in a roundabout way: First, define a function that adds <code>some</code>, then apply it to <code>n</code>. Note how the <code>add</code> function uses variable <code>some</code>, even though it is not a parameter to the function. From the standpoint of <code>add</code>, <code>some</code> is a “global variable”.</p>
+<p>Suppose now that <code>addSome</code> is defined to perform the task of adding <code>some</code>, but is not given a value <code>n</code> to add it to:<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="kw">def</span> <span class="fu">addSome</span>(some: Int): Int =&gt; Int = {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>  <span class="kw">def</span> <span class="fu">add</span>(x: Int) = x + some</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a>  add</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>}</span></code></pre></div>
+<p>This version of the function still defines a function <code>add</code>, but has no value <code>n</code> to apply it to and thus simply returns the function (note the <code>Int =&gt; Int</code> return type). It could be defined more simply as:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="kw">def</span> <span class="fu">addSome</span>(some: Int): Int =&gt; Int = x =&gt; x + some</span></code></pre></div>
+<p>Function <code>addSome</code> can be used as follows:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="kw">val</span> add10 = <span class="fu">addSome</span>(<span class="dv">10</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="kw">val</span> m = <span class="fu">add10</span>(<span class="dv">42</span>) <span class="co">// this is 52</span></span></code></pre></div>
+<p>The interesting question is this: When <code>add10(42)</code> is executed, 10 is added to 42. But where does this 10 come from? It was an argument to the call <code>addSome(10)</code>, which is now finished (value 10 was pushed on the execution stack and then popped after the call completed). Indeed, other calls to <code>addSome</code> could have taken place before <code>add10</code> is used:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">val</span> add10 = <span class="fu">addSome</span>(<span class="dv">10</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="kw">val</span> add100 = <span class="fu">addSome</span>(<span class="dv">100</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="kw">val</span> m = <span class="fu">add10</span>(<span class="dv">42</span>) <span class="co">// this is 52, not 142</span></span></code></pre></div>
+<p>What happens is that, when the function value defined in the body of <code>addSome</code> is returned, it is returned alongside a hidden piece of data that includes <code>val some = 10</code>. When <code>add10</code> is called, it can retrieve the value of <code>some</code> from this data and use it. When <code>add100</code> is created, it is created with its own data, which includes <code>val some = 100</code>.</p>
+<p>The terminology is somewhat confusing. Depending on the source, <em>closure</em> refers to the function and its data together, to the data itself, or to the phenomenon of capturing scoped variables in such a piece of data. The word comes from the fact that a function like <code>add</code> is an <em>open</em> term that contains free variables (in this case, <code>some</code>) and needs to be <em>closed</em> (by incorporating its free variables) before it can be returned. This is similar to adding a quantifier in predicate logic, i.e., <span class="math inline">∃<em>y</em>: <em>P</em>(<em>x</em>, <em>y</em>)</span> is an open term that can be closed as <span class="math inline">∀<em>x</em>: ∃<em>y</em>: <em>P</em>(<em>x</em>, <em>y</em>)</span>.</p>
+<p>Closures are used a lot in functional programming languages because functions have no state and closures are a way to add such a state. For instance, a function can be “enriched” with logging information:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="kw">def</span> loggingFunction[A, B](f: A =&gt; B, name: String): A =&gt; B = {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>  <span class="kw">var</span> count = <span class="dv">0</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>  <span class="kw">val</span> logger = Logger.<span class="fu">getLogger</span>(...)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>  <span class="kw">def</span> <span class="fu">g</span>(x: A): B = {</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a>    count += <span class="dv">1</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a>    logger.<span class="fu">info</span>(s<span class="st">&quot;calling $name ($count) with $x&quot;</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a>    <span class="kw">val</span> y = <span class="fu">f</span>(x)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a>    logger.<span class="fu">info</span>(s<span class="st">&quot;$name($x)=$y&quot;</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a>    y</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a>  }</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true"></a>  g</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Note the signature of <code>loggingFunction</code>: it takes in a function of type <code>A =&gt; B</code> (and its name) and produces a function of the same type <code>A =&gt; B</code>. The new function performs the same computation as the argument function, but adds logging information.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="kw">def</span> <span class="fu">f</span>(str: String): Int = ...</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="kw">val</span> f1 = <span class="fu">loggingFunction</span>(f, <span class="st">&quot;name1&quot;</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="kw">val</span> f2 = <span class="fu">loggingFunction</span>(f, <span class="st">&quot;name2&quot;</span>)</span></code></pre></div>
+<p>A call <code>f1(x)</code> produces the same integer as a call <code>f(x)</code>, but adds logging information. A closure is used so that <code>name</code>, <code>count</code> and <code>logger</code> can be accessed during the <code>f1(x)</code> computation. Interestingly enough, part of this closure is actually modified with each call to <code>f1</code> (to increment <code>count</code>). Function <code>f2</code> behaves in a similar way, but uses its own name and counter.</p>
+<p>Closures are not used as much in object-oriented languages, since objects can already have a state. One situation in which they do occur in an object-oriented context is the need to implement a given type without explicitly creating a subtype. For instance, one can create a stream that prints the index of each of its values as they are produced:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="kw">def</span> printStream[A](stream: LazyList[A]): LazyList[A] = {</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>  <span class="kw">var</span> count = <span class="dv">0</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>  <span class="kw">def</span> <span class="fu">addPrint</span>(s: LazyList[A]): LazyList[A] = s <span class="kw">match</span> {</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>    <span class="kw">case</span> <span class="fu">LazyList</span>() =&gt; s</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a>    <span class="kw">case</span> head #:: tail =&gt;</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>      count += <span class="dv">1</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>      <span class="fu">println</span>(count)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>      head #:: <span class="fu">addPrint</span>(tail)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a>  }</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>  <span class="fu">addPrint</span>(stream)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a>}</span></code></pre></div>
+<p><code>printStream(s)</code> produces the same values as <code>s</code>, but prints a counter on the terminal each time a value is produced; <code>printStream(s1)</code> and <code>printStream(s2)</code> use separate counters. Since class <code>LazyList</code> is final, it cannot be extended into a subtype. The additional state for the newly created stream is instead kept in a closure.</p>
+<p>Closures are pretty much guaranteed to be supported in any functional programming language. Other languages may have full support, partial support or no support.</p>
+<p>One language in which closures are used frequently is JavaScript, in part because the language lacks proper object-oriented features like data encapsulation. For instance, the following simple Scala counter:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="kw">class</span> <span class="fu">Counter</span>(<span class="kw">private</span> <span class="kw">var</span> count: Int = <span class="dv">0</span>) {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a>  <span class="kw">def</span> <span class="fu">next</span>(): Int = {</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a>    count += <span class="dv">1</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>    count</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a>  }</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a>}</span></code></pre></div>
+<p>could be implemented in JavaScript as:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="co">// this is JavaScript</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a><span class="kw">function</span> <span class="fu">Counter</span>(count) {</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>  count <span class="op">=</span> count <span class="op">||</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>  <span class="kw">this</span><span class="op">.</span><span class="at">next</span> <span class="op">=</span> <span class="kw">function</span>() {</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a>    count <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a>    <span class="cf">return</span> count<span class="op">;</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a>  }</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true"></a>}</span></code></pre></div>
+<p>One issue in JavaScript is that there is no way to make a field <code>count</code> <em>private</em>. Instead, one can use a local variable of the constructor (here, the argument <code>count</code>) for the state of the counter and capture it in a closure. The function that is used to define method <code>next</code> uses <code>count</code> as part of its closure:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="co">// this is JavaScript</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="kw">var</span> c <span class="op">=</span> <span class="kw">new</span> <span class="fu">Counter</span>()<span class="op">;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(c<span class="op">.</span><span class="fu">next</span>())<span class="op">;</span> <span class="co">// 1</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(c<span class="op">.</span><span class="fu">next</span>())<span class="op">;</span> <span class="co">// 2</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a><span class="kw">var</span> d <span class="op">=</span> <span class="kw">new</span> <span class="fu">Counter</span>(<span class="dv">100</span>)<span class="op">;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(d<span class="op">.</span><span class="fu">next</span>())<span class="op">;</span> <span class="co">// 101</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(d<span class="op">.</span><span class="fu">next</span>())<span class="op">;</span> <span class="co">// 102</span></span></code></pre></div>
+<p>Note how the two counters created above are independent, each with its own state.</p>
+<h3 id="closures-over-mutable-state">Closures over mutable state</h3>
+<p>As mentioned above, Scala allows closures to contain writable state. This is powerful but can also be dangerous when it results in unintentional sharing. Consider the following code, which attempts to build multiplier functions:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="kw">var</span> n = <span class="dv">0</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="kw">val</span> multipliers = <span class="kw">new</span> Array[Int =&gt; Int](<span class="dv">10</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="kw">while</span> (n &lt; <span class="dv">10</span>) {</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a>  <span class="fu">multipliers</span>(n) = x =&gt; x * n</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a>  n += <span class="dv">1</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a>}</span></code></pre></div>
+<p>The idea is that <code>multiplier(i)</code> should contain the function that multiplies by <code>i</code>. But it does not:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="kw">val</span> m3 = <span class="fu">multipliers</span>(<span class="dv">3</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a><span class="fu">m3</span>(<span class="dv">100</span>)  <span class="co">// returns 1000, not 300</span></span></code></pre></div>
+<p>The problem is that the anonymous functions used to populate the array all close over <code>var n</code> and end up sharing it. In the end, all the functions in the array are multipliers by <code>n</code>:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>n = <span class="dv">20</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a><span class="fu">m3</span>(<span class="dv">100</span>)  <span class="co">// returns 2000, i.e., 100 * 20</span></span></code></pre></div>
+<p>The problem can be solved by introducing a <code>val</code> in a narrower scope and closing over it:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="kw">var</span> n = <span class="dv">0</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a><span class="kw">val</span> multipliers = <span class="kw">new</span> Array[Int =&gt; Int](<span class="dv">10</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a><span class="kw">while</span> (n &lt; <span class="dv">10</span>) {</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a>  <span class="kw">val</span> m = n</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a>  <span class="fu">multipliers</span>(n) = x =&gt; x * m</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a>  n += <span class="dv">1</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Now, <code>multipliers(3)</code> is indeed a function that multiplies by 3.</p>
+<p>Of course, this construction of <code>multipliers</code> is not very elegant in Scala, which favors immutability. An immutable sequence of multipliers could be built this way:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a><span class="kw">val</span> multipliers = <span class="kw">for</span> (n &lt;- <span class="dv">0</span> to <span class="dv">9</span>) <span class="kw">yield</span> (x: Int) =&gt; x * n</span></code></pre></div>
+<p>The closure over <code>n</code> here is harmless.</p>
+<p>Java has a more limited support for closures. In particular, closures over local variables in Java are <em>immutable</em> and can only be used to store <em>read-only</em> state. They could be used to implement the <code>addSome</code> example above:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a><span class="co">// this is Java</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a>IntUnaryOperator <span class="fu">addSome</span>(<span class="dt">final</span> <span class="dt">int</span> some) {</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true"></a>  <span class="kw">return</span> x -&gt; x + some;</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Starting with Java 8, the <code>final</code> modifier of local variable <code>some</code> can be omitted. The closure, however, remains immutable: The lambda cannot write <code>some</code> even if it is not final. The stream and counter examples above, in particular, could not be implemented in terms of closures in Java. The following Java code:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="co">// this is Java</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="bu">Iterator</span>&lt;<span class="bu">Integer</span>&gt; <span class="fu">counter</span>(<span class="dt">int</span> count) {</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a>  <span class="kw">return</span> <span class="kw">new</span> <span class="bu">Iterator</span>&lt;<span class="bu">Integer</span>&gt;() {</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a>    <span class="kw">public</span> <span class="dt">boolean</span> <span class="fu">hasNext</span>() {</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a>      <span class="kw">return</span> <span class="kw">true</span>;</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true"></a>    }</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true"></a>    <span class="kw">public</span> <span class="bu">Integer</span> <span class="fu">next</span>() {</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true"></a>      count += <span class="dv">1</span>;</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true"></a>      <span class="kw">return</span> count;</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true"></a>    }</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true"></a>  };</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true"></a>}</span></code></pre></div>
+<p>produces the error:</p>
+<pre><code>Error:
+java: local variables referenced from an inner class must be final or effectively final</code></pre>
+<p>Java, where closures over local variables must be immutable, is safer:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="co">// this is Java (does not work)</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="dt">int</span> n = <span class="dv">0</span>;</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a>IntUnaryOperator[] multipliers = <span class="kw">new</span> IntUnaryOperator[<span class="dv">10</span>];</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a><span class="kw">while</span> (n &lt; <span class="dv">10</span>) {</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true"></a>  multipliers[n] = x -&gt; x * n;</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a>  n += <span class="dv">1</span>;</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a>}</span></code></pre></div>
+<p>This variant is rejected by the compiler:</p>
+<pre><code>local variables referenced from a lambda expression must be final or effectively final</code></pre>
+<p>Using a simple <code>for</code> loop does not help, because the loop still uses a mutable variable. This is also rejected:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="co">// this is Java (does not work)</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="kw">for</span> (<span class="dt">int</span> n = <span class="dv">0</span>; n &lt; <span class="dv">10</span>; n++) {</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a>  multipliers[n] = x -&gt; x * n;</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a>}</span></code></pre></div>
+<p>An immutable (final) variable can be introduced, as was done in the Scala example:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="co">// this is Java</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="kw">for</span> (<span class="dt">int</span> n = <span class="dv">0</span>; n &lt; <span class="dv">10</span>; n++) {</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a>  <span class="dt">final</span> <span class="dt">int</span> m = n;</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a>  multipliers[n] = x -&gt; x * m;</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a>}</span></code></pre></div>
+<p>The <code>final</code> keyword is optional, but variable <code>m</code> cannot be reassigned.</p>
+<h3 class="unnumbered" id="summary">Summary</h3>
+<ul>
+<li><p>Most programming languages use <em>static</em> or <em>lexical</em> scoping. This includes Java and Scala.</p></li>
+<li><p>A function or method can refer to variables “in scope” other than its own arguments and local variables. This may result in a <em>closure</em>, a phenomenon by which these variables are captured and stored in a data block associated with the function. The word <em>closure</em> is sometimes used to refer to the function itself, or the data block, or the process of capturing variables.</p></li>
+<li><p>Closures can be used in functional programming as a mechanism to add a <em>state</em> to a function.</p></li>
+<li><p>As with other forms of implicit references (e.g., <em>inner classes</em>), not being fully aware of closures can lead to <em>tricky bugs</em> (e.g., with serialization, garbage collecting or multi-threading).</p></li>
+<li><p>In Java, closures on local variables are <em>read-only</em>; in Scala, a closure over a local <code>var</code> is possible and can be written to. This can be powerful, but also dangerous (especially when multiple threads are involved).</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Note that <code>addSome(some)</code> is equivalent to <code>addSomeToArg(_: Int, some)</code>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>The loop could even be avoided altogether by using method <code>tabulate</code>:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="kw">val</span> multipliers = ArraySeq.<span class="fu">tabulate</span>(<span class="dv">10</span>)(n =&gt; (x: Int) =&gt; x * n)</span></code></pre></div>
+<p>or the somewhat less readable:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="kw">val</span> multipliers = ArraySeq.<span class="fu">tabulate</span>[Int =&gt; Int](<span class="dv">10</span>)((x: Int) =&gt; x * _)</span></code></pre></div>
+<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></li>
+<li id="fn3" role="doc-endnote"><p>As in Scala, the loop could be avoided entirely:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="co">// this is Java</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="bu">Arrays</span>.<span class="fu">setAll</span>(multipliers, n -&gt; x -&gt; x * n);</span></code></pre></div>
+<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></li>
+</ol>
+</section>
+<footer>2020-10-20 at 03:46:08 PM</footer>
+</body>

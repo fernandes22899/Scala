@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<!-- Generated from 301-basic-syntax.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>1-basic-syntax</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="basic-scala-syntax-and-common-structures">Basic Scala syntax and common structures</h2>
+<p>This track is designed to allow Java programmers to quickly build a first Scala application. Some descriptions are oversimplified and tricky details swept under the rug for now. Many topics covered here will be explored again in more detail later. Topics are presented in terms of other topics as follows:</p>
+<p><img src="Images/topics.png" class="centered" /></p>
+<h3 id="expressions">Expressions</h3>
+<p>All programming languages use expressions. Some expressions are free of side effects (e.g., <code>2 + 2</code>), some combine useful values with side effects (e.g., <code>Source.next()</code>) and some are used solely for the purpose of side effects (e.g., <code>x = 42</code>). A difference with Java is the lack of “statements” that are not expressions (i.e., <code>if (x &gt; 0) x -= 1</code> is still an expression in Scala).</p>
+<p>Be aware, however, that some expressions that look similar in Java and in Scala may have different semantics. For instance:</p>
+<ul>
+<li><p><code>x == y</code> is a reference comparison in Java (true only if <code>x</code> and <code>y</code> are references to the same object) but <code>x == y</code> is used to compare two objects in Scala (and is equivalent to <code>x.equals(y)</code> unless <code>x</code> is null). To achieve Java’s <code>x == y</code>, Scala’s syntax is <code>x eq y</code>.</p></li>
+<li><p><code>x = 42</code> has value 42 in Java but is not a number in Scala (it has type <code>Unit</code>).</p></li>
+</ul>
+<p>Also different from Java is the fact that Scala infers a semicolon (<code>;</code>) at the end of each line, unless there is a reason not to, which makes writing semicolons often optional (Scala’s recommended style is rely on this inference and omit most semicolons). This also means that one needs to be careful when breaking long expressions over multiple lines:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="dv">2</span> +</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="dv">2</span></span></code></pre></div>
+<p>is fine, and so is:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a>(<span class="dv">2</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>  + <span class="dv">2</span>)</span></code></pre></div>
+<p>but:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="dv">2</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>  + <span class="dv">2</span></span></code></pre></div>
+<p>is not, since the first line form a valid expression and a semicolon is inferred after it.</p>
+<h3 id="objects-and-method-calls">Objects and method calls</h3>
+<p>Java is mostly object-oriented but also includes 8 primitive types (<code>byte</code>, <code>short</code>, <code>int</code>, <code>long</code>, <code>float</code>, <code>double</code>, <code>boolean</code> and <code>char</code>). By contrast, every Scala expression denotes an object, including numbers and Booleans. Accordingly,</p>
+<ul>
+<li><code>"foo".isEmpty()</code></li>
+<li><code>42.toString()</code></li>
+<li><code>true.hashCode()</code></li>
+</ul>
+<p>are all possible method calls in Scala.</p>
+<p>Most Scala objects are implemented as Java objects.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> Regular (non Scala) Java objects can also be used in Scala code:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">println</span>(<span class="kw">new</span> java.<span class="fu">net</span>.<span class="fu">URL</span>(<span class="st">&quot;http://cs.unh.edu&quot;</span>))</span></code></pre></div>
+<p>Here, a Java URL object is used as an argument for the Scala function <code>println</code>.</p>
+<h3 id="identifiers">Identifiers</h3>
+<p>Common Java identifier like <code>x</code>, <code>aList</code>, <code>carbon14</code> or <code>my_table_2</code> are also valid in Scala. In addition to those, Scala also use symbolic identifiers (like <code>-&gt;</code> or <code>:::</code>) and mixed identifiers (like <code>value_=</code> or <code>unary_-</code>). Finally, arbitrary strings between backquotes are also identifiers. So, <code>`How are you?`</code> is a valid Scala identifier and, even though <code>yield</code> is a keyword in Scala, <code>`yield`</code> is an identifier (and <code>Thread.`yield`()</code> is a valid call).</p>
+<h3 id="types">Types</h3>
+<p>Like Java, Scala is strongly typed: every Scala expression has a type. So, for instance:</p>
+<ul>
+<li><code>"foo"</code> has type <code>String</code></li>
+<li><code>42</code> has type <code>Int</code><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></li>
+<li><code>new Point(1, 2)</code> has type <code>Point</code></li>
+<li><code>println("hello")</code> has type <code>Unit</code></li>
+<li><code>throw new IllegalStateException()</code> has type <code>Nothing</code></li>
+</ul>
+<p>Types are specified using a <code>identifier: type</code> syntax (as opposed to <code>type identifier</code> in Java). Moreover, Scala relies more heavily than Java on <em>type inference</em> and many type declarations can be omitted.</p>
+<p>Type <code>Unit</code> is a small type that contains only one value, <em>unit</em>, represented as <code>()</code> in Scala. It is used for those situations in which an expression is used for its side-effects and does not produce any meaningful value (like <code>println</code> in the example). Java’s <code>void</code> methods, when called from Scala, also produce the <em>unit</em> value.</p>
+<p>Type <code>Nothing</code> is an even smaller type that contains no value. It is impossible to return a value of type <code>Nothing</code>; the type is used for abrupt termination (like the <code>throw</code> statement in the example) and some empty data structures (the empty list has type <code>List[Nothing]</code>).</p>
+<h3 id="val-and-var"><code>val</code> and <code>var</code></h3>
+<p>Expressions can be named using <code>val</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">val</span> a = <span class="dv">42</span></span></code></pre></div>
+<p>Variable <code>a</code> now represents value 42. It has type <code>Int</code>, which was inferred by the compiler. Types can also be set explicitly:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">val</span> b: Int = <span class="dv">42</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="kw">val</span> c: Double = <span class="fl">42.0</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="kw">val</span> d: String = <span class="st">&quot;foo&quot;</span></span></code></pre></div>
+<p>The names <code>a</code>, <code>b</code>, <code>c</code> and <code>d</code> can be used to form complex expressions, including method calls:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a>a.<span class="fu">toString</span>() + d.<span class="fu">charAt</span>(<span class="dv">0</span>)</span></code></pre></div>
+<p>This expression is equivalent to:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="fl">42.</span><span class="fu">toString</span>() + <span class="st">&quot;foo&quot;</span>.<span class="fu">charAt</span>(<span class="dv">0</span>)</span></code></pre></div>
+<p>Variables like <code>a</code>, <code>b</code>, <code>c</code> and <code>d</code>, introduced by <code>val</code>, are <em>functional</em> variables (commonly found in functional programming languages). They are <em>assign-once</em> variables and cannot be modified:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">val</span> a = <span class="dv">42</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>a = a + <span class="dv">1</span>  <span class="co">// rejected at compile-time</span></span></code></pre></div>
+<p>A different kind of variables can be introduced using keyword <code>var</code> instead of <code>val</code>. These are reassignable variables, similar to variables in imperative programming languages like C or Java:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">var</span> v = <span class="dv">10</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a>v = v + <span class="dv">1</span></span></code></pre></div>
+<p>This code works fine and variable <code>v</code> is set to 11. Note that the assignment to <code>v</code> can also be written <code>v += 1</code> but not <code>v++</code> as Scala has no <code>++</code> or <code>--</code> operator.</p>
+<p>In general, it is preferable to use <code>val</code> over <code>var</code> when possible. <code>val</code> variables are easier to reason about by knowing that they are not reassigned anywhere in the code.</p>
+<p>One difference with Java is that, in Scala, the assignment expression does not have the value of the expression: <code>v = v + 1</code> above has the useless value <em>unit</em> of type <code>Unit</code>, not 11. This makes it impossible to use some common C/Java patterns, like:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">// This is C/Java</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="kw">while</span> ((n = in.<span class="fu">read</span>(buffer)) != -<span class="dv">1</span>) {</span>
+<span id="cb11-3"><a href="#cb11-3"></a>  ...</span>
+<span id="cb11-4"><a href="#cb11-4"></a>}</span></code></pre></div>
+<p><code>val</code> and <code>var</code> can be used to declare several variables at once:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">val</span> x, y, z = <span class="dv">10</span></span></code></pre></div>
+<p>This initializes all three variables to 10. Note that the right-hand-side is evaluated as many times as there are variables:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">val</span> v, w = <span class="kw">new</span> String(<span class="st">&quot;foo&quot;</span>)</span></code></pre></div>
+<p>Variables <code>v</code> and <code>w</code> refer to <em>two different objects</em>: <code>v == w</code> is true, but <code>v eq w</code> is false.</p>
+<h3 id="block-expressions">Block expressions</h3>
+<p>Curly braces can be used in Scala to build expressions. These two declarations are equivalent:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">val</span> a = <span class="dv">2</span> + <span class="dv">2</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="kw">val</span> a = {</span>
+<span id="cb14-4"><a href="#cb14-4"></a>  <span class="dv">2</span> + <span class="dv">2</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a>}</span></code></pre></div>
+<p>A block can contain multiple expressions in sequence. The value of the block is the value of the last expression:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">val</span> a = {</span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="fu">println</span>(<span class="st">&quot;calculating 2 + 2&quot;</span>)</span>
+<span id="cb15-3"><a href="#cb15-3"></a>  <span class="dv">2</span> + <span class="dv">2</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a>}</span></code></pre></div>
+<p>This also set <code>a</code> to be 4, but prints a message as a side-effect.</p>
+<p>A block is not limited to expressions and can contain variable declarations, local functions or class definitions:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">val</span> a = {</span>
+<span id="cb16-2"><a href="#cb16-2"></a>  <span class="kw">val</span> two = <span class="dv">1</span> + <span class="dv">1</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a>  two + two</span>
+<span id="cb16-4"><a href="#cb16-4"></a>}</span>
+<span id="cb16-5"><a href="#cb16-5"></a></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="kw">val</span> piSquare = {</span>
+<span id="cb16-7"><a href="#cb16-7"></a>  <span class="kw">import</span> math.<span class="fu">Pi</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a>  Pi * Pi</span>
+<span id="cb16-9"><a href="#cb16-9"></a>}</span></code></pre></div>
+<p>The first block still initializes variable <code>a</code> to 4. The other block sets <code>piSquare</code> to <span class="math inline"><em>π</em> * <em>π</em></span>.</p>
+<h3 id="no-argument-method-calls">No-argument method calls</h3>
+<p>If a method takes no argument, it can be called with the parentheses omitted, as in:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1"></a><span class="fl">42.</span>toString</span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="st">&quot;42&quot;</span>.<span class="fu">toInt</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="st">&quot;foo&quot;</span>.<span class="fu">length</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="st">&quot;foo&quot;</span>.<span class="fu">toList</span></span></code></pre></div>
+<p>This makes a method call look like the reading of a field (referential transparency). It should only be used for methods without side-effects, which indeed could be implemented as fields. Method with side-effects should keep the empty parentheses when called:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">val</span> tmp = Files.<span class="fu">createTempFile</span>(<span class="st">&quot;file&quot;</span>, <span class="st">&quot;.txt&quot;</span>)</span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="kw">val</span> out = Files.<span class="fu">newBufferedWriter</span>(tmp)</span>
+<span id="cb18-3"><a href="#cb18-3"></a></span>
+<span id="cb18-4"><a href="#cb18-4"></a><span class="fu">println</span>(tmp.<span class="fu">getFileName</span>)</span>
+<span id="cb18-5"><a href="#cb18-5"></a>out.<span class="fu">write</span>(<span class="st">&quot;contents&quot;</span>)</span>
+<span id="cb18-6"><a href="#cb18-6"></a>out.<span class="fu">newLine</span>()</span>
+<span id="cb18-7"><a href="#cb18-7"></a>out.<span class="fu">close</span>()</span></code></pre></div>
+<p>Note how <code>getFileName</code> is called without parentheses (no side-effect) but <code>newLine</code> and <code>close</code> are not.</p>
+<h3 id="single-argument-method-calls">Single-argument method calls</h3>
+<p>Consider a method with a single argument, like <code>println</code>. The argument can be a simple expression (e.g., <code>println(2+2)</code>) or a block (e.g., <code>println({2 + 2})</code>). Blocks can be large and often spread over multiple lines:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1"></a><span class="fu">println</span>({</span>
+<span id="cb19-2"><a href="#cb19-2"></a>  <span class="kw">val</span> two = <span class="dv">1</span> + <span class="dv">1</span></span>
+<span id="cb19-3"><a href="#cb19-3"></a>  two + two</span>
+<span id="cb19-4"><a href="#cb19-4"></a>})</span></code></pre></div>
+<p>Notice how the parentheses are redundant, since the block expression is already delimited by its curly braces. The parentheses are optional in this case, which makes it possible to write:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a>println {</span>
+<span id="cb20-2"><a href="#cb20-2"></a>  <span class="kw">val</span> two = <span class="dv">1</span> + <span class="dv">1</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a>  two + two</span>
+<span id="cb20-4"><a href="#cb20-4"></a>}</span></code></pre></div>
+<p>Another peculiarity of methods with a single argument is that they can be called in <em>infix notation</em>:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1"></a>num.<span class="fu">compareTo</span>(<span class="dv">0</span>)</span></code></pre></div>
+<p>can be written:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb22-1"><a href="#cb22-1"></a>num compareTo <span class="dv">0</span> </span></code></pre></div>
+<p>This is used heavily in Scala code, especially when methods have symbolic names:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb23-1"><a href="#cb23-1"></a><span class="dv">2</span> + <span class="dv">2</span></span>
+<span id="cb23-2"><a href="#cb23-2"></a>num &gt; <span class="dv">0</span></span>
+<span id="cb23-3"><a href="#cb23-3"></a>num -&gt; <span class="st">&quot;foo&quot;</span></span></code></pre></div>
+<p>are actually method calls, which could have been written:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb24-1"><a href="#cb24-1"></a><span class="fl">2.</span>+(<span class="dv">2</span>)</span>
+<span id="cb24-2"><a href="#cb24-2"></a>num.&gt;(<span class="dv">0</span>)</span>
+<span id="cb24-3"><a href="#cb24-3"></a>num.-&gt;(<span class="st">&quot;foo&quot;</span>)</span></code></pre></div>
+<p>Note that the last example can also be written:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb25-1"><a href="#cb25-1"></a>num -&gt; {</span>
+<span id="cb25-2"><a href="#cb25-2"></a>  <span class="st">&quot;foo&quot;</span></span>
+<span id="cb25-3"><a href="#cb25-3"></a>}</span></code></pre></div>
+<p>When to use or not to use infix notation is open for debate. Some cases are clear cut: there is clearly no reason to write <code>2.+(2)</code> instead of <code>2 + 2</code>. Similarly, <code>1 to 10 by 2</code> (a range in Scala) looks nicer than <code>1.to(10).by(2)</code>. Other cases are more debatable:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb26-1"><a href="#cb26-1"></a>out write <span class="st">&quot;contents&quot;</span></span></code></pre></div>
+<p>Is this better than <code>out.write("contents")</code> ? The two forms below are equivalent:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb27-1"><a href="#cb27-1"></a>out write {</span>
+<span id="cb27-2"><a href="#cb27-2"></a>  more complicated contents</span>
+<span id="cb27-3"><a href="#cb27-3"></a>}</span></code></pre></div>
+<p>and:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb28-1"><a href="#cb28-1"></a>out.<span class="fu">write</span> {</span>
+<span id="cb28-2"><a href="#cb28-2"></a>  more complicated contents</span>
+<span id="cb28-3"><a href="#cb28-3"></a>}</span></code></pre></div>
+<p>Which is better?</p>
+<p>Finally, for reasons that will become clearer when common datatypes are discussed, methods with names that end with a colon (<code>:</code>), when used in infix notation, are applied to the <em>right-hand-side</em> argument instead of the left-hand-side. Accordingly:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb29-1"><a href="#cb29-1"></a>x ++ y</span>
+<span id="cb29-2"><a href="#cb29-2"></a>x +: y</span></code></pre></div>
+<p>are compiled into these calls:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb30-1"><a href="#cb30-1"></a>x.++(y)</span>
+<span id="cb30-2"><a href="#cb30-2"></a>y.+:(x)</span></code></pre></div>
+<p>Note how, in the second case, the method is called in the right-hand-side object.</p>
+<h3 id="while-and-do-loops"><code>while</code> and <code>do</code> loops</h3>
+<p>Scala’s <code>do/while</code> loops are very similar to Java’s:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb31-1"><a href="#cb31-1"></a><span class="kw">var</span> sum = <span class="dv">0</span></span>
+<span id="cb31-2"><a href="#cb31-2"></a><span class="kw">var</span> n = <span class="dv">5</span></span>
+<span id="cb31-3"><a href="#cb31-3"></a><span class="kw">while</span> (n &gt; <span class="dv">0</span>) {</span>
+<span id="cb31-4"><a href="#cb31-4"></a>  sum += n</span>
+<span id="cb31-5"><a href="#cb31-5"></a>  n -= <span class="dv">1</span></span>
+<span id="cb31-6"><a href="#cb31-6"></a>}</span></code></pre></div>
+<p>This calculates <code>5 + 4 + 3 + 2 + 1 = 15</code> in variable <code>sum</code>, as expected.</p>
+<p>Scala also has the <code>do/while</code> variant that executes the body of the loop at least once:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">var</span> ans = <span class="st">&quot;&quot;</span></span>
+<span id="cb32-2"><a href="#cb32-2"></a><span class="kw">do</span> {</span>
+<span id="cb32-3"><a href="#cb32-3"></a>  ans = StdIn.<span class="fu">readLine</span>(<span class="st">&quot;y/n? &quot;</span>)</span>
+<span id="cb32-4"><a href="#cb32-4"></a>} <span class="kw">while</span> (ans != <span class="st">&quot;y&quot;</span> &amp;&amp; ans != <span class="st">&quot;n&quot;</span>)</span></code></pre></div>
+<p>This reads a line on the terminal until <code>"y"</code> or <code>"n"</code> is read.</p>
+<h3 id="ifelse-conditionals"><code>if/else</code> conditionals</h3>
+<p>Scala’s <code>if/else</code> construct can be used in a way similar to Java’s:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">if</span> (x &gt; <span class="dv">0</span>)</span>
+<span id="cb33-2"><a href="#cb33-2"></a>  <span class="fu">println</span>(<span class="st">&quot;positive&quot;</span>)</span>
+<span id="cb33-3"><a href="#cb33-3"></a><span class="kw">else</span></span>
+<span id="cb33-4"><a href="#cb33-4"></a>  <span class="fu">println</span>(<span class="st">&quot;not positive&quot;</span>)</span></code></pre></div>
+<p>An important difference, however, is that the whole <code>if/else</code> expression has a value in Scala and can be used anywhere a value of this type is permitted. The code above could be rewritten as:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb34-1"><a href="#cb34-1"></a><span class="fu">println</span>(<span class="kw">if</span> (x &gt; <span class="dv">0</span>) <span class="st">&quot;positive&quot;</span> <span class="kw">else</span> <span class="st">&quot;not positive&quot;</span>)</span></code></pre></div>
+<p>Here, the <code>if/else</code> expression is a string that is used as the argument of <code>println</code>.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> Using <code>if/else</code> in this more functional style can make it possible to use <code>val</code> variables where <code>var</code> variables would be otherwise needed. For instance, consider parsing command-line arguments to decide on a verbosity level:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb35-1"><a href="#cb35-1"></a><span class="kw">var</span> verbosity = <span class="dv">0</span></span>
+<span id="cb35-2"><a href="#cb35-2"></a><span class="kw">if</span> (arg == <span class="st">&quot;-v&quot;</span>)</span>
+<span id="cb35-3"><a href="#cb35-3"></a>  verbosity = <span class="dv">1</span></span>
+<span id="cb35-4"><a href="#cb35-4"></a><span class="kw">else</span> <span class="kw">if</span> (arg == <span class="st">&quot;-vv&quot;</span>)</span>
+<span id="cb35-5"><a href="#cb35-5"></a>  verbosity = <span class="dv">2</span></span></code></pre></div>
+<p>Another way of writing this in Scala would be:~[An even more idiomatic way would be to use pattern-matching.]</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb36-1"><a href="#cb36-1"></a><span class="kw">val</span> verbosity =</span>
+<span id="cb36-2"><a href="#cb36-2"></a>  <span class="kw">if</span> (arg == <span class="st">&quot;-v&quot;</span>) <span class="dv">1</span></span>
+<span id="cb36-3"><a href="#cb36-3"></a>  <span class="kw">else</span> <span class="kw">if</span> (arg == <span class="st">&quot;-vv&quot;</span>) <span class="dv">2</span></span>
+<span id="cb36-4"><a href="#cb36-4"></a>  <span class="kw">else</span> <span class="dv">0</span></span></code></pre></div>
+<p>Note how the second form uses <code>val</code> instead of <code>var</code>, making it easier to guarantee that <code>verbosity</code> is not reassigned later in the code.</p>
+<p>Many functional languages require the <code>else</code> part of <code>if/else</code> to be present. Because it is a hybrid language, Scala does not. If <code>else</code> is omitted, the else branch defaults to the useless value <em>unit</em> of type <code>Unit</code>:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb37-1"><a href="#cb37-1"></a><span class="kw">if</span> (x &gt; <span class="dv">0</span>) <span class="fu">println</span>(<span class="st">&quot;positive&quot;</span>)</span></code></pre></div>
+<p>does nothing if <code>x</code> is not positive and is equivalent to <code>if (x &gt; 0) println("positive") else ()</code>. When conditionals are used in a more functional pattern, they usually need to include the <code>else</code> branch:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb38-1"><a href="#cb38-1"></a><span class="fu">println</span>(<span class="kw">if</span> (x &gt; <span class="dv">0</span>) <span class="st">&quot;positive&quot;</span>)</span></code></pre></div>
+<p>would print <code>()</code> when <code>x</code> is not positive, which is unlikely to be the desired behavior.</p>
+<p>The <code>if</code> and <code>else</code> parts of a conditional are expressions, which can be simple expressions (as in the examples above) or blocks:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb39-1"><a href="#cb39-1"></a><span class="kw">if</span> (ready) server.<span class="fu">reply</span>() <span class="kw">else</span> <span class="dv">0</span></span>
+<span id="cb39-2"><a href="#cb39-2"></a></span>
+<span id="cb39-3"><a href="#cb39-3"></a><span class="kw">if</span> (ready) {</span>
+<span id="cb39-4"><a href="#cb39-4"></a>  log.<span class="fu">info</span>(<span class="st">&quot;calling server&quot;</span>)</span>
+<span id="cb39-5"><a href="#cb39-5"></a>  <span class="kw">val</span> r = server.<span class="fu">reply</span>()</span>
+<span id="cb39-6"><a href="#cb39-6"></a>  log.<span class="fu">info</span>(<span class="st">&quot;server said: &quot;</span> + r)</span>
+<span id="cb39-7"><a href="#cb39-7"></a>  r</span>
+<span id="cb39-8"><a href="#cb39-8"></a>}</span>
+<span id="cb39-9"><a href="#cb39-9"></a><span class="kw">else</span> {</span>
+<span id="cb39-10"><a href="#cb39-10"></a>  log.<span class="fu">info</span>(<span class="st">&quot;server not ready&quot;</span>)</span>
+<span id="cb39-11"><a href="#cb39-11"></a>  <span class="dv">0</span></span>
+<span id="cb39-12"><a href="#cb39-12"></a>}</span></code></pre></div>
+<p>Both expressions produce the server’s reply if the server is ready and zero otherwise. The second form uses block expressions to insert logging statements.</p>
+<h3 id="pattern-matching">Pattern matching</h3>
+<p><em>Pattern matching</em> is a very powerful mechanism often found in functional languages. In its simplest form, it resembles the <code>switch</code> statement of C/Java. The argument parsing example above could also be written with pattern matching:</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb40-1"><a href="#cb40-1"></a><span class="kw">val</span> verbosity = arg <span class="kw">match</span> {</span>
+<span id="cb40-2"><a href="#cb40-2"></a>  <span class="kw">case</span> <span class="st">&quot;-v&quot;</span>  =&gt; <span class="dv">1</span></span>
+<span id="cb40-3"><a href="#cb40-3"></a>  <span class="kw">case</span> <span class="st">&quot;-vv&quot;</span> =&gt; <span class="dv">2</span></span>
+<span id="cb40-4"><a href="#cb40-4"></a>  <span class="kw">case</span> _     =&gt; <span class="dv">0</span></span>
+<span id="cb40-5"><a href="#cb40-5"></a>}</span></code></pre></div>
+<p>Underscore (<code>_</code>) is used as a pattern that matches anything. Patterns can have types and guards and multiple patterns can use the same body:</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb41-1"><a href="#cb41-1"></a>arg <span class="kw">match</span> {</span>
+<span id="cb41-2"><a href="#cb41-2"></a>  <span class="kw">case</span> <span class="st">&quot;-v&quot;</span>                   =&gt; <span class="st">&quot;verbose&quot;</span></span>
+<span id="cb41-3"><a href="#cb41-3"></a>  <span class="kw">case</span> <span class="st">&quot;-vv&quot;</span>                  =&gt; <span class="st">&quot;very verbose&quot;</span></span>
+<span id="cb41-4"><a href="#cb41-4"></a>  <span class="kw">case</span> <span class="st">&quot;--&quot;</span>                   =&gt; <span class="st">&quot;done with arguments&quot;</span></span>
+<span id="cb41-5"><a href="#cb41-5"></a>  <span class="kw">case</span> a <span class="kw">if</span> a.<span class="fu">startsWith</span>(<span class="st">&quot;-&quot;</span>) =&gt; <span class="st">&quot;some argument&quot;</span></span>
+<span id="cb41-6"><a href="#cb41-6"></a>  <span class="kw">case</span> <span class="st">&quot;&quot;</span> | <span class="st">&quot;0&quot;</span> | <span class="st">&quot;00&quot;</span>        =&gt; <span class="st">&quot;zero&quot;</span></span>
+<span id="cb41-7"><a href="#cb41-7"></a>  <span class="kw">case</span> s: String              =&gt; <span class="st">&quot;the string &quot;</span> + s</span>
+<span id="cb41-8"><a href="#cb41-8"></a>  <span class="kw">case</span> _                      =&gt; <span class="st">&quot;something else&quot;</span></span>
+<span id="cb41-9"><a href="#cb41-9"></a>}</span></code></pre></div>
+<p>Pattern matching, however, is much more powerful than a simple <code>switch</code>. We will see more examples of it when discussing data structures like <code>List</code> or <code>Option</code>.</p>
+<h3 id="exception-handling">Exception handling</h3>
+<p>Scala the same syntax as Java to throw exceptions:</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb42-1"><a href="#cb42-1"></a><span class="kw">if</span> (!ready) <span class="kw">throw</span> <span class="kw">new</span> IllegalStateException(<span class="st">&quot;server not ready&quot;</span>)</span></code></pre></div>
+<p>Scala has a utility method <code>require</code> that throws <code>IllegalArgumentException</code> when a requirement fails. It can be used to check the validity of arguments. Instead of:</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb43-1"><a href="#cb43-1"></a><span class="kw">if</span> (arg == <span class="kw">null</span>) <span class="kw">throw</span> <span class="kw">new</span> IllegalArgumentException()</span></code></pre></div>
+<p>on can write:</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb44-1"><a href="#cb44-1"></a><span class="fu">require</span>(arg != <span class="kw">null</span>)</span></code></pre></div>
+<p>or:</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb45-1"><a href="#cb45-1"></a><span class="fu">require</span>(arg != <span class="kw">null</span>, <span class="st">&quot;no null argument&quot;</span>)</span></code></pre></div>
+<p>The syntax for catching exceptions is slightly different and uses pattern matching. Java’s code:</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb46-1"><a href="#cb46-1"></a><span class="co">// This is Java</span></span>
+<span id="cb46-2"><a href="#cb46-2"></a><span class="kw">try</span> {</span>
+<span id="cb46-3"><a href="#cb46-3"></a>  server.<span class="fu">reply</span>();</span>
+<span id="cb46-4"><a href="#cb46-4"></a>} <span class="kw">catch</span> (<span class="bu">IOException</span> e) {</span>
+<span id="cb46-5"><a href="#cb46-5"></a>  log.<span class="fu">severe</span>(<span class="st">&quot;I/O error!&quot;</span>);</span>
+<span id="cb46-6"><a href="#cb46-6"></a>} <span class="kw">catch</span> (<span class="bu">IllegalStateException</span> e) {</span>
+<span id="cb46-7"><a href="#cb46-7"></a>  log.<span class="fu">warning</span>(<span class="st">&quot;server called in illegal state&quot;</span>);</span>
+<span id="cb46-8"><a href="#cb46-8"></a>} <span class="kw">finally</span> {</span>
+<span id="cb46-9"><a href="#cb46-9"></a>  server.<span class="fu">close</span>();</span>
+<span id="cb46-10"><a href="#cb46-10"></a>}</span></code></pre></div>
+<p>would be written in Scala:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb47-1"><a href="#cb47-1"></a><span class="kw">try</span> {</span>
+<span id="cb47-2"><a href="#cb47-2"></a>  server.<span class="fu">reply</span>()</span>
+<span id="cb47-3"><a href="#cb47-3"></a>} <span class="kw">catch</span> {</span>
+<span id="cb47-4"><a href="#cb47-4"></a>  <span class="kw">case</span> e: IOException =&gt;</span>
+<span id="cb47-5"><a href="#cb47-5"></a>    log.<span class="fu">severe</span>(<span class="st">&quot;I/O error!&quot;</span>)</span>
+<span id="cb47-6"><a href="#cb47-6"></a>  <span class="kw">case</span> e: IllegalStateException =&gt;</span>
+<span id="cb47-7"><a href="#cb47-7"></a>    log.<span class="fu">warning</span>(<span class="st">&quot;server called in illegal state&quot;</span>)</span>
+<span id="cb47-8"><a href="#cb47-8"></a>} <span class="kw">finally</span> {</span>
+<span id="cb47-9"><a href="#cb47-9"></a>  server.<span class="fu">close</span>()</span>
+<span id="cb47-10"><a href="#cb47-10"></a>}</span></code></pre></div>
+<p>If the exception value is not needed, the catchall pattern <code>_</code> can be used. Also, if expressions are simple enough, blocks can be omitted:</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb48-1"><a href="#cb48-1"></a><span class="kw">try</span> server.<span class="fu">reply</span>() <span class="kw">catch</span> {</span>
+<span id="cb48-2"><a href="#cb48-2"></a>  <span class="kw">case</span> _: IOException =&gt; log.<span class="fu">severe</span>(<span class="st">&quot;I/O error!&quot;</span>)</span>
+<span id="cb48-3"><a href="#cb48-3"></a>  <span class="kw">case</span> _: IllegalStateException =&gt; log.<span class="fu">warning</span>(<span class="st">&quot;server called in illegal state&quot;</span>)</span>
+<span id="cb48-4"><a href="#cb48-4"></a>} <span class="kw">finally</span> server.<span class="fu">close</span>()</span></code></pre></div>
+<p>The <code>finally</code> part works as in Java and is always executed, whether the <code>try</code> part throws an exception or not, and whether the exception thrown is handled or not. In the example above:</p>
+<ul>
+<li>if the <code>reply</code> method succeeds, the server is closed;</li>
+<li>if <code>reply</code> throws an <code>IOException</code> or an <code>IllegalStateException</code>, the exception is logged and the server is closed;</li>
+<li>if <code>reply</code> throws another type of exception, the server is closed and the exception is forwarded to the caller.</li>
+</ul>
+<p>Scala does not have Java’s notion of <em>checked exception</em>—in Java, a checked exception must be handled or declared to be thrown. Scala also does not have Java’s “try-with” syntax (<code>try(Reader r = new FileReader(...)) {...}</code>), which is used to “close” objects automatically.</p>
+<h3 id="function-definition">Function definition</h3>
+<p>Functions and methods are defined similarly in Scala:<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb49-1"><a href="#cb49-1"></a><span class="kw">def</span> <span class="fu">square</span>(x: Double): Double = x * x</span></code></pre></div>
+<p>This defines a function that calculates the square of a double value:</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb50-1"><a href="#cb50-1"></a><span class="fu">square</span>(<span class="fl">1.3</span>) <span class="co">// 1.6900000000000002</span></span></code></pre></div>
+<p>The type of arguments must be specified. The returned type can often be inferred by the compiler:<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>:</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb51-1"><a href="#cb51-1"></a><span class="kw">def</span> <span class="fu">cube</span>(x: Double) = x * x * x</span></code></pre></div>
+<p>This also defines a function from <code>Double</code> to <code>Double</code>, but the return type is not declared explicitly and is inferred by the compiler.</p>
+<p>The body of a function is an expression, which can be a block:</p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb52-1"><a href="#cb52-1"></a><span class="kw">def</span> <span class="fu">shorten</span>(msg: String, max: Int): String = {</span>
+<span id="cb52-2"><a href="#cb52-2"></a>  <span class="fu">require</span>(max &gt;= <span class="dv">3</span>)</span>
+<span id="cb52-3"><a href="#cb52-3"></a>  <span class="kw">val</span> l = msg.<span class="fu">length</span></span>
+<span id="cb52-4"><a href="#cb52-4"></a>  <span class="kw">if</span> (l &lt;= max) msg <span class="kw">else</span> msg.<span class="fu">substring</span>(<span class="dv">0</span>, max - <span class="dv">3</span>) + <span class="st">&quot;...&quot;</span></span>
+<span id="cb52-5"><a href="#cb52-5"></a>}</span>
+<span id="cb52-6"><a href="#cb52-6"></a></span>
+<span id="cb52-7"><a href="#cb52-7"></a><span class="fu">shorten</span>(<span class="st">&quot;service unavailable: exception FileNotFound&quot;</span>, <span class="dv">80</span>) <span class="co">// &quot;service unavailable: exception FileNotFound&quot;</span></span>
+<span id="cb52-8"><a href="#cb52-8"></a><span class="fu">shorten</span>(<span class="st">&quot;service unavailable: exception FileNotFound&quot;</span>, <span class="dv">30</span>) <span class="co">// &quot;service unavailable: except...&quot;</span></span>
+<span id="cb52-9"><a href="#cb52-9"></a><span class="fu">shorten</span>(<span class="st">&quot;service unavailable: exception FileNotFound&quot;</span>, <span class="dv">20</span>) <span class="co">// &quot;service unavailab...&quot;</span></span></code></pre></div>
+<p>As before, the value of the block is the last expression evaluated. Scala does have a <code>return</code> keyword, which can be used to return early from a function, for instance from within a loop:</p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb53-1"><a href="#cb53-1"></a><span class="kw">def</span> <span class="fu">isPrime</span>(number: Int): Boolean = number.<span class="fu">abs</span> <span class="kw">match</span> {</span>
+<span id="cb53-2"><a href="#cb53-2"></a>  <span class="kw">case</span> <span class="dv">1</span>               =&gt; <span class="kw">false</span></span>
+<span id="cb53-3"><a href="#cb53-3"></a>  <span class="kw">case</span> <span class="dv">2</span>               =&gt; <span class="kw">true</span></span>
+<span id="cb53-4"><a href="#cb53-4"></a>  <span class="kw">case</span> n <span class="kw">if</span> n % <span class="dv">2</span> == <span class="dv">0</span> =&gt; <span class="kw">false</span></span>
+<span id="cb53-5"><a href="#cb53-5"></a>  <span class="kw">case</span> n =&gt;</span>
+<span id="cb53-6"><a href="#cb53-6"></a>    <span class="kw">val</span> s = Math.<span class="fu">sqrt</span>(n).<span class="fu">floor</span>.<span class="fu">toInt</span></span>
+<span id="cb53-7"><a href="#cb53-7"></a>    <span class="kw">var</span> i = <span class="dv">3</span></span>
+<span id="cb53-8"><a href="#cb53-8"></a>    <span class="kw">while</span> (i &lt;= s) {</span>
+<span id="cb53-9"><a href="#cb53-9"></a>      <span class="kw">if</span> (n % i == <span class="dv">0</span>)</span>
+<span id="cb53-10"><a href="#cb53-10"></a>        <span class="kw">return</span> <span class="kw">false</span></span>
+<span id="cb53-11"><a href="#cb53-11"></a>      i += <span class="dv">2</span></span>
+<span id="cb53-12"><a href="#cb53-12"></a>    }</span>
+<span id="cb53-13"><a href="#cb53-13"></a>    <span class="kw">true</span></span>
+<span id="cb53-14"><a href="#cb53-14"></a>}</span></code></pre></div>
+<p>Note how <code>return false</code> is used to break from the loop once it is known that a number is not prime.</p>
+<p>This function could also be written without pattern matching:</p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb54-1"><a href="#cb54-1"></a><span class="kw">def</span> <span class="fu">isPrime</span>(number: Int): Boolean = {</span>
+<span id="cb54-2"><a href="#cb54-2"></a>  <span class="kw">val</span> n = number.<span class="fu">abs</span></span>
+<span id="cb54-3"><a href="#cb54-3"></a>  n == <span class="dv">2</span> || (n != <span class="dv">1</span> &amp;&amp; n % <span class="dv">2</span> != <span class="dv">0</span>) &amp;&amp; {</span>
+<span id="cb54-4"><a href="#cb54-4"></a>      <span class="kw">val</span> s = Math.<span class="fu">sqrt</span>(n).<span class="fu">floor</span>.<span class="fu">toInt</span></span>
+<span id="cb54-5"><a href="#cb54-5"></a>      <span class="kw">var</span> i = <span class="dv">3</span></span>
+<span id="cb54-6"><a href="#cb54-6"></a>      <span class="kw">while</span> (i &lt;= s) {</span>
+<span id="cb54-7"><a href="#cb54-7"></a>        <span class="kw">if</span> (n % i == <span class="dv">0</span>)</span>
+<span id="cb54-8"><a href="#cb54-8"></a>          <span class="kw">return</span> <span class="kw">false</span></span>
+<span id="cb54-9"><a href="#cb54-9"></a>        i += <span class="dv">2</span></span>
+<span id="cb54-10"><a href="#cb54-10"></a>      }</span>
+<span id="cb54-11"><a href="#cb54-11"></a>      <span class="kw">true</span></span>
+<span id="cb54-12"><a href="#cb54-12"></a>  }</span>
+<span id="cb54-13"><a href="#cb54-13"></a>}</span></code></pre></div>
+<p>Functions can be defined with no arguments and no parentheses:</p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb55-1"><a href="#cb55-1"></a><span class="kw">var</span> x = <span class="dv">10</span></span>
+<span id="cb55-2"><a href="#cb55-2"></a><span class="kw">def</span> f = x * x</span>
+<span id="cb55-3"><a href="#cb55-3"></a><span class="fu">println</span>(f)  <span class="co">// 100</span></span></code></pre></div>
+<p>Note how the last line involves a call to function <code>f</code> and thus a reevaluation of <code>x * x</code>. Contrast this with a <code>val</code> definition:</p>
+<div class="sourceCode" id="cb56"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb56-1"><a href="#cb56-1"></a><span class="kw">val</span> y = x * x</span>
+<span id="cb56-2"><a href="#cb56-2"></a><span class="fu">println</span>(y)  <span class="co">// 100</span></span>
+<span id="cb56-3"><a href="#cb56-3"></a></span>
+<span id="cb56-4"><a href="#cb56-4"></a>x = <span class="dv">5</span></span>
+<span id="cb56-5"><a href="#cb56-5"></a><span class="fu">println</span>(f)  <span class="co">// 25</span></span>
+<span id="cb56-6"><a href="#cb56-6"></a><span class="fu">println</span>(y)  <span class="co">// 100</span></span></code></pre></div>
+<p>We will revisit this topic in more detail when we discuss <em>closures</em> and when we introduce the notion of <code>lazy val</code>.</p>
+<h3 id="lists">Lists</h3>
+<p>The most fundamental datatype in Scala is <code>List</code>:</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb57-1"><a href="#cb57-1"></a><span class="kw">val</span> a: List[Int] = List(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span></code></pre></div>
+<p>The <code>List</code> type is parametrized by the type of the elements in the list, in square brackets.<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> Like everything else, lists are objects and many methods can be called on a list:</p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb58-1"><a href="#cb58-1"></a>a.<span class="fu">head</span>     <span class="co">// the number 1</span></span>
+<span id="cb58-2"><a href="#cb58-2"></a>a.<span class="fu">tail</span>     <span class="co">// the list [2, 3]</span></span>
+<span id="cb58-3"><a href="#cb58-3"></a>a.<span class="fu">length</span>   <span class="co">// 3</span></span>
+<span id="cb58-4"><a href="#cb58-4"></a>a.<span class="fu">isEmpty</span>  <span class="co">// false</span></span></code></pre></div>
+<p>While procedural languages (like C or Java) rely heavily on arrays, functional languages tend to use lists. Lists differ from arrays in two important ways:</p>
+<ul>
+<li>Lists are <em>immutable</em> (also called <em>persistent</em>). They cannot be modified.</li>
+<li>Lists are primarily accessed form the front, not the end or via indexing. In this way, they are very similar to <em>stacks</em>.</li>
+</ul>
+<p>A list, in Scala and other functional languages, is <em>recursively defined</em>: a non-empty list consists of a <em>head</em> (the first element) and a <em>tail</em> (the remaining elements, which themselves form a list). The empty list is called <code>Nil</code> and has no head or tail (<code>Nil.head</code> and <code>Nil.tail</code> throw an exception).</p>
+<p>The fundamental operator on lists is <code>::</code>, called <em>cons</em> (for historical reasons). Lists are constructed from <code>Nil</code> and <code>::</code>:</p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb59-1"><a href="#cb59-1"></a><span class="dv">1</span> :: Nil            <span class="co">// the list [1]</span></span>
+<span id="cb59-2"><a href="#cb59-2"></a><span class="dv">1</span> :: <span class="dv">2</span> :: Nil       <span class="co">// the list [1, 2]</span></span>
+<span id="cb59-3"><a href="#cb59-3"></a><span class="dv">1</span> :: <span class="dv">2</span> :: <span class="dv">3</span> :: Nil  <span class="co">// the list [1, 2, 3], same as value a above</span></span></code></pre></div>
+<p>Note that <code>::</code> does not add to a list (since lists are immutable) but creates a new list:</p>
+<div class="sourceCode" id="cb60"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb60-1"><a href="#cb60-1"></a><span class="kw">val</span> b = <span class="dv">0</span> :: a  <span class="co">// the list [0, 1, 2, 3]</span></span>
+<span id="cb60-2"><a href="#cb60-2"></a>a.<span class="fu">head</span>          <span class="co">// still 1</span></span>
+<span id="cb60-3"><a href="#cb60-3"></a>a.<span class="fu">length</span>        <span class="co">// still 3</span></span></code></pre></div>
+<p>Similarly, <code>tail</code> does not actually remove from a list:</p>
+<div class="sourceCode" id="cb61"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb61-1"><a href="#cb61-1"></a><span class="kw">val</span> c = a.<span class="fu">tail</span>  <span class="co">// the list [2, 3]</span></span>
+<span id="cb61-2"><a href="#cb61-2"></a>a.<span class="fu">head</span>          <span class="co">// still 1</span></span>
+<span id="cb61-3"><a href="#cb61-3"></a>a.<span class="fu">length</span>        <span class="co">// still 3</span></span></code></pre></div>
+<p>It is important to realize that <code>::</code> and <code>tail</code> on lists are fast operations (constant time) and <em>do not copy lists</em>. In the example above, lists <code>b</code> and <code>c</code> share some of their data with list <code>a</code> (no duplication):</p>
+<p><img src="Images/list.png" class="centered" /></p>
+<p>This is possible because lists are immutable. So, <code>::</code> quickly creates a new list <code>b</code>, which can safely be passed to a method or even another thread while the current code continues to work safely on <code>a</code>. This is especially powerful when dealing with <em>backtracking</em> algorithms: One can try something on list <code>0 :: a</code> and, if it does not work, try something else on a different list <code>-1 :: a</code>, using the fact that <code>a</code> was preserved during the computation on <code>0 :: a</code>. (Backtracking algorithms will be studied in further detail later.) Lists are a natural choice for algorithms that work on one element (the head) and recursively continue on the remaining elements (the tail).</p>
+<p>Head and tail are the fundamental components of a (non-empty) list. In Scala, list objects have many other methods, including end access and direct indexing:</p>
+<div class="sourceCode" id="cb62"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb62-1"><a href="#cb62-1"></a><span class="co">// CAUTION: O(N) operations</span></span>
+<span id="cb62-2"><a href="#cb62-2"></a><span class="fu">a</span>(<span class="dv">2</span>)                 <span class="co">// 3</span></span>
+<span id="cb62-3"><a href="#cb62-3"></a>a.<span class="fu">last</span>               <span class="co">// 3</span></span>
+<span id="cb62-4"><a href="#cb62-4"></a>a :+ <span class="dv">10</span>              <span class="co">// the list [1, 2, 3, 10]</span></span>
+<span id="cb62-5"><a href="#cb62-5"></a>List(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>) ::: a  <span class="co">// the list [0, 0, 0, 1, 2, 3]</span></span></code></pre></div>
+<p>However, these methods are <em>not constant time</em> like <code>::</code>, <code>head</code> or <code>tail</code>. They generally take time proportional to the length of the list. Code that heavily accesses lists other than from the head should consider using other datatypes for efficiency (see arrays and vectors below).</p>
+<h3 id="arrays">Arrays</h3>
+<p>Scala’s arrays are similar to Java’s arrays (and are compiled into Java arrays). In contrast to lists, arrays are mutable and support fast direct indexing:</p>
+<div class="sourceCode" id="cb63"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb63-1"><a href="#cb63-1"></a><span class="kw">val</span> a: Array[String] = Array(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>, <span class="st">&quot;C&quot;</span>)</span>
+<span id="cb63-2"><a href="#cb63-2"></a><span class="fu">a</span>(<span class="dv">0</span>)</span>
+<span id="cb63-3"><a href="#cb63-3"></a><span class="fu">a</span>(<span class="dv">1</span>) = <span class="st">&quot;b&quot;</span></span>
+<span id="cb63-4"><a href="#cb63-4"></a>a  <span class="co">// the array [&quot;A&quot;, &quot;b&quot;, &quot;C&quot;]</span></span></code></pre></div>
+<p>Arrays offer many methods, like <code>length</code> or <code>indices</code> (the range from 0 to <code>length - 1</code>). Note that indexing uses regular parentheses, not square brackets.</p>
+<p>While indexing is fast on arrays but slow on lists, other operations that are fast on list are available in a slower form on arrays:</p>
+<div class="sourceCode" id="cb64"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb64-1"><a href="#cb64-1"></a>a.<span class="fu">head</span>          <span class="co">// same as a(0)</span></span>
+<span id="cb64-2"><a href="#cb64-2"></a><span class="kw">val</span> b = a.<span class="fu">tail</span>  <span class="co">// requires a full copy!</span></span>
+<span id="cb64-3"><a href="#cb64-3"></a><span class="fu">b</span>(<span class="dv">1</span>) = <span class="st">&quot;c&quot;</span></span>
+<span id="cb64-4"><a href="#cb64-4"></a>b               <span class="co">// the array [&quot;b&quot;, &quot;c&quot;]</span></span>
+<span id="cb64-5"><a href="#cb64-5"></a>a               <span class="co">// the array [&quot;A&quot;, &quot;b&quot;, &quot;C&quot;]</span></span></code></pre></div>
+<p>Note how method <code>tail</code> needs to copy most of array <code>a</code> into a new array <code>b</code>. Because arrays are mutable, the sharing of data seen with lists is not possible. Accordingly, the <code>tail</code> method does not run in constant time like for lists <em>and</em> uses more memory because a new array has to be allocated. The same is true of other operations like <code>+:</code> (prepend):</p>
+<div class="sourceCode" id="cb65"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb65-1"><a href="#cb65-1"></a><span class="kw">val</span> c = <span class="st">&quot;X&quot;</span> +: a  <span class="co">// requires a full copy!</span></span>
+<span id="cb65-2"><a href="#cb65-2"></a><span class="fu">c</span>(<span class="dv">1</span>) = <span class="st">&quot;a&quot;</span></span>
+<span id="cb65-3"><a href="#cb65-3"></a>c                 <span class="co">// the array (&quot;X&quot;, &quot;a&quot;, &quot;b&quot;, &quot;C&quot;)</span></span>
+<span id="cb65-4"><a href="#cb65-4"></a>a                 <span class="co">// the array (&quot;A&quot;, &quot;b&quot;, &quot;C&quot;)</span></span></code></pre></div>
+<p>By contrast, <code>+:</code> on lists is equivalent to <code>::</code> and runs in constant time with no list copying.</p>
+<h3 id="vectors">Vectors</h3>
+<p>Vectors in Scala are a data structure that serves as a middleground between lists and arrays. Vectors have fast indexing (but not quite as fast as arrays) and efficient <code>tail</code>, and <code>+:</code> operations (but not quite as efficient as lists). Vectors are immutable. Method <code>updated</code> can be used to efficiently (that is, without a full copy) create modified vectors:</p>
+<div class="sourceCode" id="cb66"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb66-1"><a href="#cb66-1"></a><span class="kw">val</span> v: Vector[Char] = Vector(<span class="ch">&#39;S&#39;</span>,<span class="ch">&#39;c&#39;</span>,<span class="ch">&#39;a&#39;</span>,<span class="ch">&#39;l&#39;</span>,<span class="ch">&#39;a&#39;</span>)</span>
+<span id="cb66-2"><a href="#cb66-2"></a>v.<span class="fu">length</span>                   <span class="co">// 5</span></span>
+<span id="cb66-3"><a href="#cb66-3"></a><span class="fu">v</span>(<span class="dv">0</span>)                       <span class="co">// &#39;S&#39;</span></span>
+<span id="cb66-4"><a href="#cb66-4"></a></span>
+<span id="cb66-5"><a href="#cb66-5"></a><span class="kw">val</span> w = v.<span class="fu">updated</span>(<span class="dv">4</span>, <span class="ch">&#39;A&#39;</span>)  <span class="co">// the vector (&#39;S&#39;,&#39;c&#39;,&#39;a&#39;,&#39;l&#39;,&#39;A&#39;)</span></span>
+<span id="cb66-6"><a href="#cb66-6"></a>v                          <span class="co">// still the vector (&#39;S&#39;,&#39;c&#39;,&#39;a&#39;,&#39;l&#39;,&#39;a&#39;)</span></span></code></pre></div>
+<h3 id="tuples">Tuples</h3>
+<p>Lists, arrays and vectors are <em>homogeneous</em>: All the elements in a <code>List[A]</code> have type <code>A</code>. By contrast, <em>tuples</em> are short lists of elements of unrelated types:</p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb67-1"><a href="#cb67-1"></a><span class="kw">val</span> a = (<span class="st">&quot;foo&quot;</span>, <span class="dv">42</span>)         <span class="co">// a pair of type (String, Int)</span></span>
+<span id="cb67-2"><a href="#cb67-2"></a><span class="kw">val</span> b = (<span class="st">&quot;foo&quot;</span>, <span class="fl">3.2</span>, <span class="kw">true</span>)  <span class="co">// a triple of type (String, Double, Boolean)</span></span>
+<span id="cb67-3"><a href="#cb67-3"></a><span class="kw">val</span> c = (<span class="dv">1</span>, <span class="dv">2</span>, List(<span class="dv">1</span>, <span class="dv">2</span>))  <span class="co">// a triple of type (Int, Int, List[Int])</span></span></code></pre></div>
+<p>Tuple elements can be accessed through methods <code>_1</code>, <code>_2</code>, etc.:</p>
+<div class="sourceCode" id="cb68"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb68-1"><a href="#cb68-1"></a>a._<span class="dv">1</span>  <span class="co">// the string &quot;foo&quot;</span></span>
+<span id="cb68-2"><a href="#cb68-2"></a>b._<span class="dv">2</span>  <span class="co">// the double 3.2</span></span>
+<span id="cb68-3"><a href="#cb68-3"></a>c._<span class="dv">3</span>  <span class="co">// the list [1, 2]</span></span></code></pre></div>
+<p>More frequently, tuples are taken apart using pattern matching:</p>
+<div class="sourceCode" id="cb69"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb69-1"><a href="#cb69-1"></a><span class="kw">val</span> (x, y, z) = b  <span class="co">// x is &quot;foo&quot;, y is 3,2 and z is true</span></span>
+<span id="cb69-2"><a href="#cb69-2"></a><span class="kw">val</span> (_, _, l) = c  <span class="co">// l is the list [1, 2]</span></span>
+<span id="cb69-3"><a href="#cb69-3"></a></span>
+<span id="cb69-4"><a href="#cb69-4"></a><span class="kw">val</span> v = b <span class="kw">match</span> {</span>
+<span id="cb69-5"><a href="#cb69-5"></a>  <span class="kw">case</span> (s, _, <span class="kw">true</span>)  =&gt; s.<span class="fu">toUpperCase</span></span>
+<span id="cb69-6"><a href="#cb69-6"></a>  <span class="kw">case</span> (s, _, <span class="kw">false</span>) =&gt; s</span>
+<span id="cb69-7"><a href="#cb69-7"></a>}</span>
+<span id="cb69-8"><a href="#cb69-8"></a>v  <span class="co">// &quot;FOO&quot;</span></span></code></pre></div>
+<p>Like lists, tuples are immutable. Tuple methods create new tuples when needed:</p>
+<div class="sourceCode" id="cb70"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb70-1"><a href="#cb70-1"></a>a.<span class="fu">swap</span>              <span class="co">// the pair (42, &quot;foo&quot;)</span></span>
+<span id="cb70-2"><a href="#cb70-2"></a>a.<span class="fu">copy</span>(_<span class="dv">1</span> = <span class="st">&quot;bar&quot;</span>)  <span class="co">// the pair (&quot;bar&quot;, 42)</span></span>
+<span id="cb70-3"><a href="#cb70-3"></a>a.<span class="fu">copy</span>(_<span class="dv">2</span> = <span class="dv">51</span>)     <span class="co">// the pair (&quot;foo&quot;, 51)</span></span></code></pre></div>
+<p>Pairs and triples are common in Scala. Longer tuples can be used,<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> but the resulting in code can be hard to read, in which case it becomes preferable to use <em>case classes</em> (see below).</p>
+<h3 id="options">Options</h3>
+<p><em>Options</em> are used to represent 0 or 1 value. An option can be empty or it can contain a single value:<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a></p>
+<div class="sourceCode" id="cb71"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb71-1"><a href="#cb71-1"></a><span class="kw">val</span> a: Option[Int] = Some(<span class="dv">42</span>)  <span class="co">// an option containing number 42</span></span>
+<span id="cb71-2"><a href="#cb71-2"></a><span class="kw">val</span> b: Option[Int] = None      <span class="co">// an option that contains no number</span></span></code></pre></div>
+<p>Option are often used the return type of a function to handle cases where there is no value to return:</p>
+<div class="sourceCode" id="cb72"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb72-1"><a href="#cb72-1"></a><span class="st">&quot;42&quot;</span>.<span class="fu">toIntOption</span>         <span class="co">// Some(42)</span></span>
+<span id="cb72-2"><a href="#cb72-2"></a><span class="st">&quot;forty-two&quot;</span>.<span class="fu">toIntOption</span>  <span class="co">// None</span></span></code></pre></div>
+<p>It is preferable to the use of <code>null</code>, which is common in Java.<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a> For instance, Java’s <code>BufferedReader</code> has a method <code>readLine</code> that returns a string or <code>null</code> when reaching EOF. In Scala, a better variant could be defined to return an <code>Option[String]</code> and <code>None</code> when reaching EOF.</p>
+<p>Options define many useful methods:</p>
+<div class="sourceCode" id="cb73"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb73-1"><a href="#cb73-1"></a><span class="kw">val</span> a: Option[Int] = Some(<span class="dv">42</span>)</span>
+<span id="cb73-2"><a href="#cb73-2"></a><span class="kw">val</span> b: Option[Int] = None</span>
+<span id="cb73-3"><a href="#cb73-3"></a></span>
+<span id="cb73-4"><a href="#cb73-4"></a>a.<span class="fu">isEmpty</span>       <span class="co">// false</span></span>
+<span id="cb73-5"><a href="#cb73-5"></a>a.<span class="fu">get</span>           <span class="co">// 42</span></span>
+<span id="cb73-6"><a href="#cb73-6"></a>b.<span class="fu">get</span>           <span class="co">// throws an exception</span></span>
+<span id="cb73-7"><a href="#cb73-7"></a>a.<span class="fu">contains</span>(<span class="dv">42</span>)  <span class="co">// true</span></span>
+<span id="cb73-8"><a href="#cb73-8"></a>b.<span class="fu">contains</span>(<span class="dv">42</span>)  <span class="co">// false (no exception)</span></span>
+<span id="cb73-9"><a href="#cb73-9"></a>a.<span class="fu">getOrElse</span>(<span class="dv">0</span>)  <span class="co">// 42</span></span>
+<span id="cb73-10"><a href="#cb73-10"></a>b.<span class="fu">getOrElse</span>(<span class="dv">0</span>)  <span class="co">// 0</span></span></code></pre></div>
+<p>Like lists and tuples, options are immutable. They can also be used through pattern matching:</p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb74-1"><a href="#cb74-1"></a><span class="kw">def</span> <span class="fu">printIt</span>(it: Option[Any]): Unit = it <span class="kw">match</span> {</span>
+<span id="cb74-2"><a href="#cb74-2"></a>  <span class="kw">case</span> Some(value) =&gt; <span class="fu">println</span>(value)</span>
+<span id="cb74-3"><a href="#cb74-3"></a>  <span class="kw">case</span> None        =&gt; ()</span>
+<span id="cb74-4"><a href="#cb74-4"></a>}</span></code></pre></div>
+<h3 id="ranges">Ranges</h3>
+<p>Ranges are small structures that represent simple sequences of numbers. For instance, <code>Range(1,10)</code> is the sequence <code>1, 2, 3, 4, 5, 6, 7, 8, 9</code>. Ranges are more commonly built using methods <code>to</code> and <code>by</code>:</p>
+<div class="sourceCode" id="cb75"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb75-1"><a href="#cb75-1"></a><span class="dv">1</span> until <span class="dv">10</span>  <span class="co">// same sequence 1, 2, 3, 4, 5, 6, 7, 8, 9</span></span>
+<span id="cb75-2"><a href="#cb75-2"></a><span class="dv">1</span> to <span class="dv">9</span>  <span class="co">// same sequence 1, 2, 3, 4, 5, 6, 7, 8, 9</span></span>
+<span id="cb75-3"><a href="#cb75-3"></a><span class="dv">1</span> to <span class="dv">9</span> by <span class="dv">3</span>  <span class="co">// the sequence 1, 4, 7</span></span>
+<span id="cb75-4"><a href="#cb75-4"></a><span class="dv">10</span> to <span class="dv">1</span> by <span class="dv">-1</span>  <span class="co">// the sequence 10, 9, 8, 7, 6, 5, 4, 3, 2, 1</span></span></code></pre></div>
+<p>One of the main uses of ranges is in <code>for</code> loops, discussed below:</p>
+<div class="sourceCode" id="cb76"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb76-1"><a href="#cb76-1"></a><span class="kw">for</span> (i &lt;- <span class="dv">1</span> to <span class="dv">10</span>) <span class="fu">println</span>(i)  <span class="co">// prints the sequence 1, 2, 3, 4, 5, 6, 7, 8, 9, 10</span></span></code></pre></div>
+<p>Ranges are immutable.</p>
+<h3 id="maps-and-sets">Maps and sets</h3>
+<p>Maps and sets exist in two flavors in Scala: mutable and immutable. The mutable variants are similar to what is found in Java. By default, <code>Map</code> and <code>Set</code> refer to the immutable variants. Importing <code>scala.collection.mutable.{Map,Set}</code> brings in the mutable variants.</p>
+<div class="sourceCode" id="cb77"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb77-1"><a href="#cb77-1"></a><span class="kw">val</span> a: Set[String] = Set(<span class="st">&quot;Java&quot;</span>, <span class="st">&quot;C&quot;</span>, <span class="st">&quot;C++&quot;</span>, <span class="st">&quot;Python&quot;</span>)</span>
+<span id="cb77-2"><a href="#cb77-2"></a>a.<span class="fu">size</span>              <span class="co">// 4</span></span>
+<span id="cb77-3"><a href="#cb77-3"></a>a.<span class="fu">contains</span>(<span class="st">&quot;Java&quot;</span>)  <span class="co">// true</span></span></code></pre></div>
+<p>Set <code>a</code> is immutable. Adding to it produces a new set:</p>
+<div class="sourceCode" id="cb78"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb78-1"><a href="#cb78-1"></a><span class="kw">val</span> b: Set[String] = a + <span class="st">&quot;Scala&quot;</span></span>
+<span id="cb78-2"><a href="#cb78-2"></a>b.<span class="fu">size</span>               <span class="co">// 5</span></span>
+<span id="cb78-3"><a href="#cb78-3"></a>b.<span class="fu">contains</span>(<span class="st">&quot;Scala&quot;</span>)  <span class="co">// true</span></span>
+<span id="cb78-4"><a href="#cb78-4"></a>a.<span class="fu">size</span>               <span class="co">// still 4</span></span>
+<span id="cb78-5"><a href="#cb78-5"></a>a.<span class="fu">contains</span>(<span class="st">&quot;Java&quot;</span>)   <span class="co">// still false</span></span></code></pre></div>
+<p>Sets implement fast lookup (method <code>contains</code>) and several standard set operations (often called in infix notation):</p>
+<div class="sourceCode" id="cb79"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb79-1"><a href="#cb79-1"></a>a contains <span class="st">&quot;C&quot;</span>              <span class="co">// true</span></span>
+<span id="cb79-2"><a href="#cb79-2"></a>a subsetOf b                <span class="co">// true</span></span>
+<span id="cb79-3"><a href="#cb79-3"></a>b diff a                    <span class="co">// Set(&quot;Scala&quot;)</span></span>
+<span id="cb79-4"><a href="#cb79-4"></a>a.<span class="fu">union</span>(Set(<span class="st">&quot;Scala&quot;</span>)) == b  <span class="co">// true</span></span></code></pre></div>
+<p>Mutable sets are closer to Java’s sets:</p>
+<div class="sourceCode" id="cb80"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb80-1"><a href="#cb80-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">mutable</span>.<span class="fu">Set</span></span>
+<span id="cb80-2"><a href="#cb80-2"></a></span>
+<span id="cb80-3"><a href="#cb80-3"></a><span class="kw">val</span> ma: Set[String] = Set(<span class="st">&quot;Java&quot;</span>, <span class="st">&quot;C&quot;</span>, <span class="st">&quot;C++&quot;</span>, <span class="st">&quot;Python&quot;</span>)  <span class="co">// a mutable set</span></span>
+<span id="cb80-4"><a href="#cb80-4"></a></span>
+<span id="cb80-5"><a href="#cb80-5"></a>ma += <span class="st">&quot;Scala&quot;</span>         <span class="co">// modifies set ma</span></span>
+<span id="cb80-6"><a href="#cb80-6"></a>ma.<span class="fu">size</span>               <span class="co">// 5</span></span>
+<span id="cb80-7"><a href="#cb80-7"></a>ma.<span class="fu">contains</span>(<span class="st">&quot;Scala&quot;</span>)  <span class="co">// true</span></span>
+<span id="cb80-8"><a href="#cb80-8"></a></span>
+<span id="cb80-9"><a href="#cb80-9"></a>ma.<span class="fu">toSet</span>              <span class="co">// an immutable set {&quot;Java&quot;, &quot;Scala&quot;, C&quot;, &quot;C++&quot;, &quot;Python&quot;}</span></span></code></pre></div>
+<p>Elements can be added using method <code>+=</code> (which returns the set) or method <code>add</code> (which returns a Boolean, like in Java). Similarly, elements are removed using <code>-=</code> or <code>remove</code>. Method <code>toSet</code> always produces an <em>immutable</em> set.</p>
+<p>The case of maps is very similar, with maps immutable by default:</p>
+<div class="sourceCode" id="cb81"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb81-1"><a href="#cb81-1"></a><span class="kw">val</span> a: Map[Int,String] = Map(<span class="dv">735</span> -&gt; <span class="st">&quot;Java&quot;</span>, <span class="dv">520</span> -&gt; <span class="st">&quot;C&quot;</span>, <span class="dv">819</span> -&gt; <span class="st">&quot;C++&quot;</span>, <span class="dv">417</span> -&gt; <span class="st">&quot;Python&quot;</span>)</span>
+<span id="cb81-2"><a href="#cb81-2"></a>a.<span class="fu">size</span>           <span class="co">// 4</span></span>
+<span id="cb81-3"><a href="#cb81-3"></a>a.<span class="fu">contains</span>(<span class="dv">520</span>)  <span class="co">// true</span></span>
+<span id="cb81-4"><a href="#cb81-4"></a>a.<span class="fu">contains</span>(<span class="dv">671</span>)  <span class="co">// false</span></span></code></pre></div>
+<p>Maps implement fast lookup, which takes several forms:</p>
+<div class="sourceCode" id="cb82"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb82-1"><a href="#cb82-1"></a><span class="fu">a</span>(<span class="dv">520</span>)                     <span class="co">// &quot;C&quot;</span></span>
+<span id="cb82-2"><a href="#cb82-2"></a><span class="fu">a</span>(<span class="dv">671</span>)                     <span class="co">// throws a NoSuchElementException</span></span>
+<span id="cb82-3"><a href="#cb82-3"></a>a.<span class="fu">get</span>(<span class="dv">520</span>)                 <span class="co">// Some(&quot;C&quot;)</span></span>
+<span id="cb82-4"><a href="#cb82-4"></a>a.<span class="fu">get</span>(<span class="dv">671</span>)                 <span class="co">// None</span></span>
+<span id="cb82-5"><a href="#cb82-5"></a>a.<span class="fu">getOrElse</span>(<span class="dv">671</span>, <span class="st">&quot;Scala&quot;</span>)  <span class="co">// &quot;Scala&quot;</span></span></code></pre></div>
+<p>Direct lookup returns the value associated with a key or throws an exception if the key in not in the map. By contrast, method <code>get</code> produces an option, using <code>None</code> when a key is not found. Method <code>getOrElse</code> can also be used to provide a default value when a key is not found in the map.</p>
+<p>Keys are added and removed using methods <code>+</code> and <code>-</code>, respectively:</p>
+<div class="sourceCode" id="cb83"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb83-1"><a href="#cb83-1"></a><span class="kw">val</span> b: Map[Int,String] = a + (<span class="dv">671</span> -&gt; <span class="st">&quot;SML&quot;</span>)</span>
+<span id="cb83-2"><a href="#cb83-2"></a>b.<span class="fu">size</span>           <span class="co">// 5</span></span>
+<span id="cb83-3"><a href="#cb83-3"></a><span class="fu">b</span>(<span class="dv">671</span>)           <span class="co">// &quot;SML&quot;</span></span>
+<span id="cb83-4"><a href="#cb83-4"></a>a.<span class="fu">size</span>           <span class="co">// still 4</span></span>
+<span id="cb83-5"><a href="#cb83-5"></a>a.<span class="fu">contains</span>(<span class="dv">671</span>)  <span class="co">// still false</span></span>
+<span id="cb83-6"><a href="#cb83-6"></a>b - <span class="dv">671</span> == a     <span class="co">// true</span></span></code></pre></div>
+<p>Note that <code>+</code> takes a pair key <code>-&gt;</code> value but <code>-</code> only takes a key as its argument.</p>
+<p>Mutable maps behave like Java maps:</p>
+<div class="sourceCode" id="cb84"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb84-1"><a href="#cb84-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">mutable</span>.<span class="fu">Map</span></span>
+<span id="cb84-2"><a href="#cb84-2"></a></span>
+<span id="cb84-3"><a href="#cb84-3"></a><span class="kw">val</span> ma = Map(<span class="dv">735</span> -&gt; <span class="st">&quot;Java&quot;</span>, <span class="dv">520</span> -&gt; <span class="st">&quot;C&quot;</span>, <span class="dv">819</span> -&gt; <span class="st">&quot;C++&quot;</span>, <span class="dv">417</span> -&gt; <span class="st">&quot;Python&quot;</span>)</span>
+<span id="cb84-4"><a href="#cb84-4"></a>ma += (<span class="dv">671</span> -&gt; <span class="st">&quot;SML&quot;</span>)  <span class="co">// modifies map ma</span></span>
+<span id="cb84-5"><a href="#cb84-5"></a>ma.<span class="fu">size</span>               <span class="co">// 5</span></span>
+<span id="cb84-6"><a href="#cb84-6"></a><span class="fu">ma</span>(<span class="dv">671</span>)               <span class="co">// &quot;SML&quot;</span></span>
+<span id="cb84-7"><a href="#cb84-7"></a></span>
+<span id="cb84-8"><a href="#cb84-8"></a><span class="fu">ma</span>(<span class="dv">671</span>) = <span class="st">&quot;Scala&quot;</span>     <span class="co">// another way to modify the map</span></span>
+<span id="cb84-9"><a href="#cb84-9"></a><span class="fu">ma</span>(<span class="dv">671</span>)               <span class="co">// &quot;Scala&quot;           </span></span>
+<span id="cb84-10"><a href="#cb84-10"></a></span>
+<span id="cb84-11"><a href="#cb84-11"></a>ma.<span class="fu">toMap</span>              <span class="co">// an immutable map</span></span></code></pre></div>
+<p>Mutable maps can be modified as <code>map += (key -&gt; value)</code> (which returns the map), or <code>map(key) = value</code> (which returns <em>unit</em>) or <code>map.put(key, value)</code> (which returns the previous value associated with the key, as an option). Method <code>toMap</code> always produces an <em>immutable</em> map.</p>
+<p>Because mutable and immutable sets/maps have the same name, code that uses both flavors can become quite confusing. It’s usually considered best practice to import mutable variants under a different name. This is often done either by importing the <code>mutable</code> package only and using a fuller name for data structures, e.g.:</p>
+<div class="sourceCode" id="cb85"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb85-1"><a href="#cb85-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">mutable</span></span>
+<span id="cb85-2"><a href="#cb85-2"></a></span>
+<span id="cb85-3"><a href="#cb85-3"></a><span class="kw">val</span> m = mutable.<span class="fu">Set</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span></code></pre></div>
+<p>or by renaming the type, e.g.:</p>
+<div class="sourceCode" id="cb86"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb86-1"><a href="#cb86-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">mutable</span>.{ Set =&gt; MutableSet }</span>
+<span id="cb86-2"><a href="#cb86-2"></a></span>
+<span id="cb86-3"><a href="#cb86-3"></a><span class="kw">val</span> m = <span class="fu">MutableSet</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span></code></pre></div>
+<h3 id="for-loops"><code>for</code> loops</h3>
+<p>In its simplest form, a <code>for</code> loop can be used to iterate over a collection. For instance, to print all the elements of a set:</p>
+<div class="sourceCode" id="cb87"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb87-1"><a href="#cb87-1"></a><span class="kw">val</span> s = Set(...)</span>
+<span id="cb87-2"><a href="#cb87-2"></a><span class="kw">for</span> (elem &lt;- s)</span>
+<span id="cb87-3"><a href="#cb87-3"></a>  <span class="fu">println</span>(elem)</span></code></pre></div>
+<p>or all the pairs in a map:</p>
+<div class="sourceCode" id="cb88"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb88-1"><a href="#cb88-1"></a><span class="kw">for</span> ((key, value) &lt;- m)</span>
+<span id="cb88-2"><a href="#cb88-2"></a>  <span class="fu">println</span>(<span class="st">&quot;key is &quot;</span> + key + <span class="st">&quot; and value is &quot;</span> + value)</span></code></pre></div>
+<p>The body of the loop is an expression (with side effects), which can be a code block:</p>
+<div class="sourceCode" id="cb89"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb89-1"><a href="#cb89-1"></a><span class="kw">for</span> (elem &lt;- s) {</span>
+<span id="cb89-2"><a href="#cb89-2"></a>  <span class="kw">val</span> m = <span class="st">&quot;elem: &quot;</span> + elem</span>
+<span id="cb89-3"><a href="#cb89-3"></a>  <span class="fu">println</span>(m)</span>
+<span id="cb89-4"><a href="#cb89-4"></a>}</span></code></pre></div>
+<p>In addition to actual collections, the <code>Range</code> type can also be used as a target of <code>for</code> to simulate the <code>for</code> loop of Java/C:</p>
+<div class="sourceCode" id="cb90"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb90-1"><a href="#cb90-1"></a><span class="kw">for</span> (i &lt;- <span class="dv">1</span> to <span class="dv">10</span>) ...</span>
+<span id="cb90-2"><a href="#cb90-2"></a><span class="kw">for</span> (i &lt;- <span class="dv">10</span> to <span class="dv">1</span> by <span class="dv">-2</span>) ...</span></code></pre></div>
+<p>More complex <code>for</code> loops can be written by using <em>multiple generators</em> (nested loops), <em>filtering</em> and the declaration of <em>intermediate variables</em>:</p>
+<div class="sourceCode" id="cb91"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb91-1"><a href="#cb91-1"></a><span class="kw">for</span> {</span>
+<span id="cb91-2"><a href="#cb91-2"></a>  file &lt;- dir</span>
+<span id="cb91-3"><a href="#cb91-3"></a>  <span class="kw">if</span> file.<span class="fu">getName</span>.<span class="fu">endsWith</span>(<span class="st">&quot;.scala&quot;</span>)</span>
+<span id="cb91-4"><a href="#cb91-4"></a>  line &lt;- Source.<span class="fu">fromFile</span>(file).<span class="fu">getLines</span>()</span>
+<span id="cb91-5"><a href="#cb91-5"></a>  trimmed = line.<span class="fu">trim</span></span>
+<span id="cb91-6"><a href="#cb91-6"></a>  <span class="kw">if</span> trimmed.<span class="fu">matches</span>(pattern)</span>
+<span id="cb91-7"><a href="#cb91-7"></a>} <span class="fu">println</span>(<span class="st">&quot;match in &quot;</span> + file + <span class="st">&quot;: &quot;</span> + trimmed)</span></code></pre></div>
+<p>This loop iterates over all the Scala files in <code>dir</code> and over all the lines of these files that, after having been trimmed, match a given pattern.</p>
+<h3 id="for-comprehensions"><code>for</code> comprehensions</h3>
+<p>When the <code>for</code> keyword is combined with the <code>yield</code>, loops produce values instead of executing code for its side effects:</p>
+<div class="sourceCode" id="cb92"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb92-1"><a href="#cb92-1"></a><span class="kw">val</span> x1 = List(<span class="st">&quot;Java&quot;</span>, <span class="st">&quot;Scala&quot;</span>, <span class="st">&quot;C&quot;</span>)</span>
+<span id="cb92-2"><a href="#cb92-2"></a><span class="kw">val</span> x2 = <span class="kw">for</span> (s &lt;- x1) <span class="kw">yield</span> s.<span class="fu">toUpperCase</span></span></code></pre></div>
+<p>This produces the list <code>("JAVA", "SCALA", "C")</code> in <code>x2</code>. Of course, the <code>for/yield</code> construct can also use multiple generators, filtering and variable definition. The <code>for/yield</code> construct is often called <em>for-comprehension</em>.</p>
+<p>For-comprehensions can be used to perform powerful transformations of collections:</p>
+<div class="sourceCode" id="cb93"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb93-1"><a href="#cb93-1"></a><span class="kw">for</span> (x &lt;- nums <span class="kw">if</span> x != <span class="dv">0</span>) <span class="kw">yield</span> <span class="kw">if</span> (x &gt; <span class="dv">0</span>) x <span class="kw">else</span> x * x</span></code></pre></div>
+<p>Given a collection of numbers <code>nums</code>, this code produces a new collection in which all the zeros have been removed and all the negative numbers have been replaced by their squares (positive numbers are left unchanged).</p>
+<p>One powerful feature of for-comprehensions in Scala is that they tend to produce values of the same type as the values they iterate on. In the example above, <code>x2</code> is a list because <code>x1</code> is a list, but if <code>x1</code> had been an array, <code>x2</code> would be an array. This remains true of other types that are not true collections but support the <code>for/yield</code> syntax, like iterators, options or futures (more on these later):</p>
+<div class="sourceCode" id="cb94"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb94-1"><a href="#cb94-1"></a><span class="kw">def</span> i: Iterator[String] = ...</span>
+<span id="cb94-2"><a href="#cb94-2"></a><span class="kw">val</span> j = <span class="kw">for</span> (str &lt;- i) <span class="kw">yield</span> str.<span class="fu">toUpperCase</span></span></code></pre></div>
+<p>Here, <code>j</code> has type <code>Itrator[String]</code> and is created without iterating on <code>i</code> and without converting any string to uppercase. When <code>j.next()</code> is called, <code>i.next()</code> will be called and the resulting string converted to uppercase.</p>
+<p>Sometimes, a for-comprehension has to produce a value of a type other than the type it iterates on. For instance, if <code>s</code> is a string:</p>
+<div class="sourceCode" id="cb95"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb95-1"><a href="#cb95-1"></a><span class="kw">for</span> (c &lt;- s) <span class="kw">yield</span> <span class="kw">if</span> (c == <span class="ch">&#39;a&#39;</span>) <span class="ch">&#39;.&#39;</span> <span class="kw">else</span> c</span></code></pre></div>
+<p>produces a string in which the occurrences of letter <code>a</code> have been replaced with dots. This is possible because each character is transformed into a character and a sequence of characters is a string. But if each character is transformed into a type other than character, they stop forming a string and a different type needs to be returned:</p>
+<div class="sourceCode" id="cb96"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb96-1"><a href="#cb96-1"></a><span class="kw">for</span> (c &lt;- s) <span class="kw">yield</span> <span class="st">&quot;(&quot;</span> + c + <span class="st">&quot;)&quot;</span>  <span class="co">// has type Seq[String]</span></span></code></pre></div>
+<p>In this case, each character becomes a string and the for-comprehension produces a sequence of strings, not a string.</p>
+<p>Other programming languages have for-comprehensions, often in a weaker form. For instance, Python has a notion of <em>list-comprehension</em>. If <code>nums</code> is a list of numbers, Scala’s</p>
+<div class="sourceCode" id="cb97"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb97-1"><a href="#cb97-1"></a><span class="kw">for</span> (x &lt;- nums <span class="kw">if</span> x &gt; <span class="dv">0</span>) <span class="kw">yield</span> x * x</span></code></pre></div>
+<p>would be written in Python:</p>
+<div class="sourceCode" id="cb98"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb98-1"><a href="#cb98-1"></a><span class="co"># this is Python</span></span>
+<span id="cb98-2"><a href="#cb98-2"></a>[x <span class="op">*</span> x <span class="cf">for</span> x <span class="kw">in</span> nums <span class="cf">if</span> x <span class="op">&gt;</span> <span class="dv">0</span>]</span></code></pre></div>
+<p>As in Scala, Python’s list-comprehensions can handle multiple generators. If <code>words</code> is a list of strings, then:</p>
+<div class="sourceCode" id="cb99"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb99-1"><a href="#cb99-1"></a><span class="co"># this is Python</span></span>
+<span id="cb99-2"><a href="#cb99-2"></a>[char <span class="cf">for</span> word <span class="kw">in</span> words <span class="cf">for</span> char <span class="kw">in</span> word]</span></code></pre></div>
+<p>is a list of all the characters from the words. The Scala code for the same task would be:</p>
+<div class="sourceCode" id="cb100"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb100-1"><a href="#cb100-1"></a><span class="kw">for</span> (word &lt;- words; <span class="dt">char</span> &lt;- word) <span class="kw">yield</span> <span class="dt">char</span></span></code></pre></div>
+<p>The power of for-comprehensions in Scala comes from the fact that they are actually syntactic sugar for code that uses higher-order functions <code>map</code>, <code>flatMap</code> and <code>withFilter</code>. For-comprehensions are revisited in detail later when <em>monads</em> are discussed, after these higher-order functions have been covered.</p>
+<h3 id="strings">Strings</h3>
+<h4 id="java.lang.string-scala.collection.immutable.stringops"><code>java.lang.String</code> + <code>scala.collection.immutable.StringOps</code></h4>
+<p>On the JVM, Scala’s string values are exactly Java’s strings. Indeed, object <code>Predef</code> contains a type aliasing:</p>
+<div class="sourceCode" id="cb101"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb101-1"><a href="#cb101-1"></a><span class="kw">type</span> String = java.<span class="fu">lang</span>.<span class="fu">String</span></span></code></pre></div>
+<p>This means in particular that Scala’s strings are <em>immutable</em>, like Java’s. They also have all the methods available in Java: <code>endsWith</code>, <code>split</code>, <code>toUpperCase</code>, etc.</p>
+<p>However, object <code>Predef</code> also contains an implicit conversion from <code>String</code> to <code>StringOps</code>, making all the methods defined in <code>StringOps</code> available on <code>String</code>: <code>head</code>, <code>capitalize</code>, <code>find</code>, <code>forall</code>, <code>last</code>, <code>nonEmpty</code>, etc. This include a method <code>+</code> so Scala strings can be concatenated like Java strings.</p>
+<h4 id="literals">Literals</h4>
+<p>String literals and enclosed in double-quotes, like in Java. Single-quotes are used for characters. Scala also has support for <em>raw strings</em>, using triple double-quotes (like in Python and coming to Java 13):</p>
+<div class="sourceCode" id="cb102"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb102-1"><a href="#cb102-1"></a><span class="kw">val</span> s1 = <span class="st">&quot;name is:</span><span class="ch">\n\&quot;</span><span class="st">Joe</span><span class="ch">\&quot;</span><span class="st">!&quot;</span></span>
+<span id="cb102-2"><a href="#cb102-2"></a><span class="kw">val</span> s2 = <span class="st">&quot;&quot;&quot;name is:</span></span>
+<span id="cb102-3"><a href="#cb102-3"></a><span class="st">&quot;Joe&quot;</span>!<span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb102-4"><a href="#cb102-4"></a>s1 == s2 <span class="co">// true</span></span></code></pre></div>
+<p>Raw strings readability can be improved by using methods <code>trim</code> and <code>stripMargin</code>:</p>
+<div class="sourceCode" id="cb103"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb103-1"><a href="#cb103-1"></a><span class="kw">val</span> s3 =</span>
+<span id="cb103-2"><a href="#cb103-2"></a>  <span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb103-3"><a href="#cb103-3"></a>    |name is:</span>
+<span id="cb103-4"><a href="#cb103-4"></a>    |<span class="st">&quot;Joe&quot;</span>!</span>
+<span id="cb103-5"><a href="#cb103-5"></a>  <span class="st">&quot;&quot;&quot;.trim.stripMargin</span></span></code></pre></div>
+<p>This is still the exact same string as before.</p>
+<p>Method <code>stripMargin</code> takes an optional argument, allowing a character other than <code>|</code> to be used for the margin:</p>
+<div class="sourceCode" id="cb104"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb104-1"><a href="#cb104-1"></a><span class="kw">val</span> s4 =</span>
+<span id="cb104-2"><a href="#cb104-2"></a>  <span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb104-3"><a href="#cb104-3"></a>    &gt;name is:</span>
+<span id="cb104-4"><a href="#cb104-4"></a>    &gt;<span class="st">&quot;Joe&quot;</span>!</span>
+<span id="cb104-5"><a href="#cb104-5"></a>  <span class="st">&quot;&quot;&quot;.trim.stripMargin(&#39;&gt;&#39;)</span></span></code></pre></div>
+<h4 id="string-interpolation">String interpolation</h4>
+<p>Scala supports <em>string interpolation</em>, a feature commonly found in scripting languages:</p>
+<div class="sourceCode" id="cb105"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb105-1"><a href="#cb105-1"></a><span class="kw">val</span> v = <span class="st">&quot;foo&quot;</span></span>
+<span id="cb105-2"><a href="#cb105-2"></a>s<span class="st">&quot;v = $v&quot;</span> <span class="co">// the string &quot;v = foo&quot;</span></span></code></pre></div>
+<p>A similar mechanism exists in many scripting languages, e.g., in <em>bash</em>: <code>"v = $v"</code>. Python 3.6 introduced a mechanism similar to Scala’s:</p>
+<div class="sourceCode" id="cb106"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb106-1"><a href="#cb106-1"></a><span class="co"># this is Python</span></span>
+<span id="cb106-2"><a href="#cb106-2"></a>v <span class="op">=</span> <span class="st">&#39;foo&#39;</span></span>
+<span id="cb106-3"><a href="#cb106-3"></a><span class="ss">f&#39;v = </span><span class="sc">{v}</span><span class="ss">&#39;</span> <span class="co"># the string &#39;v = foo&#39;</span></span></code></pre></div>
+<p>Java uses a different approach based on placeholders:</p>
+<div class="sourceCode" id="cb107"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb107-1"><a href="#cb107-1"></a><span class="bu">String</span><span class="fu">.format</span>(<span class="st">&quot;v = </span><span class="sc">%s</span><span class="st">&quot;</span>, v) <span class="co">// this is Java</span></span></code></pre></div>
+<p>This is also available in Python, in a slightly different form:</p>
+<div class="sourceCode" id="cb108"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb108-1"><a href="#cb108-1"></a><span class="co">&quot;v = {}&quot;</span>.<span class="bu">format</span>(v) <span class="co"># this is Python</span></span></code></pre></div>
+<p>In addition to simple variable names, expressions can be used between curly braces:</p>
+<div class="sourceCode" id="cb109"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb109-1"><a href="#cb109-1"></a>s<span class="st">&quot;v.length = ${v.length}&quot;</span></span>
+<span id="cb109-2"><a href="#cb109-2"></a>s<span class="st">&quot;x+1 = ${x+1}&quot;</span></span></code></pre></div>
+<p>The <code>s</code> in front of string literals is not hardcoded in the language syntax. Other operators can be defined for specific purposes (using advanced techniques described later). In addition to <code>s</code>, Scala predefines an operator <code>f</code> for floating point values:</p>
+<div class="sourceCode" id="cb110"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb110-1"><a href="#cb110-1"></a>s<span class="st">&quot;22/7 \u2248 ${22.0 / 7.0}&quot;</span>      <span class="co">// the string &quot;22/7 ≈ 3.142857142857143&quot; </span></span>
+<span id="cb110-2"><a href="#cb110-2"></a>f<span class="st">&quot;22/7 \u2248 ${22.0 / 7.0}%.3f&quot;</span>  <span class="co">// the string &quot;22/7 ≈ 3.143&quot;</span></span></code></pre></div>
+<p>The syntax used by the <code>f</code> operator is that of <code>java.util.Formatter</code>. In Java, the second string would be defined as:</p>
+<div class="sourceCode" id="cb111"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb111-1"><a href="#cb111-1"></a><span class="co">// this is Java</span></span>
+<span id="cb111-2"><a href="#cb111-2"></a><span class="bu">String</span><span class="fu">.format</span>(<span class="st">&quot;22/7 \u2248 </span><span class="sc">%.3f</span><span class="st">&quot;</span>, <span class="fl">22.</span><span class="dv">0</span> / <span class="fl">7.</span><span class="dv">0</span>)</span></code></pre></div>
+<p>One way in which Scala’s string interpolation is superior to Java’s formatting is that type errors are caught at <em>compile-time</em> instead of runtime.<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> If variable <code>v</code> is a string, Scala’s <code>s"v=$v%.2f"</code> is rejected at compile-time; Java’s <code>"v=%.2f".format(v)</code> fails instead at runtime.</p>
+<p>Finally, note that string interpolation also works on raw strings:</p>
+<div class="sourceCode" id="cb112"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb112-1"><a href="#cb112-1"></a><span class="kw">val</span> v = <span class="st">&quot;foo&quot;</span></span>
+<span id="cb112-2"><a href="#cb112-2"></a>s<span class="st">&quot;&quot;&quot;v = &quot;</span>$v<span class="st">&quot;&quot;&quot;&quot;</span></span></code></pre></div>
+<h4 id="tostring-and-mkstring-methods"><code>toString</code> and <code>mkString</code> methods</h4>
+<p>Every Scala value has a <code>toString</code> method.<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> This method is often <em>overridden</em> in user-defined classes to create custom string representations.</p>
+<p>Furthermore, all the collections offer variants of a <code>mkString</code> method:</p>
+<div class="sourceCode" id="cb113"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb113-1"><a href="#cb113-1"></a><span class="kw">val</span> l = List(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb113-2"><a href="#cb113-2"></a>l.<span class="fu">mkString</span>                    <span class="co">// the string &quot;123&quot;</span></span>
+<span id="cb113-3"><a href="#cb113-3"></a>l.<span class="fu">mkString</span>(<span class="st">&quot;.&quot;</span>)               <span class="co">// the string &quot;1.2.3&quot;</span></span>
+<span id="cb113-4"><a href="#cb113-4"></a>l.<span class="fu">mkString</span>(<span class="st">&quot;[&quot;</span>, <span class="st">&quot;, &quot;</span>, <span class="st">&quot;]&quot;</span>)    <span class="co">// the string &quot;[1, 2, 3]&quot;</span></span>
+<span id="cb113-5"><a href="#cb113-5"></a></span>
+<span id="cb113-6"><a href="#cb113-6"></a><span class="kw">val</span> s = Set(<span class="ch">&#39;A&#39;</span>, <span class="ch">&#39;B&#39;</span>, <span class="ch">&#39;C&#39;</span>)</span>
+<span id="cb113-7"><a href="#cb113-7"></a>s.<span class="fu">mkString</span>(<span class="st">&quot;{ &quot;</span>, <span class="st">&quot; &quot;</span>, <span class="st">&quot; }&quot;</span>)  <span class="co">// the string &quot;{ A B C }&quot;</span></span></code></pre></div>
+<h3 id="simple-io">Simple I/O</h3>
+<h4 id="using-scala.io">Using <code>scala.io</code></h4>
+<p>Scala’s <code>Source</code> type can be used to read text from various sources, like files or URLs:</p>
+<div class="sourceCode" id="cb114"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb114-1"><a href="#cb114-1"></a><span class="kw">val</span> a = Source.<span class="fu">fromURL</span>(<span class="st">&quot;https://httpbin.org/html&quot;</span>)</span>
+<span id="cb114-2"><a href="#cb114-2"></a><span class="kw">for</span> (line &lt;- a.<span class="fu">getLines</span>())</span>
+<span id="cb114-3"><a href="#cb114-3"></a>  <span class="fu">println</span>(line)</span></code></pre></div>
+<p>This prints the contents of a web page, as a collection of lines. The <code>Source</code> object have several <code>from...</code> methods to read from URLs, files, strings, bytes, streams, etc. It is important to keep in mind that <code>Source</code> is in fact an iterator of characters and that many of its methods <em>consume</em> characters from the source and modify its state. For instance, the following can seem confusing as first:</p>
+<div class="sourceCode" id="cb115"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb115-1"><a href="#cb115-1"></a><span class="kw">val</span> page = Source.<span class="fu">fromURL</span>(<span class="st">&quot;https://httpbin.org/html&quot;</span>)</span>
+<span id="cb115-2"><a href="#cb115-2"></a><span class="kw">val</span> count = page.<span class="fu">size</span>  <span class="co">// 3739</span></span>
+<span id="cb115-3"><a href="#cb115-3"></a>page.<span class="fu">isEmpty</span>           <span class="co">// true!</span></span>
+<span id="cb115-4"><a href="#cb115-4"></a>page.<span class="fu">next</span>()            <span class="co">// throws NoSuchElementException!</span></span></code></pre></div>
+<p>The <code>size</code> method reports that the source has 3739 characters. However, a subsequent call to <code>isEmpty</code> returns true and a call to <code>next</code> throws an exception. The reason is that the <code>size</code> method <em>consumed all the characters by counting them</em>!</p>
+<p>One way to safely use a source is to iterate over its lines (as above) or over its characters, then discard it. If data cannot be processed in such a single pass, the contents of a source can easily be dumped into a data structure: <code>a.getLines().toList</code> would return a list of strings containing all the source lines; or <code>a.mkString</code> would put the entire source in a single string.</p>
+<h4 id="using-java.io">Using <code>java.io</code></h4>
+<p>Scala has no support for reading binary files or for writing (text or binary) files. These tasks can be achieved by Java code, called from Scala:</p>
+<div class="sourceCode" id="cb116"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb116-1"><a href="#cb116-1"></a><span class="kw">import</span> java.<span class="fu">io</span>.<span class="fu">PrintWriter</span></span>
+<span id="cb116-2"><a href="#cb116-2"></a><span class="kw">val</span> out = <span class="kw">new</span> PrintWriter(filename)</span>
+<span id="cb116-3"><a href="#cb116-3"></a>out<span class="fu">.printf</span>(<span class="st">&quot;</span><span class="ch">%d</span><span class="st"> + </span><span class="ch">%d</span><span class="st"> = </span><span class="ch">%d%n</span><span class="st">&quot;</span>, 2, 3, 2+3)</span>
+<span id="cb116-4"><a href="#cb116-4"></a>out.<span class="fu">close</span>()</span></code></pre></div>
+<p>Reading and writing of binary files is achieved through <code>FileInputStream</code> and <code>FileOutputStream</code>, respectively:</p>
+<div class="sourceCode" id="cb117"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb117-1"><a href="#cb117-1"></a><span class="kw">import</span> java.<span class="fu">io</span>.{FileInputStream, FileOutputStream}</span>
+<span id="cb117-2"><a href="#cb117-2"></a><span class="kw">val</span> out = <span class="kw">new</span> FileOutputStream(filename)</span>
+<span id="cb117-3"><a href="#cb117-3"></a><span class="kw">val</span> bytes = Array[Byte](<span class="bn">0x66</span>, <span class="bn">0x6F</span>, <span class="bn">0x6F</span>, <span class="bn">0x0A</span>)</span>
+<span id="cb117-4"><a href="#cb117-4"></a>out.<span class="fu">write</span>(bytes)</span>
+<span id="cb117-5"><a href="#cb117-5"></a>out.<span class="fu">close</span>()</span>
+<span id="cb117-6"><a href="#cb117-6"></a></span>
+<span id="cb117-7"><a href="#cb117-7"></a><span class="kw">val</span> in = <span class="kw">new</span> FileInputStream(filename)</span>
+<span id="cb117-8"><a href="#cb117-8"></a>in.<span class="fu">read</span>() <span class="co">// 0x66</span></span>
+<span id="cb117-9"><a href="#cb117-9"></a>in.<span class="fu">read</span>() <span class="co">// 0x6F</span></span>
+<span id="cb117-10"><a href="#cb117-10"></a>in.<span class="fu">read</span>() <span class="co">// 0x6F</span></span>
+<span id="cb117-11"><a href="#cb117-11"></a>in.<span class="fu">read</span>() <span class="co">// 0x0A</span></span>
+<span id="cb117-12"><a href="#cb117-12"></a>in.<span class="fu">read</span>() <span class="co">// -1</span></span>
+<span id="cb117-13"><a href="#cb117-13"></a>in.<span class="fu">close</span>()</span></code></pre></div>
+<p>These streams can be wrapped into other Java I/O objects like <code>BufferedInputStream</code> or <code>Scanner</code>:</p>
+<div class="sourceCode" id="cb118"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb118-1"><a href="#cb118-1"></a><span class="kw">val</span> u = <span class="kw">new</span> URL(<span class="st">&quot;http://cs.unh.edu/~cs671/index.html&quot;</span>)</span>
+<span id="cb118-2"><a href="#cb118-2"></a><span class="kw">val</span> s = <span class="kw">new</span> Scanner(u.<span class="fu">openStream</span>())</span>
+<span id="cb118-3"><a href="#cb118-3"></a>s.<span class="fu">hasNextLine</span>   <span class="co">// true</span></span>
+<span id="cb118-4"><a href="#cb118-4"></a>s.<span class="fu">nextLine</span>()    <span class="co">// first line of the file</span></span></code></pre></div>
+<p>Methods from <code>Scanner</code> can be used for simple parsing (<code>hasNextFloat/nextFloat</code>, <code>hasNextBigInteger/nextBigInteger</code>, …).</p>
+<p>Methods from <code>java.nio.file.Files</code> can also be used (e.g., <code>readAllLines</code>, <code>readAllBytes</code>, …).</p>
+<h4 id="automatic-resource-management">Automatic resource management</h4>
+<p>Most I/O resources need to be closed after usage. Failing to do so can lead to resource exhaustion failures. Java has a “<em>try with</em>” construct to automate closing resources. Scala offers a similar mechanism with <code>scala.util.Using</code>:</p>
+<div class="sourceCode" id="cb119"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb119-1"><a href="#cb119-1"></a><span class="kw">val</span> contents = Using.<span class="fu">resource</span>(Source.<span class="fu">fromURL</span>(<span class="st">&quot;https://httpbin.org/html&quot;</span>)) { source =&gt;</span>
+<span id="cb119-2"><a href="#cb119-2"></a>  source.<span class="fu">getLines</span>().<span class="fu">toList</span></span>
+<span id="cb119-3"><a href="#cb119-3"></a>}</span></code></pre></div>
+<p>This guarantees that the <code>close</code> method of the source is called automatically.<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a></p>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><p>Scala expression values are always <em>objects</em> (at least conceptually, if not in the underlying implementation), including numbers and Booleans.</p></li>
+<li><p>Values always have <em>types</em>; many types are <em>inferred</em> by the compiler.</p></li>
+<li><p>Variables can be introduced using <code>val</code> or <code>var</code>. Names introduced by <code>val</code> <em>cannot be reassigned</em>, which often results in code that is easier to understand. When possible, one should <em>use <code>val</code> instead of <code>var</code></em>.</p></li>
+<li><p><em>Blocks</em>—delimited by curly braces—are <em>expressions</em>, with a type and a value. The value of a block is the <em>last expression</em> evaluated in it.</p></li>
+<li><p>Methods with <em>no argument</em> and <em>no side-effect</em> (pure) should be called without parentheses.</p></li>
+<li><p>Methods with a <em>single argument</em> can be called in <em>infix notation</em>. It always make sense for methods with <em>symbolic names</em>. For methods with regular names, the use of infix notation is sometimes preferable and sometimes not.</p></li>
+<li><p>When called with a block expression, single-argument methods can (and should) omit parentheses.</p></li>
+<li><p><code>while</code> and <code>do/while</code> loops are similar to Java’s.</p></li>
+<li><p>By contrast, the same <code>if/else</code> construct in Scala is used <em>imperatively</em> (like in Java) to combine side-effect expressions (“statements”) and <em>functionally</em> to combine expressions (like Java’s ternary “<code>...?...:...</code>” operator).</p></li>
+<li><p>There is no <code>switch</code> statement in Scala. Instead, one can use a <em>pattern matching</em> construct. Pattern matching can do a lot more than simple <code>switch</code> statements and will be revisited later.</p></li>
+<li><p>Exceptions are thrown using the <code>throw</code> keyword, like in Java. The syntax to catch exceptions is similar to Java’s, including the <code>finally</code> part, but uses pattern matching. There is no notion of checked/unchecked exception in Scala.</p></li>
+<li><p>Functions (and methods) and introduced by the keyword <code>def</code>. Argument types must be declared explicitly but the return type can often be inferred by the compiler. The body of a function is an expression; no <code>return</code> statement is necessary.</p></li>
+<li><p>Functions that return a value but do nor otherwise modify the state of a system are called <em>pure</em>. By contrast, <em>impure</em> functions, in addition to producing a return value, have <em>side effects</em> that impact a system.</p></li>
+<li><p><em>Lists</em> are a fundamental data structure in Scala (and in functional programming languages in general). Lists are <em>immutable</em>: the values inside a list never change. Lists can be accessed efficiently (constant time) from the front using the <code>head</code> and <code>tail</code> methods. Other accesses are available (last element, indexing, etc.) but tend to be less efficient.</p></li>
+<li><p><em>Arrays</em> are similar to Java’s. In particular, they are mutable and support fast indexing. Array elements are indexed using parentheses (instead of square brackets in Java).</p></li>
+<li><p><em>Vectors</em><a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a> offer a good balance between lists and arrays. Head/tail access is faster than with arrays (but slower than using lists) and direct indexing is faster than with lists (but slower than using arrays). Vectors are immutable.</p></li>
+<li><p><em>Tuples</em> (pairs, triples, etc.) can be used to group values of different types—by contrast, lists, arrays and vectors are <em>homogeneous</em>. Tuple elements can be accessed using methods <code>_1</code>, <code>_2</code>, <code>_3</code>, etc., or via pattern matching. Tuples are immutable and can have up to 22 elements.</p></li>
+<li><p><em>Options</em> are used to represent 0 or 1 value. Options are preferable to using special values like <code>null</code> or <code>-1</code> when no meaningful value is available. Options are immutable and can be accessed via pattern matching.</p></li>
+<li><p><em>Ranges</em> represent ordered sequences of consecutive values. They can be the target of <code>for</code> loops. Ranges are immutable.</p></li>
+<li><p><em>Maps and sets</em> exist in two flavors: mutable and immutable. Mutable maps and sets are similar to Java’s. Maps represent mappings from <em>keys</em> to values; sets are unordered collections without duplicates. Both structures support fast lookup.</p></li>
+<li><p><code>for</code> loops can be used to iterate over collections to apply side effects operations to each element. The syntax allows for local variables, multiple generators (nested loops) and guards (filtering on conditions).</p></li>
+<li><p><code>for</code> comprehensions are introduced by a <code>for/yield</code> construct. The difference with <code>for</code> loops is that <code>for</code> comprehensions produce a new collection from an existing collection by transforming each value of the original collection according to some code. Like <code>for</code> loops, <code>for</code> comprehensions can use local variables, guards and multiple generators.</p></li>
+<li><p>Scala strings are Java strings. In particular, they are immutable. Scala strings support more methods than Java strings through implicit conversions. Scala also has <em>raw literals</em> and <em>string interpolation</em>.</p></li>
+<li><p>Scala’s <code>Source</code> type offers limited support for I/O (input of textual sources). More complex I/O (writing files or sockets, using binary data) must rely on Java objects from <code>java.io</code> or <code>java.nio</code>.</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Some values like <code>true</code> or <code>42</code> may be compiled into primitive values for performance reason, but they still appear as objects at the language level.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>It also has type <code>42</code>, a singleton type that only contains 42.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>The value of an empty block is <em>unit</em>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p>This could be written in Java as: <code>println(x &gt; 0 ? "positive" : "not positive")</code>.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5" role="doc-endnote"><p>There are important differences between <em>functions</em> and <em>methods</em> in Scala, which will be covered later. For now, the terms are used loosely to mean a unit of code, with arguments, that returns a value.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6" role="doc-endnote"><p>A major exception is the case or <em>recursive</em> functions, for which the return type is required.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7" role="doc-endnote"><p>Java uses angle brackets instead: <code>List&lt;Integer&gt;</code>.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8" role="doc-endnote"><p>As of Scala 2.13.0, tuples are limited to 22 elements.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9" role="doc-endnote"><p>One can think of and option as a very short list.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10" role="doc-endnote"><p>Options were introduced in Java 8.<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11" role="doc-endnote"><p>This can be quite annoying in Java. A system can fail with a runtime exception simply by logging an incorrectly formatted message. If this message happens rarely, the bug might be dormant for a long time.<a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12" role="doc-endnote"><p>Although <code>null.toString</code> throws <code>NullPointerException</code>.<a href="#fnref12" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn13" role="doc-endnote"><p>The mysterious-looking syntax <code>{ source =&gt; ... }</code> is common in Scala code. It relies on Currying and on higher-order functions, topics that will be covered later when discussing functional programming.<a href="#fnref13" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn14" role="doc-endnote"><p>Vectors have nothing to do with the <code>Vector</code> type from Java (a thread-safe list backed by an array).<a href="#fnref14" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-01-30 at 11:45:21 AM</footer>
+</body>

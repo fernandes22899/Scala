@@ -1,0 +1,15 @@
+[debug] > Exec(testOnly SampleTests, None, None)
+[debug] Evaluating tasks: Test / testOnly
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[info] compiling 1 Scala source to C:\Users\ferna\Documents\CS671\0\target\scala-2.13\test-classes ...
+[info] done compiling
+[info] SampleTests:
+[info] - sample
+[info] - sample2
+[info] Run completed in 906 milliseconds.
+[info] Total number of tests run: 2
+[info] Suites: completed 1, aborted 0
+[info] Tests: succeeded 2, failed 0, canceled 0, ignored 0, pending 0
+[info] All tests passed.
+[success] Total time: 2 s, completed May 25, 2021, 9:29:12 PM
+[debug] > Exec(idea-shell, None, None)

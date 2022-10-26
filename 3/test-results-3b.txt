@@ -1,0 +1,574 @@
+[info] welcome to sbt 1.4.6 (AdoptOpenJDK Java 15.0.1)
+[info] loading project definition from /assigns/jjf1027/GIT/3/project
+[info] loading settings for project quadtree from build.sbt,project.sbt ...
+[info] set current project to quadtree (in build file:/assigns/jjf1027/GIT/3/)
+[success] Total time: 0 s, completed Jul 22, 2021, 3:19:55 PM
+[info] compiling 10 Scala sources to /assigns/jjf1027/GIT/3/target/scala-2.13/classes ...
+[warn] /assigns/jjf1027/GIT/3/src/main/scala/quadtree/Space.scala:3:31: Unused import
+[warn] import scala.collection.View.{Empty, empty}
+[warn]                               ^
+[warn] one warning found
+[info] done compiling
+[info] compiling 18 Scala sources to /assigns/jjf1027/GIT/3/target/scala-2.13/test-classes ...
+[warn] /assigns/jjf1027/GIT/3/src/test/scala/grading/SampleSpaceTests.scala:26:25: adapted the argument list to the expected 2-tuple: add additional parens instead
+[warn]         signature: Equalizer.===(rightSide: Any)(implicit equality: org.scalactic.Equality[L]): Boolean
+[warn]   given arguments: 7, 0
+[warn]  after adaptation: Equalizer.===((7, 0): (Int, Int))
+[warn]     assert(point.center === (7, 0))
+[warn]                         ^
+[warn] /assigns/jjf1027/GIT/3/src/test/scala/grading/SampleSpaceTests.scala:27:24: adapted the argument list to the expected 2-tuple: add additional parens instead
+[warn]         signature: Equalizer.===(rightSide: Any)(implicit equality: org.scalactic.Equality[L]): Boolean
+[warn]   given arguments: 7, 0
+[warn]  after adaptation: Equalizer.===((7, 0): (Int, Int))
+[warn]     assert(line.center === (7, 0))
+[warn]                        ^
+[warn] /assigns/jjf1027/GIT/3/src/test/scala/grading/SampleSpaceTests.scala:28:25: adapted the argument list to the expected 2-tuple: add additional parens instead
+[warn]         signature: Equalizer.===(rightSide: Any)(implicit equality: org.scalactic.Equality[L]): Boolean
+[warn]   given arguments: 7, 0
+[warn]  after adaptation: Equalizer.===((7, 0): (Int, Int))
+[warn]     assert(point.center === (7, 0))
+[warn]                         ^
+[warn] /assigns/jjf1027/GIT/3/src/test/scala/grading/SpaceSuite.scala:13:25: adapted the argument list to the expected 2-tuple: add additional parens instead
+[warn]         signature: Equalizer.===(rightSide: Any)(implicit equality: org.scalactic.Equality[L]): Boolean
+[warn]   given arguments: 7, 5
+[warn]  after adaptation: Equalizer.===((7, 5): (Int, Int))
+[warn]     assert(space.center === (7, 5))
+[warn]                         ^
+[warn] /assigns/jjf1027/GIT/3/src/test/scala/grading/SampleCityTests.scala:7:48: trait Resources in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn] class SampleCityTests extends AnyFunSuite with Resources {
+[warn]                                                ^
+[warn] 5 warnings found
+[info] done compiling
+[info] running (fork) grading.Grade 
+SampleSpaceSuite:
+- isEmpty [1pt] (37 milliseconds)
+- center (2) [1pt] (9 milliseconds)
+- split (2) [1pt] (1 millisecond)
+- split (3) [1pt] (0 milliseconds)
+- contains (3) [1pt] (22 milliseconds)
+- intersects (2) [1pt] (1 millisecond)
+- bounds (1) [3pts] (5 milliseconds)
+SpaceSuite:
+- center (1) [1pt] (1 millisecond)
+- split (1) [1pt] (1 millisecond)
+- split (4) [1pt] (1 millisecond)
+- BL contains center [1pt] (2 milliseconds)
+- contains (1) [1pt] (11 milliseconds)
+- contains (2) [1pt] (1 millisecond)
+- intersects (1) [1pt] (1 millisecond)
+- intersects (3) [1pt] (1 millisecond)
+- bounds (2) [1pt] *** FAILED *** (1 second, 6 milliseconds)
+  The test did not complete within the specified 1 second time limit. (SpaceSuite.scala:74)
+- various [5pts] (3 milliseconds)
+SampleQuadTreeFigureSuite:
+- apply (1) [3pts] *** FAILED *** (38 milliseconds)
+  QuadNode(2,SpaceImpl(0,0,15,10),QuadLeaf(2,SpaceImpl(0,6,7,10),Map()),QuadNode(2,SpaceImpl(8,6,15,10),QuadLeaf(2,SpaceImpl(8,9,11,10),Map(Point(9,9) -> Point(9,9))),QuadLeaf(2,SpaceImpl(12,9,15,10),Map()),QuadLeaf(2,SpaceImpl(8,6,11,8),Map()),QuadLeaf(2,SpaceImpl(12,6,15,8),Map(Point(13,8) -> Point(13,8)))),QuadLeaf(2,SpaceImpl(0,0,7,5),Map(Point(6,4) -> Point(6,4))),QuadNode(2,SpaceImpl(8,0,15,5),QuadNode(2,SpaceImpl(8,3,11,5),QuadLeaf(2,SpaceImpl(8,5,9,5),Map()),QuadLeaf(2,SpaceImpl(10,5,11,5),Map(Point(10,5) -> Point(10,5))),QuadLeaf(2,SpaceImpl(8,3,9,4),Map(Point(9,3) -> Point(9,3))),QuadLeaf(2,SpaceImpl(10,3,11,4),Map())),QuadLeaf(2,SpaceImpl(12,3,15,5),Map()),QuadLeaf(2,SpaceImpl(8,0,11,2),Map(Point(11,1) -> Point(11,1))),QuadLeaf(2,SpaceImpl(12,0,15,2),Map()))) did not equal QuadNode(2,SpaceImpl(0,0,15,10),QuadLeaf(2,SpaceImpl(0,6,7,10),Map()),QuadLeaf(2,SpaceImpl(8,6,15,10),Map(Point(9,9) -> Point(9,9), Point(13,8) -> Point(13,8))),QuadLeaf(2,SpaceImpl(0,0,7,5),Map(Point(6,4) -> Point(6,4))),QuadNode(2,SpaceImpl(8,0,15,5),QuadLeaf(2,SpaceImpl(8,3,11,5),Map(Point(10,5) -> Point(10,5), Point(9,3) -> Point(9,3))),QuadLeaf(2,SpaceImpl(12,3,15,5),Map()),QuadLeaf(2,SpaceImpl(8,0,11,2),Map(Point(11,1) -> Point(11,1))),QuadLeaf(2,SpaceImpl(12,0,15,2),Map()))) (SampleQuadTreeFigureTests.scala:15)
+  Analysis:
+  QuadNode(br: QuadNode(tl: QuadNode(bl: QuadLeaf(2,SpaceImpl(8,3,9,4),Map(Point(9,3) -> Point(9,3))) -> , br: QuadLeaf(2,SpaceImpl(10,3,11,4),Map()) -> , elems: -> Map(Point(10,5) -> Point(10,5), Point(9,3) -> Point(9,3)), tl: QuadLeaf(2,SpaceImpl(8,5,9,5),Map()) -> , tr: QuadLeaf(2,SpaceImpl(10,5,11,5),Map(Point(10,5) -> Point(10,5))) -> )), tr: QuadNode(bl: QuadLeaf(2,SpaceImpl(8,6,11,8),Map()) -> , br: QuadLeaf(2,SpaceImpl(12,6,15,8),Map(Point(13,8) -> Point(13,8))) -> , elems: -> Map(Point(9,9) -> Point(9,9), Point(13,8) -> Point(13,8)), tl: QuadLeaf(2,SpaceImpl(8,9,11,10),Map(Point(9,9) -> Point(9,9))) -> , tr: QuadLeaf(2,SpaceImpl(12,9,15,10),Map()) -> ))
+- size [2pts] (2 milliseconds)
+- space [1pt] (2 milliseconds)
+- isEmpty [1pt] (1 millisecond)
+- get (1) [2pts] (2 milliseconds)
+- get (4) [3pts] (1 millisecond)
+- getNearest (1) [2pts] *** FAILED *** (0 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.SampleQuadTreeFigureTests.$anonfun$new$7(SampleQuadTreeFigureTests.scala:50)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- getNearest (2) [2pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.SampleQuadTreeFigureTests.$anonfun$new$8(SampleQuadTreeFigureTests.scala:59)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- getNearest (3) [2pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.SampleQuadTreeFigureTests.$anonfun$new$9(SampleQuadTreeFigureTests.scala:68)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- getWithin (1) [2pts] (2 milliseconds)
+- toMap [2pts] (1 millisecond)
+- foreach [2pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadLeaf.foreach(QuadTree.scala:219)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at grading.SampleQuadTreeFigureTests.$anonfun$new$12(SampleQuadTreeFigureTests.scala:87)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- filter [3pts] (1 millisecond)
+- QuadTree map [3pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadLeaf.map(QuadTree.scala:217)
+  at quadtree.QuadNode.map(QuadTree.scala:157)
+  at grading.SampleQuadTreeFigureTests.$anonfun$new$16(SampleQuadTreeFigureTests.scala:99)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- add (1) [1pt] *** FAILED *** (0 milliseconds)
+  Expected exception java.lang.IllegalArgumentException to be thrown, but scala.NotImplementedError was thrown (SampleQuadTreeFigureTests.scala:114)
+- add (2) [2pts] *** FAILED *** (0 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.add(QuadTree.scala:156)
+  at quadtree.QuadNode.add(QuadTree.scala:155)
+  at grading.SampleQuadTreeFigureTests.$anonfun$new$20(SampleQuadTreeFigureTests.scala:121)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- remove (1) [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.remove(QuadTree.scala:154)
+  at grading.SampleQuadTreeFigureTests.$anonfun$new$21(SampleQuadTreeFigureTests.scala:128)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- remove (3) [2pts] *** FAILED *** (0 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.remove(QuadTree.scala:154)
+  at grading.SampleQuadTreeFigureTests.$anonfun$new$22(SampleQuadTreeFigureTests.scala:132)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+QuadTreeFigureSuite:
+- get (2) [2pts] (2 milliseconds)
+- get (3) [2pts] (2 milliseconds)
+- get (5) [3pts] (2 milliseconds)
+- get (6) [2pts] (1 millisecond)
+- getNearest (4) [2pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.QuadTreeFigureSuite.$anonfun$new$5(QuadTreeFigureSuite.scala:40)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- getWithin (2) [2pts] (2 milliseconds)
+- add (3) [2pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.add(QuadTree.scala:156)
+  at quadtree.QuadNode.add(QuadTree.scala:155)
+  at grading.QuadTreeFigureSuite.$anonfun$new$7(QuadTreeFigureSuite.scala:55)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- add (4) [2pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.add(QuadTree.scala:156)
+  at quadtree.QuadNode.add(QuadTree.scala:155)
+  at grading.QuadTreeFigureSuite.$anonfun$new$8(QuadTreeFigureSuite.scala:67)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- add (5) [2pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.add(QuadTree.scala:156)
+  at quadtree.QuadNode.add(QuadTree.scala:155)
+  at grading.QuadTreeFigureSuite.$anonfun$new$9(QuadTreeFigureSuite.scala:79)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- remove (2) [1pt] *** FAILED *** (9 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.remove(QuadTree.scala:154)
+  at grading.QuadTreeFigureSuite.$anonfun$new$10(QuadTreeFigureSuite.scala:91)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- remove (4) [2pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.remove(QuadTree.scala:154)
+  at grading.QuadTreeFigureSuite.$anonfun$new$11(QuadTreeFigureSuite.scala:95)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- add (6) [3pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadLeaf.add(QuadTree.scala:216)
+  at quadtree.QuadLeaf.add(QuadTree.scala:215)
+  at grading.QuadTreeFigureSuite.$anonfun$new$13(QuadTreeFigureSuite.scala:103)
+  at scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:169)
+  at scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:165)
+  at scala.collection.immutable.List.foldLeft(List.scala:79)
+  at grading.QuadTreeFigureSuite.$anonfun$new$12(QuadTreeFigureSuite.scala:103)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  ...
+- remove (5) [3pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.remove(QuadTree.scala:154)
+  at grading.QuadTreeFigureSuite.$anonfun$new$15(QuadTreeFigureSuite.scala:109)
+  at scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:169)
+  at scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:165)
+  at scala.collection.immutable.List.foldLeft(List.scala:79)
+  at grading.QuadTreeFigureSuite.$anonfun$new$14(QuadTreeFigureSuite.scala:109)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  ...
+- add (7) [3pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadLeaf.add(QuadTree.scala:216)
+  at quadtree.QuadLeaf.add(QuadTree.scala:215)
+  at grading.QuadTreeFigureSuite.$anonfun$new$17(QuadTreeFigureSuite.scala:116)
+  at scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:169)
+  at scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:165)
+  at scala.collection.immutable.List.foldLeft(List.scala:79)
+  at grading.QuadTreeFigureSuite.$anonfun$new$16(QuadTreeFigureSuite.scala:116)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  ...
+SampleQuadTreeSuite:
+- small structure [3pts] (126 milliseconds)
+- small size [1pt] (41 milliseconds)
+- small get [1pt] (1 millisecond)
+- small toMap [1pt] (26 milliseconds)
+- small clearSpace [2pts] (10 milliseconds)
+- small get space [2pts] (4 milliseconds)
+- small get within [2pts] (2 milliseconds)
+- small get nearest [2pts] *** FAILED *** (53 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.SampleQuadTreeTests.$anonfun$new$9(SampleQuadTreeTests.scala:90)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- small get nearest filter [3pts] *** FAILED *** (3 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.SampleQuadTreeTests.$anonfun$new$10(SampleQuadTreeTests.scala:95)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- small remove [2pts] *** FAILED *** (3 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.remove(QuadTree.scala:154)
+  at grading.SampleQuadTreeTests.$anonfun$new$13(SampleQuadTreeTests.scala:101)
+  at scala.collection.IterableOnceOps.foldLeft(IterableOnce.scala:646)
+  at scala.collection.IterableOnceOps.foldLeft$(IterableOnce.scala:642)
+  at scala.collection.AbstractIterable.foldLeft(Iterable.scala:919)
+  at grading.SampleQuadTreeTests.$anonfun$new$12(SampleQuadTreeTests.scala:101)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  ...
+- small foreach [2pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadLeaf.foreach(QuadTree.scala:219)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at grading.SampleQuadTreeTests.$anonfun$new$14(SampleQuadTreeTests.scala:107)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  ...
+- small filter [2pts] (8 milliseconds)
+QuadTreeSuite:
+- large structure [3pts] (117 milliseconds)
+- large size [1pt] (1 millisecond)
+- huge size [1pt] *** FAILED *** (1 second, 1 millisecond)
+  The test did not complete within the specified 1 second time limit. (QuadTreeSuite.scala:99)
+- large get [1pt] (1 millisecond)
+- huge get [1pt] (106 milliseconds)
+- large toMap [1pt] (65 milliseconds)
+- huge toMap [1pt] (576 milliseconds)
+- large clearSpace [2pts] (14 milliseconds)
+- huge clearSpace [2pts] (133 milliseconds)
+- large get space [2pts] (2 milliseconds)
+- huge get space [2pts] (51 milliseconds)
+- large get within [2pts] (2 milliseconds)
+- huge get within [2pts] (5 milliseconds)
+- large get nearest filter [3pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.QuadTreeSuite.$anonfun$new$16(QuadTreeSuite.scala:161)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- huge get nearest filter [3pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.QuadTreeSuite.$anonfun$new$18(QuadTreeSuite.scala:170)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- large get nearest [2pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.QuadTreeSuite.$anonfun$new$20(QuadTreeSuite.scala:179)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- huge get nearest [2pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at grading.QuadTreeSuite.$anonfun$new$21(QuadTreeSuite.scala:184)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- large remove [2pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.remove(QuadTree.scala:154)
+  at grading.QuadTreeSuite.$anonfun$new$23(QuadTreeSuite.scala:189)
+  at scala.collection.IterableOnceOps.foldLeft(IterableOnce.scala:646)
+  at scala.collection.IterableOnceOps.foldLeft$(IterableOnce.scala:642)
+  at scala.collection.AbstractIterable.foldLeft(Iterable.scala:919)
+  at grading.QuadTreeSuite.$anonfun$new$22(QuadTreeSuite.scala:189)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  ...
+- huge remove [2pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.remove(QuadTree.scala:154)
+  at grading.QuadTreeSuite.$anonfun$new$25(QuadTreeSuite.scala:194)
+  at scala.collection.IterableOnceOps.foldLeft(IterableOnce.scala:646)
+  at scala.collection.IterableOnceOps.foldLeft$(IterableOnce.scala:642)
+  at scala.collection.AbstractIterable.foldLeft(Iterable.scala:919)
+  at grading.QuadTreeSuite.$anonfun$new$24(QuadTreeSuite.scala:194)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  ...
+- large foreach [2pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadLeaf.foreach(QuadTree.scala:219)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at grading.QuadTreeSuite.$anonfun$new$26(QuadTreeSuite.scala:200)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- huge foreach [2pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadLeaf.foreach(QuadTree.scala:219)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at quadtree.QuadNode.foreach(QuadTree.scala:166)
+  at grading.QuadTreeSuite.$anonfun$new$28(QuadTreeSuite.scala:208)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  ...
+- large filter [2pts] (9 milliseconds)
+- huge filter [2pts] (267 milliseconds)
+CitySuite:
+- space (519 milliseconds)
+- nearest city (1) *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at city.CityApp.nearestCity(CityApp.scala:11)
+  at grading.SampleCityTests.$anonfun$new$2(SampleCityTests.scala:31)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- nearest city with pop (1) *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at city.CityApp.nearestCityWithPop(CityApp.scala:14)
+  at grading.SampleCityTests.$anonfun$new$3(SampleCityTests.scala:36)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- nearest city in state (1) *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at city.CityApp.nearestCityInState(CityApp.scala:19)
+  at grading.SampleCityTests.$anonfun$new$4(SampleCityTests.scala:41)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- all cities within (1) *** FAILED *** (6 milliseconds)
+  List("Blackhawk", "Box Elder", "Colonial Pine Hills", "Custer", "Rapid City", "Rapid Valley", "Summerset") did not equal List("Blackhawk", "Box Elder", "Colonial Pine Hills", "Custer", "Hot Springs", "Rapid City", "Rapid Valley", "Summerset") (SampleCityTests.scala:46)
+  Analysis:
+  List(4: Rapid City -> Hot Springs, 5: Rapid Valley -> Rapid City, 6: Summerset -> Rapid Valley, 7: -> Summerset)
+- nearest city (2) *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at city.CityApp.nearestCity(CityApp.scala:11)
+  at grading.CitySuite.$anonfun$new$1(CitySuite.scala:10)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- nearest city with pop (2) *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at city.CityApp.nearestCityWithPop(CityApp.scala:14)
+  at grading.CitySuite.$anonfun$new$2(CitySuite.scala:15)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- nearest city in state (2) *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at quadtree.QuadNode.getNearest(QuadTree.scala:144)
+  at city.CityApp.nearestCityInState(CityApp.scala:19)
+  at grading.CitySuite.$anonfun$new$3(CitySuite.scala:20)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- all cities within (2) (1 millisecond)
+time: 4.6 seconds
+grade: 52 / 100
+[success] Total time: 17 s, completed Jul 22, 2021, 3:20:12 PM

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<!-- Generated from 302-basic-oo.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2-basic-oo</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="classes-and-objects">Classes and objects</h2>
+<h3 id="class-definition-and-instantiation">Class definition and instantiation</h3>
+<p>In Scala, the keyword <code>class</code> introduces a class, like in Java:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">class</span> Car {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="kw">def</span> <span class="fu">drive</span>(): Unit = <span class="fu">println</span>(<span class="st">&quot;Vrooom!&quot;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3"></a>}</span></code></pre></div>
+<p>A class defines a <em>type</em>. It can be instantiated into <em>objects</em> (also called <em>instances</em>), which are values of this type:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">val</span> myRolls: Car = <span class="kw">new</span> <span class="fu">Car</span>()</span>
+<span id="cb2-2"><a href="#cb2-2"></a>myRolls.<span class="fu">drive</span>()</span></code></pre></div>
+<p>As in Java, instantiation (object creation) uses the keyword <code>new</code>. Also as in Java, classes have a default constructor with no arguments. Note that the class could have been instantiated as <code>new Car</code> as well.</p>
+<h3 id="fields-and-methods">Fields and methods</h3>
+<p>Useful classes tend to have <em>fields</em> (also called <em>data members</em>) and <em>methods</em>. One key idea of object-oriented programming is <em>encapsulation</em>: the bundling of data with the methods operating on that data as an object:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">class</span> Car {</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="kw">private</span> <span class="kw">var</span> speed: Int = <span class="dv">0</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a>  <span class="kw">def</span> <span class="fu">drive</span>(): Unit = <span class="fu">println</span>(<span class="kw">if</span> (speed == <span class="dv">0</span>) <span class="st">&quot;Stopped&quot;</span> <span class="kw">else</span> s<span class="st">&quot;Vrooom at $speed mph&quot;</span>)</span>
+<span id="cb3-5"><a href="#cb3-5"></a>  <span class="kw">def</span> <span class="fu">accelerate</span>(): Unit = speed += <span class="dv">1</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a>  <span class="kw">def</span> <span class="fu">brake</span>(): Unit = speed = <span class="dv">0</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a>}</span>
+<span id="cb3-8"><a href="#cb3-8"></a></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="kw">val</span> c = <span class="kw">new</span> Car</span>
+<span id="cb3-10"><a href="#cb3-10"></a>c.<span class="fu">accelerate</span>()</span>
+<span id="cb3-11"><a href="#cb3-11"></a>c.<span class="fu">drive</span>()  <span class="co">// Vrooom at 1 mph</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a>c.<span class="fu">brake</span>()</span>
+<span id="cb3-13"><a href="#cb3-13"></a>c.<span class="fu">drive</span>()  <span class="co">// Stopped</span></span></code></pre></div>
+<p>The modified class <code>Car</code> above maintains data in a field <code>speed</code>, of type <code>Int</code>, and offers methods <code>accelerate</code> and <code>brake</code> to manipulate this data. Visibility modifiers like <code>private</code> can be applied to fields, method, objects or classes. Scala has a rich panoply of such modifiers, which will be detailed later. Java is more limited.</p>
+<p>Note that the absence of a modifier has a different meaning in Java and in Scala:</p>
+<ul>
+<li>In Scala, it means <em>public</em>, i.e., accessible to anyone;</li>
+<li>In Java, it means <em>package-private</em>, i.e., accessible only from within the same package.</li>
+</ul>
+<h3 id="constructors">Constructors</h3>
+<p>Classes are always defined with a <em>primary</em> constructor. The constructor has no body, but code placed directly in the class will be executed at construction time (like <em>init blocks</em> in Java):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">class</span> <span class="fu">Horse</span>(number: Int) {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="fu">println</span>(<span class="st">&quot;horse created&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a>  <span class="kw">def</span> <span class="fu">run</span>(): Unit = <span class="fu">println</span>(s<span class="st">&quot;horse $number running&quot;</span>)</span>
+<span id="cb4-5"><a href="#cb4-5"></a>}</span>
+<span id="cb4-6"><a href="#cb4-6"></a></span>
+<span id="cb4-7"><a href="#cb4-7"></a><span class="kw">val</span> h = <span class="kw">new</span> <span class="fu">Horse</span>(<span class="dv">5</span>)</span>
+<span id="cb4-8"><a href="#cb4-8"></a>h.<span class="fu">run</span>()  <span class="co">// &quot;horse 5 running&quot;</span></span></code></pre></div>
+<p>In this example, class <code>Horse</code> has a primary constructor that takes a number. Primary constructors can also be used to introduce fields:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">class</span> <span class="fu">Horse</span>(<span class="kw">val</span> name: String, number: Int) {</span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">println</span>(<span class="st">&quot;horse created&quot;</span>)</span>
+<span id="cb5-3"><a href="#cb5-3"></a></span>
+<span id="cb5-4"><a href="#cb5-4"></a>  <span class="kw">def</span> <span class="fu">run</span>(): Unit = <span class="fu">println</span>(s<span class="st">&quot;horse $number running&quot;</span>)</span>
+<span id="cb5-5"><a href="#cb5-5"></a>}</span></code></pre></div>
+<p>Note the use of <code>val</code> in the arguments list of the constructor. The difference between this horse class and the previous one is that there is now a public field <code>name</code> of type <code>String</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">val</span> h = <span class="kw">new</span> <span class="fu">Horse</span>(<span class="st">&quot;Secretariat&quot;</span>, <span class="dv">2</span>)</span>
+<span id="cb6-2"><a href="#cb6-2"></a>h.<span class="fu">name</span>  <span class="co">// &quot;Secretariat&quot;</span></span></code></pre></div>
+<p>The use of <code>val</code> makes code like <code>h.name</code> possible, while <code>h.number</code> is not.</p>
+<p>The fields introduced by the primary constructor can also be <code>var</code> fields and/or non-public fields:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">class</span> <span class="fu">Horse</span>(<span class="kw">val</span> name: String, <span class="kw">private</span> <span class="kw">var</span> num: Int) {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="fu">println</span>(<span class="st">&quot;horse created&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a></span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="kw">def</span> <span class="fu">run</span>(): Unit = <span class="fu">println</span>(s<span class="st">&quot;horse $num running&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>}</span></code></pre></div>
+<p>In this variant, the field <code>num</code> can be reassigned (it’s a <code>var</code>, not a <code>val</code>) but it is not public and <code>h.num</code> is not possible outside the <code>Horse</code> class.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> Instead, code can rely on public methods to read and write the value of <code>num</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a>  <span class="kw">def</span> number: Int = num</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="kw">def</span> <span class="fu">setNumber</span>(num: Int): Unit = {</span>
+<span id="cb8-3"><a href="#cb8-3"></a>    <span class="fu">require</span>(num &gt; <span class="dv">0</span>)</span>
+<span id="cb8-4"><a href="#cb8-4"></a>    <span class="kw">this</span>.<span class="fu">num</span> = num</span>
+<span id="cb8-5"><a href="#cb8-5"></a>  }</span></code></pre></div>
+<p>Note the use of <code>this</code> to refer to the current instance, as in Java. It is necessary here to distinguish between the field <code>num</code> and the local variable of the same name. Contrary to Java, it is not possible in Scala to use the same name for a field and for a method (see later interlude for details).</p>
+<p>A Scala class always has at least a primary constructor. <em>Auxiliary constructors</em> can be added, also using the keyword <code>this</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a>  <span class="kw">def</span> <span class="kw">this</span>(name: String) = <span class="kw">this</span>(name, <span class="dv">1</span>)</span></code></pre></div>
+<p>This defines a second constructor, which takes a single string argument. This constructor builds an instance by calling the primary constructor with a string and a number. Auxiliary constructors must always start by calling the primary constructor, or other auxiliary constructors.</p>
+<p>Finally, constructors can be made non-public, including the primary constructor:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">class</span> Horse <span class="kw">private</span> (<span class="kw">val</span> name: String, <span class="kw">private</span> <span class="kw">var</span> num: Int) {</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  <span class="fu">println</span>(<span class="st">&quot;horse created&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3"></a></span>
+<span id="cb10-4"><a href="#cb10-4"></a>  <span class="kw">def</span> <span class="kw">this</span>(name: String) = <span class="kw">this</span>(name, <span class="dv">1</span>)</span>
+<span id="cb10-5"><a href="#cb10-5"></a></span>
+<span id="cb10-6"><a href="#cb10-6"></a>  <span class="kw">def</span> <span class="fu">run</span>(): Unit = <span class="fu">println</span>(s<span class="st">&quot;horse $num running&quot;</span>)</span>
+<span id="cb10-7"><a href="#cb10-7"></a>  <span class="kw">def</span> number: Int = num</span>
+<span id="cb10-8"><a href="#cb10-8"></a>  <span class="kw">def</span> <span class="fu">setNumber</span>(num: Int): Unit = {</span>
+<span id="cb10-9"><a href="#cb10-9"></a>    <span class="fu">require</span>(num &gt; <span class="dv">0</span>)</span>
+<span id="cb10-10"><a href="#cb10-10"></a>    <span class="kw">this</span>.<span class="fu">num</span> = num</span>
+<span id="cb10-11"><a href="#cb10-11"></a>  }</span>
+<span id="cb10-12"><a href="#cb10-12"></a>}</span></code></pre></div>
+<p>In this last variant of the class, the primary constructor is private. Class users must rely on the auxiliary constructor to create instances:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">val</span> h = <span class="kw">new</span> <span class="fu">Horse</span>(<span class="st">&quot;Secretariat&quot;</span>)</span>
+<span id="cb11-2"><a href="#cb11-2"></a>h.<span class="fu">run</span>()   <span class="co">// &quot;horse 1 running&quot;</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a>h.<span class="fu">name</span>    <span class="co">// &quot;Secretariat&quot;</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a>h.<span class="fu">number</span>  <span class="co">// 1</span></span></code></pre></div>
+<h3 id="case-classes">Case classes</h3>
+<p>Case classes are a special form of class definition:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">case</span> <span class="kw">class</span> <span class="fu">RaceCar</span>(color: String, number: Int) {</span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="kw">def</span> <span class="fu">drive</span>(): Unit = <span class="fu">println</span>(s<span class="st">&quot;$color car $number racing!&quot;</span>)</span>
+<span id="cb12-3"><a href="#cb12-3"></a>}</span></code></pre></div>
+<p>The <code>case</code> keyword gives the class a few special properties:</p>
+<ul>
+<li><p>Instances can be created as <code>RaceCar(...)</code> instead of <code>new RaceCar(...)</code>; the keyword <code>new</code> is usually omitted.</p></li>
+<li><p><code>color</code> and <code>number</code> are defined as <code>val</code> and accessible outside the class; the keyword <code>val</code> is usually omitted.</p></li>
+<li><p>String representation, equality and hashcode are redefined in terms of <code>color</code> and <code>number</code>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">val</span> x,y = <span class="fu">RaceCar</span>(<span class="st">&quot;red&quot;</span>, <span class="dv">10</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a></span>
+<span id="cb13-3"><a href="#cb13-3"></a>x.<span class="fu">toString</span>    <span class="co">// &quot;RaceCar(red,10)&quot;</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a></span>
+<span id="cb13-5"><a href="#cb13-5"></a>x eq y        <span class="co">// false</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a>x == y        <span class="co">// true</span></span>
+<span id="cb13-7"><a href="#cb13-7"></a>x.## == y.##  <span class="co">// true</span></span></code></pre></div></li>
+<li><p>Pattern-matching can be used:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a>someCar <span class="kw">match</span> {</span>
+<span id="cb14-2"><a href="#cb14-2"></a>  <span class="kw">case</span> <span class="fu">RaceCar</span>(_, <span class="dv">1</span>) =&gt; <span class="st">&quot;Number one!&quot;</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a>  <span class="kw">case</span> <span class="fu">RaceCar</span>(color, _) =&gt; s<span class="st">&quot;a $color car&quot;</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a>}</span></code></pre></div></li>
+</ul>
+<p>Case classes are usually used for immutable objects. It is considered bad practice to have a case class use other fields (even <code>val</code>) or auxiliary constructors. Case classes are most useful when multiple classes implement a common trait. In this case, pattern-matching can be used to differentiate between the various implementations of a same type. This pattern will be revisited when object-oriented programming is discussed more thoroughly.</p>
+<h3 id="traits">Traits</h3>
+<p>Like classes, <em>traits</em> can also be used to define types in Scala:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">trait</span> Vehicle {</span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="kw">def</span> <span class="fu">drive</span>(): Unit</span>
+<span id="cb15-3"><a href="#cb15-3"></a>}</span></code></pre></div>
+<p>Method <code>drive</code> is <em>abstract</em>: It has a name, signature and return type, but no body. The trait defines a <code>Vehicle</code> type, which can be used in variable or argument declarations:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">def</span> <span class="fu">driveIt</span>(v: Vehicle): Unit = v.<span class="fu">drive</span>()</span></code></pre></div>
+<p>The argument <code>v</code> to method <code>driveIt</code> has type <code>Vehicle</code> and is guaranteed to a have a method <code>drive</code>.</p>
+<p>Traits have no constructor and cannot be instantiated. Instead, traits are extended (“<em>mixed in</em>”, in the Scala terminology) by classes, which are then instantiated:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">class</span> Car <span class="kw">extends</span> Vehicle {</span>
+<span id="cb17-2"><a href="#cb17-2"></a>  <span class="kw">def</span> <span class="fu">drive</span>(): Unit = <span class="fu">println</span>(<span class="st">&quot;Vrooom!&quot;</span>)</span>
+<span id="cb17-3"><a href="#cb17-3"></a>}</span>
+<span id="cb17-4"><a href="#cb17-4"></a></span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="kw">val</span> myRolls: Car = <span class="kw">new</span> Car</span>
+<span id="cb17-6"><a href="#cb17-6"></a><span class="fu">driveIt</span>(myRolls)</span></code></pre></div>
+<p>A class that extends a trait is required to implement all the methods specified by the trait.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> The type defined by the class becomes a <em>subtype</em> of the type defined by the trait. Thus, type <code>Car</code> is a subtype of type <code>Vehicle</code> and the <code>Car</code> values can be used as arguments to the <code>driveIt</code> method. If type <code>A</code> is a subtype of type <code>B</code>, type <code>B</code> is often called a <em>supertype</em> of type <code>A</code>. A class can extend multiple traits (defining a subtype of multiple supertypes) and multiple classes can extend the same trait (defining multiple subtypes of a common supertype).</p>
+<p>Note that what makes <code>Car</code> a subtype of <code>Vehicle</code> is the fact that the <code>Car</code> class extends the <code>Vehicle</code> trait, <em>not</em> the presence of a <code>drive</code> method in the class. If a class <em>does not</em> implement the <code>Vehicle</code> trait, its instances do not have type <code>Vehicle</code>, <em>even</em> if the class implements a suitable <code>drive</code> method:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">class</span> Truck {</span>
+<span id="cb18-2"><a href="#cb18-2"></a>  <span class="kw">def</span> <span class="fu">drive</span>(): Unit = <span class="fu">println</span>(<span class="st">&quot;beep, beep, beep&quot;</span>)</span>
+<span id="cb18-3"><a href="#cb18-3"></a>}</span>
+<span id="cb18-4"><a href="#cb18-4"></a></span>
+<span id="cb18-5"><a href="#cb18-5"></a><span class="fu">driveIt</span>(<span class="kw">new</span> Truck) <span class="co">// does not compile: Truck not a subtype of Vehicle</span></span></code></pre></div>
+<p>Some weakly typed languages would allow this, a strategy known as <em>duck typing</em>.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> In these languages, code can be written to accept any object with a <code>drive</code> method, no matter its type. For instance, the following can be written in <code>JavaScript</code>:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb19-1"><a href="#cb19-1"></a><span class="co">// this is JavaScript</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a><span class="kw">function</span> <span class="at">driveIt</span>(x) <span class="op">{</span></span>
+<span id="cb19-3"><a href="#cb19-3"></a>  <span class="va">x</span>.<span class="at">drive</span>()<span class="op">;</span></span>
+<span id="cb19-4"><a href="#cb19-4"></a><span class="op">}</span></span></code></pre></div>
+<p>This function will execute the <code>drive</code> method of its argument, it there is one, no matter the type of the argument. It will fail with a runtime exception if no such method is found. Scala supports a form of duck typing, not discussed here, allowing code to accept any object with a <code>drive</code> method while maintaining compile-time type checking.</p>
+<p>Leaving aside duck typing for now, class <code>Truck</code> above could be adapted to implement the <code>Vehicle</code> trait. This is done by creating a class that extends <code>Truck</code> (to get its <code>drive</code> method) <em>and</em> mixes in the <code>Vehicle</code> trait (to get the type <code>Vehicle</code>):</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">class</span> VTruck <span class="kw">extends</span> Truck <span class="kw">with</span> Vehicle</span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="fu">driveIt</span>(<span class="kw">new</span> VTruck)</span></code></pre></div>
+<p>Note how the body of class <code>VTruck</code> is empty: Method <code>drive</code> is inherited from <code>Truck</code>. In this case, since everything that is specified in trait <code>Vehicle</code> is already in class <code>Truck</code>, a truck with type <code>Vehicle</code> could be created as follows:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">val</span> vehicle: Vehicle = <span class="kw">new</span> Truck <span class="kw">with</span> Vehicle</span></code></pre></div>
+<p>If class <code>Truck</code> did not have a suitable <code>drive</code> method, class <code>VTruck</code> would have to include more code for adaptation:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb22-1"><a href="#cb22-1"></a><span class="kw">class</span> Truck {</span>
+<span id="cb22-2"><a href="#cb22-2"></a>  <span class="kw">def</span> <span class="fu">backup</span>(): Unit = <span class="fu">println</span>(<span class="st">&quot;beep, beep, beep&quot;</span>)</span>
+<span id="cb22-3"><a href="#cb22-3"></a>}</span>
+<span id="cb22-4"><a href="#cb22-4"></a></span>
+<span id="cb22-5"><a href="#cb22-5"></a><span class="kw">class</span> VTruck <span class="kw">extends</span> Truck <span class="kw">with</span> Vehicle {</span>
+<span id="cb22-6"><a href="#cb22-6"></a>  <span class="kw">def</span> <span class="fu">drive</span>() = <span class="fu">backup</span>()</span>
+<span id="cb22-7"><a href="#cb22-7"></a>}</span></code></pre></div>
+<p>Traits in Scala can be used in much more advanced ways, which we will discuss later. In this simple form, they correspond roughly to Java <em>interfaces</em>. The examples above could be written in Java:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb23-1"><a href="#cb23-1"></a><span class="co">// this is Java</span></span>
+<span id="cb23-2"><a href="#cb23-2"></a><span class="kw">interface</span> Vehicle {</span>
+<span id="cb23-3"><a href="#cb23-3"></a>  <span class="dt">void</span> <span class="fu">drive</span>();</span>
+<span id="cb23-4"><a href="#cb23-4"></a>}</span>
+<span id="cb23-5"><a href="#cb23-5"></a></span>
+<span id="cb23-6"><a href="#cb23-6"></a><span class="kw">class</span> Car <span class="kw">implements</span> Vehicle {</span>
+<span id="cb23-7"><a href="#cb23-7"></a>  <span class="kw">public</span> <span class="dt">void</span> <span class="fu">drive</span>() {</span>
+<span id="cb23-8"><a href="#cb23-8"></a>    <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;Vrooom!&quot;</span>);</span>
+<span id="cb23-9"><a href="#cb23-9"></a>  }</span>
+<span id="cb23-10"><a href="#cb23-10"></a>}</span>
+<span id="cb23-11"><a href="#cb23-11"></a></span>
+<span id="cb23-12"><a href="#cb23-12"></a><span class="kw">class</span> Truck {</span>
+<span id="cb23-13"><a href="#cb23-13"></a>  <span class="kw">public</span> <span class="dt">void</span> <span class="fu">drive</span>() {</span>
+<span id="cb23-14"><a href="#cb23-14"></a>    <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;beep, beep, beep&quot;</span>);</span>
+<span id="cb23-15"><a href="#cb23-15"></a>  }</span>
+<span id="cb23-16"><a href="#cb23-16"></a>}</span>
+<span id="cb23-17"><a href="#cb23-17"></a></span>
+<span id="cb23-18"><a href="#cb23-18"></a><span class="kw">class</span> VTruck <span class="kw">extends</span> Truck <span class="kw">implements</span> Vehicle {</span>
+<span id="cb23-19"><a href="#cb23-19"></a>}</span></code></pre></div>
+<p>(There is no Java equivalent to Scala’s <code>new Truck with Vehicle</code> because in Java, an anonymous class can extend a class <em>or</em> implement an interface but not both.)</p>
+<h3 id="singletons-and-companion-objects">Singletons and companion objects</h3>
+<p>Scala has a mechanism to define objects without first defining a class. Because no class is defined, it is not possible to create additional objects of the same type, hence the name <em>singleton object</em>. The syntax substitutes the keyword <code>class</code> with the keyword <code>object</code>.</p>
+<p>Singleton objects are often used in Scala where <em>static</em> fields and methods would be used in Java:</p>
+<ul>
+<li>to create collections of functions and constants, e.g., <code>Math.PI</code>, <code>Math.cos</code>, <code>Arrays.sort</code>;</li>
+<li>to define code and/or data that conceptually belongs to a type, not its instances, e.g., unique id, cache of instances;</li>
+<li>to offer alternate ways to create objects in addition to constructors, e.g., factories, singletons, lazy initialization;</li>
+<li>to define main applications (in lieu of Java’s <code>public static void main(String[] args)</code>).</li>
+</ul>
+<p>For instance, a class may require that all instances have unique identities (e.g., account numbers in a banking application). These unique identities could be obtained from an <code>Identities</code> singleton:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">object</span> Identities {</span>
+<span id="cb24-2"><a href="#cb24-2"></a>  <span class="kw">private</span> <span class="kw">var</span> id = <span class="dv">0</span></span>
+<span id="cb24-3"><a href="#cb24-3"></a>  <span class="kw">def</span> <span class="fu">next</span>(): Int {</span>
+<span id="cb24-4"><a href="#cb24-4"></a>    id += <span class="dv">1</span></span>
+<span id="cb24-5"><a href="#cb24-5"></a>    id</span>
+<span id="cb24-6"><a href="#cb24-6"></a>  }</span>
+<span id="cb24-7"><a href="#cb24-7"></a>}</span></code></pre></div>
+<p>This object has type <code>Identities.type</code> and there is only one object in that type. It can be used by client code to obtain unique identities:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">val</span> myId = Identities.<span class="fu">next</span>()</span></code></pre></div>
+<p>Another common use of static fields and methods in Java is as helpers within a regular class:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb26-1"><a href="#cb26-1"></a><span class="co">// this is Java</span></span>
+<span id="cb26-2"><a href="#cb26-2"></a><span class="kw">class</span> StringHasher {</span>
+<span id="cb26-3"><a href="#cb26-3"></a>  <span class="kw">private</span> <span class="dt">static</span> <span class="dt">final</span> <span class="dt">int</span> START = <span class="dv">17</span>;</span>
+<span id="cb26-4"><a href="#cb26-4"></a>  <span class="kw">private</span> <span class="dt">static</span> <span class="dt">final</span> <span class="dt">int</span> MULT = <span class="dv">31</span>;</span>
+<span id="cb26-5"><a href="#cb26-5"></a></span>
+<span id="cb26-6"><a href="#cb26-6"></a>  <span class="kw">private</span> <span class="dt">static</span> <span class="dt">int</span> <span class="fu">hashChar</span>(<span class="dt">char</span> c, <span class="dt">int</span> h) {</span>
+<span id="cb26-7"><a href="#cb26-7"></a>    <span class="kw">return</span> h * MULT + c;</span>
+<span id="cb26-8"><a href="#cb26-8"></a>  }</span>
+<span id="cb26-9"><a href="#cb26-9"></a></span>
+<span id="cb26-10"><a href="#cb26-10"></a>  <span class="kw">public</span> <span class="dt">int</span> <span class="fu">hashString</span>(<span class="bu">String</span> s) {</span>
+<span id="cb26-11"><a href="#cb26-11"></a>    <span class="dt">int</span> hash = START;</span>
+<span id="cb26-12"><a href="#cb26-12"></a>    <span class="kw">for</span> (<span class="dt">char</span> c : s.<span class="fu">toCharArray</span>())</span>
+<span id="cb26-13"><a href="#cb26-13"></a>      hash = <span class="fu">hashChar</span>(c, hash);</span>
+<span id="cb26-14"><a href="#cb26-14"></a>    <span class="kw">return</span> hash;</span>
+<span id="cb26-15"><a href="#cb26-15"></a>  }</span>
+<span id="cb26-16"><a href="#cb26-16"></a>}</span></code></pre></div>
+<p>For this, Scala uses a notion of <em>companion objects</em>, which are a special form of singleton objects. Companion objects have the same name as their companion class and are declared in the same file. The object can access the private fields and methods of the class and vice-versa. The Java class above could be written in Scala:<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">object</span> StringHasher {</span>
+<span id="cb27-2"><a href="#cb27-2"></a>  <span class="kw">private</span> <span class="kw">final</span> <span class="kw">val</span> START = <span class="dv">17</span></span>
+<span id="cb27-3"><a href="#cb27-3"></a>  <span class="kw">private</span> <span class="kw">final</span> <span class="kw">val</span> MULT = <span class="dv">31</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a></span>
+<span id="cb27-5"><a href="#cb27-5"></a>  <span class="kw">private</span> <span class="kw">def</span> <span class="fu">hashChar</span>(c: Char, h: Int) = h * MULT + c</span>
+<span id="cb27-6"><a href="#cb27-6"></a>}</span>
+<span id="cb27-7"><a href="#cb27-7"></a></span>
+<span id="cb27-8"><a href="#cb27-8"></a><span class="kw">class</span> StringHasher {</span>
+<span id="cb27-9"><a href="#cb27-9"></a>  <span class="kw">def</span> <span class="fu">hashString</span>(s: String): Int = {</span>
+<span id="cb27-10"><a href="#cb27-10"></a>    <span class="kw">var</span> hash = StringHasher.<span class="fu">START</span></span>
+<span id="cb27-11"><a href="#cb27-11"></a>    <span class="kw">for</span> (c &lt;- s)</span>
+<span id="cb27-12"><a href="#cb27-12"></a>      hash = StringHasher.<span class="fu">hashChar</span>(c, hash)</span>
+<span id="cb27-13"><a href="#cb27-13"></a>    hash</span>
+<span id="cb27-14"><a href="#cb27-14"></a>  }</span>
+<span id="cb27-15"><a href="#cb27-15"></a>}</span></code></pre></div>
+<p>Note how the class uses private fields and methods from its companion object.</p>
+<p>The companion object itself can be made private (if, as here, it is only a helper for the class and is of no use to client code) or can be public to implement what would be public static methods in Java. Most Scala collections have a public companion object that implements additional methods. For instance, the <code>List</code> type has a <code>List</code> companion object with a method <code>fill</code> (to create a list by “filling” it with an element). In Java, a similar method <code>fill</code> can be found as a static method of class <code>java.util.Collections</code>.</p>
+<p>Companion objects often contain alternate ways to instantiate a class (besides using its constructors). <code>List.fill</code> and <code>List.range</code> are examples. A class may also choose not to offer any (public) constructor and to have instances created solely through the companion object. For instance, class <code>Vector</code> has no public constructor, but vectors can be created via the <code>Vector</code> companion object. Traits (which have no constructors) can also have companion objects. For instance, the <code>Iterator</code> object (companion to the <code>Iterator</code> trait) has a method <code>continually</code> that creates never-ending iterators.</p>
+<p>Finally, singleton objects are used is Scala to define standalone applications. In Java, these are created by defining a public static <code>main</code> method with the following signature:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb28-1"><a href="#cb28-1"></a><span class="co">// this is Java</span></span>
+<span id="cb28-2"><a href="#cb28-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">main</span>(<span class="bu">String</span>[] args) { <span class="kw">... </span>}</span></code></pre></div>
+<p>In Scala, applications are defined as <code>main</code> methods of singleton objects:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">object</span> Application {</span>
+<span id="cb29-2"><a href="#cb29-2"></a>  <span class="kw">def</span> <span class="fu">main</span>(args: Array[String]): Unit = ...</span>
+<span id="cb29-3"><a href="#cb29-3"></a>}</span></code></pre></div>
+<p>Alternatively, one can have the singleton object extend trait <code>App</code> and put application code directly in the object (command-line arguments are still available as <code>args</code>):</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">object</span> Application <span class="kw">extends</span> App {</span>
+<span id="cb30-2"><a href="#cb30-2"></a>  <span class="fu">println</span>(<span class="st">&quot;This is a Scala application&quot;</span>)</span>
+<span id="cb30-3"><a href="#cb30-3"></a>  <span class="fu">println</span>(<span class="st">&quot;It has &quot;</span> + args.<span class="fu">length</span> + <span class="st">&quot; command-line arguments&quot;</span>)</span>
+<span id="cb30-4"><a href="#cb30-4"></a>}</span></code></pre></div>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><p><em>Classes</em>, introduce by the keyword <code>class</code>, define new <em>types</em>.</p></li>
+<li><p>Classes can be <em>instantiated</em> into <em>objects</em>, also called <em>instances</em> of the class. Objects are values in the type defined by the class.</p></li>
+<li><p>Classes often contain <em>fields</em> (also called <em>data members</em>) and <em>methods</em>. Methods contain the code that is used to manipulate the data from the fields. The idea is to bundle the data and corresponding code together inside objects.</p></li>
+<li><p>Making sure that data is only modified by suitable code from the class requires <em>encapsulation</em>. Fields and methods (and inner classes) can be made <em>private</em> by adding a <em>modifier</em> in the field/method declaration. Other modifiers exist (see further discussion of encapsulation later). The absence of modifier in Scala means <em>public</em>, that is, accessible from anywhere. This is different from Java, where the absence of modifier means <em>package private</em>, that is, accessible from within the package only.</p></li>
+<li><p>By default, Scala classes have a single, no-argument constructor, called the <em>primary</em> constructor. This constructor can be modified to take arguments. Adding <code>val</code> or <code>var</code> in front of these arguments makes them fields, as if they had been declared in the body of the class. Modifiers can be used. The primary constructor has no explicit body, but arbitrary code can be inserted in a class (outside method bodies) and will be executed at construction time.</p></li>
+<li><p><em>Auxiliary</em> constructors can be defined, in addition to the primary, using a <code>def this(...)</code> declaration. Auxiliary constructor <em>must</em> begin with a call to the primary constructor, or to another auxiliary constructor.</p></li>
+<li><p>Modifiers, like <code>private</code>, can be applied to any constructor, primary or auxiliary.</p></li>
+<li><p><em>Case classes</em> add the keyword <code>case</code> to the class declaration. The primary purpose is to enable <em>pattern matching</em> on instances. In addition to pattern matching, case classes differ from ordinary classes in a few other ways:</p>
+<ul>
+<li>Case classes can (and should) be instantiated without the keyword <code>new</code>.</li>
+<li>Primary constructor arguments are <code>val</code> by default, even if the <code>val</code> keyword is not used.</li>
+<li>String representation (<code>toString</code> method), equality and hashcode are automatically redefined in terms of the primary constructor arguments.</li>
+</ul></li>
+<li><p><em>Traits</em> can be used like Java interfaces, to specify a type without providing an implementation. (Traits in Scala can do a lot more; see later discussion of modularity and <em>mixins</em>.) When used as interfaces, traits consist of public abstract methods, which are defined like regular methods but without a body.</p></li>
+<li><p>Classes can <em>extend</em> or <em>mix in</em> one or more traits. The type defined by the class is then a <em>subtype</em> of all the types defined by the traits. Conversely, the types defined by the traits are <em>supertypes</em> of the class type. Multiple classes can extend the same trait, making them all subtypes of a common supertype.</p></li>
+<li><p>The keyword <code>class</code> can be substituted for the keyword <code>object</code>. This defines a class and an instance of that class at the same type. No further instances of that class can be created, making the object the lone value in its type. Accordingly, such object are often called <em>singleton objects</em>. Singleton objects can extend traits and <em>case objects</em> are possible.</p></li>
+<li><p>Singleton objects are often used in Scala for purposes that would involve <code>static</code> in Java: static fields, static factory methods, etc. Scala has no notion of static field/method.</p></li>
+<li><p>An important use of singletons is to define main applications: Java’s static <code>main</code> method is replaced with a (regular, non-static) <code>main</code> method of the same signature in a singleton object.</p></li>
+<li><p>As a special case, a singleton object with the same name as a class and defined in the same file as the class is called a <em>companion object</em>. Companion objects have a special relationship with their class. They can access private fields and methods from the class, and the class can access private fields and methods from its companion object. Companion objects are used extensively in the Scala standard library.</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Except for its <em>companion object</em>. Companion objects are discussed below.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>Or be itself <em>abstract</em>. Abstract classes are discussed later.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>“<em>When I see a bird that walks like a duck and swims like a duck and quacks like a duck, I call that bird a duck.</em>”<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p>The use of <code>final</code> in the definitions of <code>START</code> and <code>MULT</code> guarantees that the values will be inlined as the <code>static final</code> would in Java.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-02-04 at 11:54:07 AM</footer>
+</body>

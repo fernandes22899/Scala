@@ -1,0 +1,472 @@
+[info] waiting for lock on /home/tester/.sbt/boot/sbt.boot.lock to be available...
+[info] welcome to sbt 1.4.6 (AdoptOpenJDK Java 15.0.1)
+[info] loading project definition from /assigns/jjf1027/GIT/1/project
+[info] loading settings for project mastermind from build.sbt,mastermind.sbt ...
+[info] set current project to mastermind (in build file:/assigns/jjf1027/GIT/1/)
+[success] Total time: 0 s, completed Jun 11, 2021, 1:33:11 PM
+[info] compiling 7 Scala sources to /assigns/jjf1027/GIT/1/target/scala-2.13/classes ...
+[warn] /assigns/jjf1027/GIT/1/src/main/scala/cs671/mastermind/Mastermind.scala:54:15: private method evaluateGuess in class Mastermind is never used
+[warn]   private def evaluateGuess(guess: String, code: String) = ???
+[warn]               ^
+[warn] /assigns/jjf1027/GIT/1/src/main/scala/cs671/practice/package.scala:8:17: Auto-application to `()` is deprecated. Supply the empty argument list `()` explicitly to invoke method nextInt,
+[warn] or remove the empty argument list from its definition (Java-defined methods are exempt).
+[warn] In Scala 3, an unapplied method like this will be eta-expanded into a function.
+[warn]     while (rand.nextInt != 42) {
+[warn]                 ^
+[warn] /assigns/jjf1027/GIT/1/src/main/scala/cs671/practice/package.scala:17:18: Auto-application to `()` is deprecated. Supply the empty argument list `()` explicitly to invoke method nextInt,
+[warn] or remove the empty argument list from its definition (Java-defined methods are exempt).
+[warn] In Scala 3, an unapplied method like this will be eta-expanded into a function.
+[warn]       big = rand.nextInt
+[warn]                  ^
+[warn] /assigns/jjf1027/GIT/1/src/main/scala/cs671/practice/package.scala:31:9: local var c in method nextLetter is never updated: consider using immutable val
+[warn]     var c = rand.nextInt(26) + 65
+[warn]         ^
+[warn] four warnings found
+[info] done compiling
+[info] compiling 9 Scala sources to /assigns/jjf1027/GIT/1/target/scala-2.13/test-classes ...
+[warn] /assigns/jjf1027/GIT/1/src/test/scala/grading/MastermindSuite.scala:11:35: Unused import
+[warn]   import org.scalactic.TimesOnInt._
+[warn]                                   ^
+[warn] one warning found
+[info] done compiling
+[info] running (fork) grading.Grade 
+RefSuite:
+- get (1) (39 milliseconds)
+- reset (1) (1 millisecond)
+- toString (1) (1 millisecond)
+- delete (1) (1 millisecond)
+- get (2) (1 millisecond)
+- accessCount (1) (1 millisecond)
+- accessCount (2) (26 milliseconds)
+- reset (2) (2 milliseconds)
+- toString (2) (5 milliseconds)
+- nulls (1) *** FAILED *** (8 milliseconds)
+  Expected exception java.lang.IllegalArgumentException to be thrown, but no exception was thrown (RefSuite.scala:54)
+- delete (2) (2 milliseconds)
+- delete (3) (2 milliseconds)
+- delete (4) (1 millisecond)
+- delete (5) (1 millisecond)
+- various (1) [5pts] (5 milliseconds)
+PracticeSuite:
+- find42 (1) (1 second, 938 milliseconds)
+- findBig (1) (0 milliseconds)
+- removeLongerThan (1) (2 milliseconds)
+- makePairs (1) (1 millisecond)
+- nextLetter (1) (1 millisecond)
+- makeLetters (1) (3 milliseconds)
+- getIfValid (1) (1 millisecond)
+- getIfValid (2) (1 millisecond)
+- makeRefs (1) (1 millisecond)
+- getRefs (1) (0 milliseconds)
+- getValidRefs (1) (1 millisecond)
+- find42 (2) (6 seconds, 983 milliseconds)
+- findBig (2) (3 milliseconds)
+- findBig (3) (1 millisecond)
+- findBig (4) (1 millisecond)
+- removeLongerThan (2) (1 millisecond)
+- removeLongerThan (3) (1 millisecond)
+- removeLongerThan (4) (0 milliseconds)
+- removeLongerThan (5) (1 millisecond)
+- removeLongerThan (6) (1 millisecond)
+- makePairs (2) (1 millisecond)
+- makePairs (3) (1 millisecond)
+- makePairs (4) (67 milliseconds)
+- nextLetter (2) (1 millisecond)
+- makeLetters (2) (7 milliseconds)
+- makeLetters (3) *** FAILED *** (2 milliseconds)
+  Expected exception java.lang.IllegalArgumentException to be thrown, but no exception was thrown (PracticeSuite.scala:91)
+- getIfValid (3) (16 milliseconds)
+- makeRefs (2) (26 milliseconds)
+- getRefs (2) (3 milliseconds)
+- getValidRefs (2) (1 millisecond)
+- getValidRefs (3) (6 milliseconds)
+MastermindSuite:
+- Six-color game with 4-color code has 1296 combitations (1) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$1(SampleMastermindTests.scala:12)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Evaluation of Code returns OOOO (1) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$2(SampleMastermindTests.scala:17)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Evaluation of jumbled Code returns XXXX (1) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$3(SampleMastermindTests.scala:22)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Evaluation different from Code returns empty string (1) *** FAILED *** (0 milliseconds)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$4(SampleMastermindTests.scala:27)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Randomly generated guesses are different and valid (1) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$5(SampleMastermindTests.scala:32)
+  at scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.scala:18)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- Guess with no overlap analyzes to 1040/1296 as percent (1) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$7(SampleMastermindTests.scala:46)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Multiple guesses further reduce number of total guesses properly (1) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$8(SampleMastermindTests.scala:51)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Validate properly accepts consistent guess (1) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$9(SampleMastermindTests.scala:59)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Solved is only true when the final guess is made (1) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$10(SampleMastermindTests.scala:66)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- 10-color game with 7-color code has 1000000 combinations (1) *** FAILED *** (0 milliseconds)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.SampleMastermindTests.$anonfun$new$11(SampleMastermindTests.scala:77)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Too few or too many colors are invalid (2) (3 milliseconds)
+- Too few or too many guess positions are invalid (2) *** FAILED *** (1 millisecond)
+  Expected exception java.lang.IllegalArgumentException to be thrown, but no exception was thrown (MastermindSuite.scala:23)
+- No second argument generates code consistent with length 4, 2-color (1) *** FAILED *** (14 milliseconds)
+  0 did not equal 16 (MastermindSuite.scala:33)
+- No second argument generates code consistent with length 4, 6-color (2) *** FAILED *** (1 millisecond)
+  0 did not equal 1296 (MastermindSuite.scala:38)
+- No second argument generates code consistent with length 4, 9-color (1) *** FAILED *** (0 milliseconds)
+  0 did not equal 6561 (MastermindSuite.scala:43)
+- generateAllPossibilities works even after guess is made (1) *** FAILED *** (0 milliseconds)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$10(MastermindSuite.scala:47)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- generateAllPossibilities doesn't interfere with other calls after guess made (2) *** FAILED *** (0 milliseconds)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$11(MastermindSuite.scala:56)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- evalutateGuess properly produces OOX result (2) *** FAILED *** (22 milliseconds)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$12(MastermindSuite.scala:66)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- evalutateGuess properly produces XX result (2) *** FAILED *** (0 milliseconds)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$13(MastermindSuite.scala:71)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- evalutateGuess properly produces OX result with distractors (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$14(MastermindSuite.scala:76)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- evalutateGuess properly produces X result with distractors (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$15(MastermindSuite.scala:81)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- evalutateGuess properly produces OXXXX result with 7 pegs (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$16(MastermindSuite.scala:86)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Validate properly rejects inconsistent guess (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$17(MastermindSuite.scala:91)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- makeGuess on guess already made does not change remaining codes (2) *** FAILED *** (0 milliseconds)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$18(MastermindSuite.scala:98)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Guess of size 4 with 6 colors and some overlap evaluates properly (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$19(MastermindSuite.scala:111)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Guess of size 6 with 5 colors and some overlap evaluates properly (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$20(MastermindSuite.scala:116)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Guess of size 7 with 2 colors and some overlap evaluates properly (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$21(MastermindSuite.scala:121)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Guess of size 3 with 10 colors and some overlap evaluates properly (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$22(MastermindSuite.scala:126)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Guess of size 6 with 5 colors after guess evaluates properly (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$23(MastermindSuite.scala:131)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Guess of size 7 with 2 colors after guess evaluates properly (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$24(MastermindSuite.scala:137)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- Guess of size 3 with 10 colors after guess evaluates properly (2) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$25(MastermindSuite.scala:143)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- generateBestGuess advances 2-color, 6-peg game until solved (4) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$26(MastermindSuite.scala:162)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- generateBestGuess advances default game until solved (4) *** FAILED *** (1 millisecond)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$27(MastermindSuite.scala:170)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+- generateBestGuess advances 7-color 6-peg game until solved (3) *** FAILED *** (0 milliseconds)
+  java.lang.IllegalArgumentException:
+  at cs671.mastermind.Mastermind.<init>(Mastermind.scala:21)
+  at grading.MastermindSuite.$anonfun$new$28(MastermindSuite.scala:177)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  at java.base/java.lang.Thread.run(Thread.java:832)
+  ...
+time: 9.4 seconds
+grade: 40 / 100
+[success] Total time: 27 s, completed Jun 11, 2021, 1:33:39 PM

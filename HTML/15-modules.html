@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<!-- Generated from 705-modules.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>15-modules</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="using-traits-for-modularity">Using Traits for Modularity</h2>
+<p><strong>Note:</strong> The issue of modularity relates to <em>programming in the large</em> and only makes sense when dealing with very large and complex systems. In the examples below, “modules” and “services” are reduced a single value or a single method for illustration purposes. This can make the mechanisms for modularity appear overly complicated (compared to the modules themselves). It is important to keep in mind that services and modules would most likely involve a lot of code in a more realistic system.</p>
+<h3 id="modules-as-traits">Modules as traits</h3>
+<p>In Java, interfaces are used to specify types. They typically consist of abstract public methods, which specify the public interface of the type (hence the name). Java interfaces can also define related types (as interfaces or classes)<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> and constants (as static final fields). Starting with Java 8, interfaces can have concrete methods (but no fields). The reason for these is not to turn them into full module implementations but to make it easier to add methods to a type without having to modify existing implementations. For instance, Java 8 added a method <code>forEachRemaining(action)</code> to the <code>Iterator</code> interface. This method is given a default implementation (<code>while (hasNext()) action.accept(next())</code>) to avoid breaking all existing iterators.</p>
+<p>Scala traits can be used to achieve the same purpose as Java interfaces, as discussed earlier, but they can do much more. Because a class can mix in multiple traits and traits can contain arbitrary code and data, they can be used to break large systems into modules. Modules are defined as abstract classes (or as traits) and missing implementations are plugged in by mixing in suitable traits.</p>
+<p>As an illustration, consider a large system that offers two services:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">class</span> LargeSystem {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="kw">def</span> service0 = <span class="st">&quot;service 0&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>}</span></code></pre></div>
+<p>If the system is large enough, it might be inconvenient to keep both services defined in the same class and in the same file. Instead, parts of the class (say, <code>service1</code>) could be moved in a separate trait:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">abstract</span> <span class="kw">class</span> LargeSystem {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>  <span class="kw">def</span> service0: String = <span class="st">&quot;service 0&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="kw">def</span> service1: String</span>
+<span id="cb2-4"><a href="#cb2-4"></a>}</span>
+<span id="cb2-5"><a href="#cb2-5"></a></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="kw">trait</span> S1 {</span>
+<span id="cb2-7"><a href="#cb2-7"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1 from S1&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>}</span></code></pre></div>
+<p>An actual system is then built by putting together the abstract class and the trait, as in:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">class</span> LargeSystem1 <span class="kw">extends</span> LargeSystem <span class="kw">with</span> S1</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">val</span> system1 = <span class="kw">new</span> LargeSystem1</span></code></pre></div>
+<p>It is very common to assemble a system class and instantiate it in one step:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">val</span> system = <span class="kw">new</span> LargeSystem <span class="kw">with</span> S1</span></code></pre></div>
+<p>In this case, <code>system</code> is actually an instance of an anonymous class that extends <code>LargeSystem</code> and <code>S1</code>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>Alternatively, a system can be implemented as a singleton:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">object</span> System <span class="kw">extends</span> LargeSystem <span class="kw">with</span> S1</span></code></pre></div>
+<p>The system is now modular in the sense that variants can be obtained by using different implementations of trait <code>S1</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">object</span> SystemVariant <span class="kw">extends</span> LargeSystem <span class="kw">with</span> S1Variant</span></code></pre></div>
+<p>This form of composition is sometimes referred to as a <em>mixin</em>: Functionality is added to a class by <em>mixing in</em> one or more traits, which can be used to implement a given service (or to modify the behavior of an existing service through <em>stackable traits</em>, as described later).</p>
+<h3 id="self-types-and-inheritance"><em>Self types</em> and inheritance</h3>
+<p>Suppose now that <code>service1</code> is implemented as a variation of another service <code>service1a</code>. This can be achieved by having trait <code>S1</code> extend another trait <code>S1a</code> and inherit its code:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">trait</span> S1a {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">def</span> service1a = <span class="st">&quot;service 1a&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a>}</span>
+<span id="cb7-4"><a href="#cb7-4"></a></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="kw">trait</span> S1 <span class="kw">extends</span> S1a {</span>
+<span id="cb7-6"><a href="#cb7-6"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1 from S1 using &quot;</span> + service1a</span>
+<span id="cb7-7"><a href="#cb7-7"></a>}</span></code></pre></div>
+<p>A drawback of this approach is that, like other forms of inheritance, it tends to break encapsulation: Trait <code>S1</code> inherits everything from trait <code>S1a</code> and becomes itself an <code>S1a</code> module. This can be problematic when code starts to leak in traits where it does not belong. As an illustration, suppose that <code>service1a</code> is implemented in terms of a more general service <code>G</code> (e.g., a user database in terms of a general database):</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">trait</span> G {</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="kw">def</span> generalService = <span class="st">&quot;general service&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a>}</span>
+<span id="cb8-4"><a href="#cb8-4"></a></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="kw">trait</span> S1a <span class="kw">extends</span> G {</span>
+<span id="cb8-6"><a href="#cb8-6"></a>  <span class="kw">def</span> service1a = <span class="st">&quot;service 1a using &quot;</span> + generalService</span>
+<span id="cb8-7"><a href="#cb8-7"></a>}</span></code></pre></div>
+<p>As written, <code>generalService</code> is visible and can be used in <code>S1</code>, where it does not belong:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">trait</span> S1 <span class="kw">extends</span> S1a {</span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1 from S1 using &quot;</span> + service1a</span>
+<span id="cb9-3"><a href="#cb9-3"></a>  <span class="co">// generalService usable here</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>}</span></code></pre></div>
+<p>This is, at the level of modules, similar to the previously discussed issue of <em>inheritance</em> versus <em>composition</em>.</p>
+<p>As an alternative, the standard composition mechanisms discussed earlier could be used, but they would require passing entire modules as an objects:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">class</span> <span class="fu">LargeSystem</span>(m1: S1) {</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  <span class="kw">def</span> service0: String = <span class="st">&quot;service 0&quot;</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="kw">def</span> service1: String = m1.<span class="fu">service1</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a>}</span>
+<span id="cb10-5"><a href="#cb10-5"></a></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="kw">class</span> <span class="fu">S1</span>(m1a: S1a) {</span>
+<span id="cb10-7"><a href="#cb10-7"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1 from S1 using m1a.&quot;</span> + m1a.<span class="fu">service1a</span></span>
+<span id="cb10-8"><a href="#cb10-8"></a>}</span>
+<span id="cb10-9"><a href="#cb10-9"></a></span>
+<span id="cb10-10"><a href="#cb10-10"></a><span class="kw">class</span> <span class="fu">S1a</span>(g: G) {</span>
+<span id="cb10-11"><a href="#cb10-11"></a>  <span class="kw">def</span> service1a = <span class="st">&quot;service 1a using g.&quot;</span> + g.<span class="fu">generalService</span></span>
+<span id="cb10-12"><a href="#cb10-12"></a>}</span>
+<span id="cb10-13"><a href="#cb10-13"></a></span>
+<span id="cb10-14"><a href="#cb10-14"></a><span class="kw">class</span> G {</span>
+<span id="cb10-15"><a href="#cb10-15"></a>  <span class="kw">def</span> generalService = <span class="st">&quot;general service&quot;</span></span>
+<span id="cb10-16"><a href="#cb10-16"></a>}</span>
+<span id="cb10-17"><a href="#cb10-17"></a></span>
+<span id="cb10-18"><a href="#cb10-18"></a><span class="kw">val</span> system = <span class="kw">new</span> <span class="fu">LargeSystem</span>(<span class="kw">new</span> <span class="fu">S1</span>(<span class="kw">new</span> <span class="fu">S1a</span>(<span class="kw">new</span> G)))</span></code></pre></div>
+<p>One drawback of this approach is the additional levels of indirection (using <code>m1</code>, <code>m1a</code> and <code>g</code>), especially as these modules are large (multiple fields, methods, types, classes, …). Another weakness is the difficulty of dealing with <em>cycles</em> (see examples of cyclic dependencies below).</p>
+<p>Instead, Scala offers another way to depend on entire modules without encapsulating them in objects and without the drawbacks of using inheritance:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">trait</span> S1 { self: S1a =&gt;</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1 from S1 using &quot;</span> + service1a</span>
+<span id="cb11-3"><a href="#cb11-3"></a>}</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="kw">trait</span> S1a { self: G =&gt;</span>
+<span id="cb11-6"><a href="#cb11-6"></a>  <span class="kw">def</span> service1a = <span class="st">&quot;service1a using &quot;</span> + generalService</span>
+<span id="cb11-7"><a href="#cb11-7"></a>}</span></code></pre></div>
+<p>The syntax <code>self: T =&gt;</code> is called a <em>self type</em>. It means that the trait can only be mixed in a class that has type <code>T</code> (exactly, or one of its subtypes). It is customary in Scala to use <code>self</code> to refer to the object the trait will be mixed in, but other identifiers can be used. Whatever name is used becomes an alias for the object and can be used directly. Trait <code>S1</code> could have been defined as:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">trait</span> S1 { me: S1a =&gt;</span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1 from S1 using &quot;</span> + me.<span class="fu">service1a</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>}</span></code></pre></div>
+<p>Here, <code>me.service1a</code> is the same as <code>this.service1a</code> and can simply be written <code>service1a</code>. When classes are nested inside other classes, however, the identifier used for the self type and <code>this</code> may refer to two distinct objects. This can make self types useful in some circumstances, even without types:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">class</span> Outer { self =&gt;</span>
+<span id="cb13-2"><a href="#cb13-2"></a></span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="kw">def</span> foo = <span class="st">&quot;outer&quot;</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a></span>
+<span id="cb13-5"><a href="#cb13-5"></a>  <span class="kw">class</span> Inner {</span>
+<span id="cb13-6"><a href="#cb13-6"></a></span>
+<span id="cb13-7"><a href="#cb13-7"></a>    <span class="kw">def</span> foo = <span class="st">&quot;inner&quot;</span></span>
+<span id="cb13-8"><a href="#cb13-8"></a></span>
+<span id="cb13-9"><a href="#cb13-9"></a>    <span class="kw">def</span> <span class="fu">bar</span>() {</span>
+<span id="cb13-10"><a href="#cb13-10"></a>      <span class="fu">println</span>(foo)</span>
+<span id="cb13-11"><a href="#cb13-11"></a>      <span class="fu">println</span>(<span class="kw">this</span>.<span class="fu">foo</span>)</span>
+<span id="cb13-12"><a href="#cb13-12"></a>      <span class="fu">println</span>(self.<span class="fu">foo</span>)</span>
+<span id="cb13-13"><a href="#cb13-13"></a>      <span class="fu">println</span>(Outer.<span class="fu">this</span>.<span class="fu">foo</span>)</span>
+<span id="cb13-14"><a href="#cb13-14"></a>    }</span>
+<span id="cb13-15"><a href="#cb13-15"></a>  }</span>
+<span id="cb13-16"><a href="#cb13-16"></a>}</span>
+<span id="cb13-17"><a href="#cb13-17"></a></span>
+<span id="cb13-18"><a href="#cb13-18"></a><span class="kw">val</span> o = <span class="kw">new</span> Outer</span>
+<span id="cb13-19"><a href="#cb13-19"></a><span class="kw">val</span> i = <span class="kw">new</span> o.<span class="fu">Inner</span></span>
+<span id="cb13-20"><a href="#cb13-20"></a>i.<span class="fu">bar</span>()</span></code></pre></div>
+<p>This code produces the output:</p>
+<pre><code>inner
+inner
+outer
+outer</code></pre>
+<p>Note how both <code>foo</code> and <code>this.foo</code> refer to the method <code>foo</code> of the inner object but <code>self.foo</code> is the method <code>foo</code> of the outer object. In Java, which does not have self types, the outer method <code>foo</code> would be called as <code>Outer.this.foo()</code>. This syntax is also available in Scala.</p>
+<p>A key property of self types is that they are not transitive in the way inheritance is. Even though <code>S1</code> has type <code>S1a</code> and <code>S1a</code> has type <code>G</code>, <code>S1</code> does not have type <code>G</code>. In particular, <code>generalService</code> is not available in <code>S1</code> and encapsulation has been restored.</p>
+<h3 id="abstract-methods-fields-and-types">Abstract methods, fields and types</h3>
+<p>In the example above, the missing module in class <code>LargeSystem</code> is a single abstract method <code>service1</code>. Modules can consist of multiple methods but can also include types and fields, and these can also be left abstract for the purpose of modularity:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">abstract</span> <span class="kw">class</span> LargeSystem {</span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="kw">def</span> service0: String = <span class="st">&quot;service 0&quot;</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a></span>
+<span id="cb15-4"><a href="#cb15-4"></a>  <span class="kw">def</span> service1: String</span>
+<span id="cb15-5"><a href="#cb15-5"></a></span>
+<span id="cb15-6"><a href="#cb15-6"></a>  <span class="kw">type</span> Service2_type</span>
+<span id="cb15-7"><a href="#cb15-7"></a>  <span class="kw">val</span> service2_data: Service2_type</span>
+<span id="cb15-8"><a href="#cb15-8"></a></span>
+<span id="cb15-9"><a href="#cb15-9"></a>  <span class="kw">def</span> service2 = <span class="st">&quot;service 2 using &quot;</span> + service2_data</span>
+<span id="cb15-10"><a href="#cb15-10"></a>}</span></code></pre></div>
+<p>In this variant, class <code>LargeSystem</code> includes an abstract type <code>Service2_type</code> and an abstract field <code>service2_data</code> of that type. These represent a module that, like <code>service1</code>, can be implemented as a separate trait:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">trait</span> S2 {</span>
+<span id="cb16-2"><a href="#cb16-2"></a>  <span class="kw">type</span> Service2_type = Int</span>
+<span id="cb16-3"><a href="#cb16-3"></a>  <span class="kw">val</span> service2_data = <span class="dv">42</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a>}</span></code></pre></div>
+<h3 id="interdependencies">Interdependencies</h3>
+<p>In complex modular systems, it can be the case that a module needs to access another module. For instance, <code>S1</code> may need to access data from <code>S2</code>:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">trait</span> S1 { self: S1a =&gt;</span>
+<span id="cb17-2"><a href="#cb17-2"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1 from S1 using &quot;</span> + service1a + <span class="st">&quot; and &quot;</span> + service2_data</span>
+<span id="cb17-3"><a href="#cb17-3"></a>}</span></code></pre></div>
+<p>This trait cannot be compiled because <code>service2_data</code> cannot be found. To solve this problem, self types can again be used to specify that module <code>S1</code> is always used in systems that include module <code>S2</code>:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">trait</span> S1 { self: S1a <span class="kw">with</span> S2 =&gt;</span>
+<span id="cb18-2"><a href="#cb18-2"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1 from S1 using &quot;</span> + service1a + <span class="st">&quot; and &quot;</span> + service2_data</span>
+<span id="cb18-3"><a href="#cb18-3"></a>}</span></code></pre></div>
+<p>If a module is so dependent on other modules that it can only be used as part of a specific system, it can specify that as a self type:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">trait</span> S1 { self: LargeSystem <span class="kw">with</span> S1a =&gt;</span>
+<span id="cb19-2"><a href="#cb19-2"></a>  <span class="kw">def</span> service1 = <span class="st">&quot;service 1 from S1 using &quot;</span> + service1a + <span class="st">&quot; and &quot;</span> + service2_data</span>
+<span id="cb19-3"><a href="#cb19-3"></a>}</span></code></pre></div>
+<p>Here, trait <code>S1</code> can only be used with classes of type <code>LargeSystem</code> (with <code>S1a</code> mixed in as well). It can then access all services from <code>LargeSystem</code>, including <code>Service2_type</code> and <code>Service2_data</code>.</p>
+<p>Using self types, modules interdependencies can have cycles. Consider a final variant of our system with a third module <code>service3</code>:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">abstract</span> <span class="kw">class</span> LargeSystem {</span>
+<span id="cb20-2"><a href="#cb20-2"></a>  <span class="kw">def</span> service0: String = <span class="st">&quot;service 0&quot;</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a></span>
+<span id="cb20-4"><a href="#cb20-4"></a>  <span class="kw">def</span> service1: String</span>
+<span id="cb20-5"><a href="#cb20-5"></a></span>
+<span id="cb20-6"><a href="#cb20-6"></a>  <span class="kw">type</span> Service2_type</span>
+<span id="cb20-7"><a href="#cb20-7"></a>  <span class="kw">val</span> service2_data: Service2_type</span>
+<span id="cb20-8"><a href="#cb20-8"></a></span>
+<span id="cb20-9"><a href="#cb20-9"></a>  <span class="kw">def</span> service2 = <span class="st">&quot;service 2 using &quot;</span> + service2_data</span>
+<span id="cb20-10"><a href="#cb20-10"></a></span>
+<span id="cb20-11"><a href="#cb20-11"></a>  <span class="kw">def</span> service3: String</span>
+<span id="cb20-12"><a href="#cb20-12"></a>}</span></code></pre></div>
+<p>Suppose that this third service is large enough that it needs to be implemented in two separate traits <code>S3a</code> and <code>S3b</code>, in such a way that <code>S3a</code> needs <code>S3b</code> and <code>S3b</code> needs <code>S3a</code>. This can be specified using self types:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">trait</span> S3a { self: S3b =&gt;</span>
+<span id="cb21-2"><a href="#cb21-2"></a>  <span class="kw">val</span> service3a_data = <span class="st">&quot;service 3a data&quot;</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a></span>
+<span id="cb21-4"><a href="#cb21-4"></a>  <span class="kw">def</span> service3 = <span class="st">&quot;service 3 using &quot;</span> + service3b</span>
+<span id="cb21-5"><a href="#cb21-5"></a>}</span>
+<span id="cb21-6"><a href="#cb21-6"></a></span>
+<span id="cb21-7"><a href="#cb21-7"></a><span class="kw">trait</span> S3b { self: S3a =&gt;</span>
+<span id="cb21-8"><a href="#cb21-8"></a>  <span class="kw">def</span> service3b = <span class="st">&quot;service 3b using &quot;</span> + service3a_data</span>
+<span id="cb21-9"><a href="#cb21-9"></a>}</span></code></pre></div>
+<h3 id="modularity-in-java">Modularity in Java</h3>
+<p>Java has no support for mixins. Instead, Java applications need to rely on external frameworks to assemble systems from independent modules. One such popular framework is <em>Spring</em> (<a href="https://spring.io" class="uri">https://spring.io</a>). Scala’s traits and Java’s Spring both implement a similar form of <em>dependency injection</em>, a widespread software engineering technique, itself a special case of a pattern known as <em>inversion of control</em>. The wiring of modules in Spring is specified in terms of XML files and relies on reflection, with the consequence that incorrect assemblies tend to fail at runtime. One benefit on mixin traits in Scala is that wiring is done by the compiler and inconsistencies can be caught at compile-time.</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>For instance, the <code>Map</code> interface contains an interface <code>Entry</code>, which represents a pair <em>(key, value)</em> in the map.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>In Scala, an anonymous class can extend a class <em>and</em> one or more traits at the same time. This is not possible in Java, where an anonymous class can only extend a class <em>or</em> implement a single interface.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-03-26 at 11:42:19 AM</footer>
+</body>

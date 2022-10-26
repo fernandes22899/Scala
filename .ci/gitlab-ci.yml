@@ -1,0 +1,9 @@
+image: "charpov/java-sbt:unh"
+
+sample-tests:
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^(([0-9][a-z]?)|Project|project)(\.[0-9]+)?$/'
+  tags:
+    - docker
+  script:
+    - bash .ci/compile.sh $CI_COMMIT_TAG $instructorURL $instructorBranch

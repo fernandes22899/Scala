@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<!-- Generated from 503-list-recursion.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>6-list-recursion</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="recursion-on-lists">Recursion on Lists</h2>
+<h3 id="pattern-matching-revisited">Pattern matching revisited</h3>
+<p>Lists in Scala form a recursive data structure (the tail of a non-empty list is itself a list) and many list-based computations can use recursion quite naturally. This often requires splitting a non-empty list into its head and tail. For instance, the following Scala function prints all the elements of a list:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">def</span> printAll[A](l: List[A]): Unit =</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="kw">if</span> (l.<span class="fu">nonEmpty</span>) {</span>
+<span id="cb1-3"><a href="#cb1-3"></a>    <span class="fu">println</span>(l.<span class="fu">head</span>)</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    <span class="fu">printAll</span>(l.<span class="fu">tail</span>)</span>
+<span id="cb1-5"><a href="#cb1-5"></a>  }</span></code></pre></div>
+<p>Although <em>head</em> and <em>tail</em> are key concepts when programming with functional lists, the <code>head</code> and <code>tail</code> methods are rarely used in Scala. Instead, lists can be broken into head and tail using <em>pattern matching</em>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">def</span> printAll[A](l: List[A]): Unit = l <span class="kw">match</span> {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>  <span class="kw">case</span> Nil =&gt; ()</span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="kw">case</span> h :: t =&gt;</span>
+<span id="cb2-4"><a href="#cb2-4"></a>    <span class="fu">println</span>(h)</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="fu">printAll</span>(t)</span>
+<span id="cb2-6"><a href="#cb2-6"></a>}</span></code></pre></div>
+<ul>
+<li>The pattern <code>Nil</code> only matches the empty list. It can also be written <code>List()</code>.</li>
+<li>The pattern <code>h :: t</code> only matches non-empty lists <em>and</em> sets <code>h</code> with the head of the list and <code>t</code> with the tail of the list. In particular, the <code>head</code> and <code>tail</code> functions can be implemented using pattern matching:</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">def</span> head[A](l: List[A]): A = l <span class="kw">match</span> {</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="kw">case</span> Nil =&gt; <span class="kw">throw</span> <span class="kw">new</span> NoSuchElementException(<span class="st">&quot;head(empty)&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3"></a>  <span class="kw">case</span> h :: _ =&gt; h</span>
+<span id="cb3-4"><a href="#cb3-4"></a>}</span>
+<span id="cb3-5"><a href="#cb3-5"></a></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="kw">def</span> tail[A](l: List[A]): List[A] = l <span class="kw">match</span> {</span>
+<span id="cb3-7"><a href="#cb3-7"></a>  <span class="kw">case</span> Nil =&gt; <span class="kw">throw</span> <span class="kw">new</span> NoSuchElementException(<span class="st">&quot;tail(empty)&quot;</span>)</span>
+<span id="cb3-8"><a href="#cb3-8"></a>  <span class="kw">case</span> _ :: t =&gt; t</span>
+<span id="cb3-9"><a href="#cb3-9"></a>}</span></code></pre></div>
+<p>Note how <code>h :: _</code> can be used to match a non-empty list without introducing a name for its tail. In particular, the pattern <code>_</code> matches everything.</p>
+<p>Many other patterns are possible on lists. For instance:</p>
+<ul>
+<li><p><code>_ :: _</code> matches any non-empty list. No variable is set.</p></li>
+<li><p><code>x :: Nil</code> matches a list of length one. Variable <code>x</code> is set to the single list element. This pattern can also be written <code>List(x)</code>.</p></li>
+<li><p><code>_ :: Nil</code> matches a list of length one. No variable is set. This pattern can also be written <code>List(_)</code>.</p></li>
+<li><p><code>a :: b :: Nil</code> matches a list of exactly two elements. Variables <code>a</code> and <code>b</code> are set to these elements. This pattern can also be written <code>List(a,b)</code>.</p></li>
+<li><p><code>a :: b :: c</code> matches a list of at least two elements. Variables <code>a</code> and <code>b</code> are set to the first two elements; variable <code>c</code> contains the remaining elements (and might be empty). Note that <code>a</code> and <code>b</code> are <em>elements</em> while <code>c</code> is a <em>list</em>. This pattern could also be written <code>a :: (b :: c)</code>.</p></li>
+<li><p><code>(a :: b) :: c</code> matches a non-empty list <em>of lists</em> in which the first list is non-empty. For instance, if the list <code>List(List(1, 2, 3), List(4, 5), List(6))</code> is matched:</p>
+<ul>
+<li><code>a</code> is 1</li>
+<li><code>b</code> is <code>List(2, 3)</code></li>
+<li><code>c</code> is <code>List(List(4, 5), List(6))</code></li>
+</ul></li>
+<li><p><code>0 :: l</code> matches any list of integers that starts with 0. Variable <code>l</code> is set to the tail of the list.</p></li>
+<li><p><code>"X" :: _</code> matches any list of strings that stars with <code>"X"</code>. No variable is set.</p></li>
+<li><p><code>Some(v) :: r</code> matches a nonempty list of options that begins with some value (not <code>None</code>). Variable <code>v</code> is set to this value and variable <code>r</code> to the rest of the list. Note how value <code>v</code> is obtained without using method <code>head</code> of the list or method <code>get</code> on the option.</p></li>
+<li><p>…</p></li>
+</ul>
+<p>The order of patterns in a match is important: Only the first pattern that matches is used. Functions <code>isEmpty1</code> and <code>isEmpty2</code> are correct:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">def</span> isEmpty1[A](l: List[A]) = l <span class="kw">match</span> {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="kw">case</span> Nil =&gt; <span class="kw">true</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>  <span class="kw">case</span> _   =&gt; <span class="kw">false</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>}</span>
+<span id="cb4-5"><a href="#cb4-5"></a></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="kw">def</span> isEmpty2[A](l: List[A]) = l <span class="kw">match</span> {</span>
+<span id="cb4-7"><a href="#cb4-7"></a>  <span class="kw">case</span> _ :: _ =&gt; <span class="kw">false</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a>  <span class="kw">case</span> _      =&gt; <span class="kw">true</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a>}</span></code></pre></div>
+<p>but function <code>isEmpty3</code> is not:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">def</span> isEmpty3[A](l: List[A]) = l <span class="kw">match</span> {</span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="kw">case</span> _   =&gt; <span class="kw">false</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a>  <span class="kw">case</span> Nil =&gt; <span class="kw">true</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>}</span></code></pre></div>
+<p>It always returns <code>false</code>: its second pattern is unreachable since the first pattern matches any list. The Scala compiler issues a warning when a pattern is unreachable (in other languages, this is actually an error and compilation is rejected).</p>
+<p>When a pattern is known to match, it can be used outside a <code>match</code> expression. For instance, if a list <code>l</code> is known to be non-empty:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">val</span> hd :: tl = l</span></code></pre></div>
+<p>can be used to set <code>hd</code> to <code>l.head</code> and <code>tl</code> to <code>l.tail</code>. This will fail with an exception if <code>l</code> is empty.</p>
+<p>Not that it should, but the <code>printAll</code> function could be written:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">def</span> printAll[A](l: List[A]): Unit =</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">if</span> (l.<span class="fu">nonEmpty</span>) {</span>
+<span id="cb7-3"><a href="#cb7-3"></a>    <span class="kw">val</span> head :: tail = l</span>
+<span id="cb7-4"><a href="#cb7-4"></a>    <span class="fu">println</span>(head)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>    <span class="fu">printAll</span>(tail)</span>
+<span id="cb7-6"><a href="#cb7-6"></a>  }</span></code></pre></div>
+<p>Any pattern can be used this way, not just list patterns. The components <code>(x,y)</code> of a pair <code>p</code> can be retrieved without using methods <code>_1</code> and <code>_2</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">val</span> (x, y) = p</span></code></pre></div>
+<p>The value <code>v</code> inside a non-empty option <code>x</code> can be obtained without using method <code>get</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">val</span> Some(v) = x</span></code></pre></div>
+<h3 id="examples-of-list-recursion">Examples of list recursion</h3>
+<p>As an illustration of recursion on lists, some of the standard list methods can be reimplemented using pattern matching and recursion. Because this code is defined outside the classes that define lists, standard <em>methods</em> (like <code>list.length</code>) are written instead as <em>functions</em> (like <code>length(list)</code>).</p>
+<p>The length of a list can be calculated recursively: The length of the empty list is zero and the length of a non-empty list is one plus the length of the tail of the list:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">def</span> length[A](l: List[A]): Int = <span class="kw">if</span> (l.<span class="fu">isEmpty</span>) <span class="dv">0</span> <span class="kw">else</span> <span class="dv">1</span> + <span class="fu">length</span>(l.<span class="fu">tail</span>)</span></code></pre></div>
+<p>Using pattern matching, this can be rewritten as:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">def</span> length[A](l: List[A]): Int = l <span class="kw">match</span> {</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">case</span> Nil    =&gt; <span class="dv">0</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a>  <span class="kw">case</span> _ :: t =&gt; <span class="dv">1</span> + <span class="fu">length</span>(t)</span>
+<span id="cb11-4"><a href="#cb11-4"></a>}</span></code></pre></div>
+<p>This function is simple but, unfortunately, it is not tail recursive. Applied to long lists, it will necessitate a lot of stack space, and may actually fail on large enough lists:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">length</span>(List.<span class="fu">range</span>(<span class="dv">0</span>,<span class="dv">10000</span>))  <span class="co">// likely to throw StackOverflowError</span></span></code></pre></div>
+<p>To handle large lists, a tail recursive variant can be written this way:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">def</span> length[A](l: List[A]): Int = {</span>
+<span id="cb13-2"><a href="#cb13-2"></a>  @tailrec</span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="kw">def</span> <span class="fu">addLength</span>(l: List[A], len: Int): Int = l <span class="kw">match</span> {</span>
+<span id="cb13-4"><a href="#cb13-4"></a>    <span class="kw">case</span> Nil    =&gt; len</span>
+<span id="cb13-5"><a href="#cb13-5"></a>    <span class="kw">case</span> _ :: t =&gt; <span class="fu">addLength</span>(t, len + <span class="dv">1</span>)</span>
+<span id="cb13-6"><a href="#cb13-6"></a>  }</span>
+<span id="cb13-7"><a href="#cb13-7"></a>  <span class="fu">addLength</span>(l, <span class="dv">0</span>)</span>
+<span id="cb13-8"><a href="#cb13-8"></a>}</span></code></pre></div>
+<p>Note how function <code>addLength</code> is obtained by adding an additional argument <code>len</code>, making it possible for the function to perform the <code>+ 1</code> operation <em>before</em> the recursive call, thus achieving tail recursion. This is a frequent pattern; the additional argument is sometimes called an <em>accumulator</em>.</p>
+<p>A recursive function on lists may have multiple parameters. In the simplest case, recursion is performed on one parameter only. Consider the case of concatenating two lists:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">def</span> append[A](l1: List[A], l2: List[A]): List[A] = l1 <span class="kw">match</span> {</span>
+<span id="cb14-2"><a href="#cb14-2"></a>  <span class="kw">case</span> Nil      =&gt; l2</span>
+<span id="cb14-3"><a href="#cb14-3"></a>  <span class="kw">case</span> h1 :: t1 =&gt; h1 :: <span class="fu">append</span>(t1, l2)</span>
+<span id="cb14-4"><a href="#cb14-4"></a>}</span></code></pre></div>
+<p>The concatenation of <code>l1</code> and <code>l2</code> is <code>l2</code> if <code>l1</code> is empty; otherwise, it starts with the head of <code>l1</code> and continues with the concatenation of the tail of <code>l1</code> with <code>l2</code>. Here, recursion is used to reach the end of the first list, where the second list is appended. Note that this means <code>append</code> takes time proportional to the length of the <em>first list</em>; the size of the second list is irrelevant. This is also true of the library method <code>:::</code> (and of <code>++</code> on lists).</p>
+<p>In some cases, recursion may have to work on multiple lists at the same time. Here is a function <code>zip</code> that joins two lists into a list of pairs:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">def</span> zip[A, B](a: List[A], b: List[B]): List[(A, B)] = (a, b) <span class="kw">match</span> {</span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="kw">case</span> (Nil, _) | (_, Nil) =&gt; Nil</span>
+<span id="cb15-3"><a href="#cb15-3"></a>  <span class="kw">case</span> (x :: r, y :: t)    =&gt; (x, y) :: <span class="fu">zip</span>(r, t)</span>
+<span id="cb15-4"><a href="#cb15-4"></a>}</span></code></pre></div>
+<p>The function stops when either list is empty; otherwise, both lists are shortened and a recursive call is made on their tails.</p>
+<p>Finally, a list-processing function may involve non-list parameters in the recursion. Consider the problem of returning the list element at position <code>i</code>:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a>@tailrec</span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="kw">def</span> getAt[A](l: List[A], i: Int): A = (l, i) <span class="kw">match</span> {</span>
+<span id="cb16-3"><a href="#cb16-3"></a>  <span class="kw">case</span> (Nil, _)    =&gt; <span class="kw">throw</span> <span class="kw">new</span> IndexOutOfBoundsException</span>
+<span id="cb16-4"><a href="#cb16-4"></a>  <span class="kw">case</span> (h :: _, <span class="dv">0</span>) =&gt; h</span>
+<span id="cb16-5"><a href="#cb16-5"></a>  <span class="kw">case</span> (_ :: t, _) =&gt; <span class="fu">getAt</span>(t, i - <span class="dv">1</span>)</span>
+<span id="cb16-6"><a href="#cb16-6"></a>}</span></code></pre></div>
+<p>The function has two terminal cases:</p>
+<ul>
+<li>when the list is empty, resulting in an <code>IndexOutOfBoundsException</code>;</li>
+<li>when the desired position in the list has been reached, where the corresponding element can be returned.</li>
+</ul>
+<p>The recursive branch in this case shortens the list <em>and</em> decreases the number.</p>
+<p>Note that this function is tail recursive and can handle large lists. However, it will take time proportional to <code>i</code>. This is also true of the standard method <code>apply</code> on lists and a reason why arrays and vectors are preferable to lists when indexing of elements is needed.</p>
+<h3 id="building-lists">Building lists</h3>
+<p>For clarity, lists in these notes tend to be built using non-tail recursive functions. For instance, a list of <code>n</code> copies of a value can be constructed like this:<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">def</span> nCopies[A](n: Int, value: A): List[A] =</span>
+<span id="cb17-2"><a href="#cb17-2"></a>  <span class="kw">if</span> (n &lt; <span class="dv">1</span>) Nil <span class="kw">else</span> value :: <span class="fu">nCopies</span>(n - <span class="dv">1</span>, value)</span></code></pre></div>
+<p>This is clean and simple but will not work for large values of <code>n</code>. In production code, tail recursion should be used instead:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">def</span> nCopies[A](n: Int, value: A): List[A] = {</span>
+<span id="cb18-2"><a href="#cb18-2"></a>  @tailrec</span>
+<span id="cb18-3"><a href="#cb18-3"></a>  <span class="kw">def</span> <span class="fu">build</span>(n: Int, l: List[A]): List[A] =</span>
+<span id="cb18-4"><a href="#cb18-4"></a>    <span class="kw">if</span> (n &lt; <span class="dv">1</span>) l <span class="kw">else</span> <span class="fu">build</span>(n - <span class="dv">1</span>, value :: l)</span>
+<span id="cb18-5"><a href="#cb18-5"></a></span>
+<span id="cb18-6"><a href="#cb18-6"></a>  <span class="fu">build</span>(n, Nil)</span>
+<span id="cb18-7"><a href="#cb18-7"></a>}</span></code></pre></div>
+<p>Even more efficient code can be obtained by using a <code>ListBuffer</code>:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">def</span> nCopies[A](n: Int, value: A): List[A] = {</span>
+<span id="cb19-2"><a href="#cb19-2"></a>  @tailrec</span>
+<span id="cb19-3"><a href="#cb19-3"></a>  <span class="kw">def</span> <span class="fu">build</span>(n: Int, buf: ListBuffer[A]): List[A] =</span>
+<span id="cb19-4"><a href="#cb19-4"></a>    <span class="kw">if</span> (n &lt; <span class="dv">1</span>) buf.<span class="fu">toList</span> <span class="kw">else</span> <span class="fu">build</span>(n - <span class="dv">1</span>, buf += value)</span>
+<span id="cb19-5"><a href="#cb19-5"></a></span>
+<span id="cb19-6"><a href="#cb19-6"></a>  <span class="fu">build</span>(n, ListBuffer.<span class="fu">empty</span>)</span>
+<span id="cb19-7"><a href="#cb19-7"></a>}</span></code></pre></div>
+<p>Finally, a good old <code>while</code> loop could be used. That’s what the standard library tends to do behind the scenes:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">def</span> nCopies[A](n: Int, value: A): List[A] = {</span>
+<span id="cb20-2"><a href="#cb20-2"></a>  <span class="kw">val</span> buf = ListBuffer.<span class="fu">empty</span>[A]</span>
+<span id="cb20-3"><a href="#cb20-3"></a>  <span class="kw">var</span> i = <span class="dv">0</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a>  <span class="kw">while</span> (i &lt; n) {</span>
+<span id="cb20-5"><a href="#cb20-5"></a>    buf += value</span>
+<span id="cb20-6"><a href="#cb20-6"></a>    i += <span class="dv">1</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a>  }</span>
+<span id="cb20-8"><a href="#cb20-8"></a>  buf.<span class="fu">toList</span></span>
+<span id="cb20-9"><a href="#cb20-9"></a>}</span></code></pre></div>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><p><em>Pattern matching</em> can be used on lists to decide if a list is empty or not, and to break a non-empty list into its head and tail. It can also be used to further test and break the head (e.g., of a list of pairs) or the tail (e.g., into its own head/tail). Pattern matching can also be used on tuples, like a pair of lists.</p></li>
+<li><p>Lists form a <em>recursive data structure</em> and are thus naturally amenable to recursive programming.</p></li>
+<li><p>Some “natural” recursive algorithms can be inefficient. They can sometimes be reworked into more efficient (but more complicated) variants. A common pattern is to add an additional argument that acts as an <em>accumulator</em> for the value being built.</p></li>
+<li><p>Lists can be built naturally using <code>::</code> and the execution stack. In cases where this is undesirable (e.g., large lists that may exceed stack memory), (mutable) instances of <code>ListBuffer</code> can be used instead (either recursively or in a loop).</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>This is for illustration; function <code>List.fill</code> can directly be used for this purpose.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-02-18 at 07:47:17 AM</footer>
+</body>

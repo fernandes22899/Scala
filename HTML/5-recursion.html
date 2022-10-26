@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!-- Generated from 502-recursion.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>5-recursion</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="recursive-programming">Recursive Programming</h2>
+<h3 id="recursion">Recursion</h3>
+<p><em>Iteration</em> (using loops) is a powerful mechanism in imperative programming, necessary for all but the most trivial computations. However, it is based on <em>repetition</em>, which does not mesh well with functional programming: To evaluate a (pure) expression repeatedly is rather pointless.</p>
+<p>Instead, functional programming tends to make heavy use of <em>recursion</em>, which is well suited to build expressions that consist of subexpressions of similar structure. Everything that can be computed using loops can be computed using recursion, and vice-versa.</p>
+<p>As a hybrid language, Scala supports both imperative loops and functional recursion. As with other aspects of the language (e.g., immutable data structures), Scala tends to favor a functional programming style, using recursion. Loops are available when needed. For instance, they are used behind the scenes to improve the performance of some of the standard collections, including the immutable ones (e.g., <code>ListBuffer</code> is a mutable type that is often used to build an immutable list).</p>
+<p>A typical example of recursive programming used by many teachers is <em>factorial</em>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">def</span> <span class="fu">factorial</span>(n: Int): Int = <span class="kw">if</span> (n == <span class="dv">0</span>) <span class="dv">1</span> <span class="kw">else</span> n * <span class="fu">factorial</span>(n - <span class="dv">1</span>)</span></code></pre></div>
+<p>The code is short, simple and easy to read. However, this is not such a great example of recursion for (at least) two reasons:</p>
+<ul>
+<li><p>The function can be written almost as easily using a loop:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">def</span> <span class="fu">factorial</span>(n: Int): Int = {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>  <span class="kw">var</span> f = <span class="dv">1</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="kw">var</span> r = n</span>
+<span id="cb2-4"><a href="#cb2-4"></a>  <span class="kw">while</span> (r &gt; <span class="dv">1</span>) {</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    f *= r</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    r -= <span class="dv">1</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>  }</span>
+<span id="cb2-8"><a href="#cb2-8"></a>  f</span>
+<span id="cb2-9"><a href="#cb2-9"></a>}</span></code></pre></div></li>
+<li><p>The iterative version is more efficient.</p></li>
+</ul>
+<p>Recursion is not the right tool to implement <em>factorial</em>. It should be used instead in those situations where it is really advantageous:</p>
+<ul>
+<li><p><em>When implementing an algorithm that is naturally recursive.</em> For instance, <em>quick sort</em> or <em>depth-first search</em> are naturally recursive and may require additional data structures to be implemented non recursively.</p>
+<p>Another favorite of teachers is the <em>Towers of Hanoi</em> example. The object of the game is to move discs of assorted sizes one by one from a left peg <span class="math inline"><em>A</em></span> to a right peg <span class="math inline"><em>C</em></span> using a middle peg <span class="math inline"><em>B</em></span> as intermediate storage, in such a way that a disc is never on top of a smaller disc. A possible strategy can be described as follows:</p>
+<blockquote>
+<p>To move <span class="math inline"><em>n</em></span> discs from <span class="math inline"><em>A</em></span> to <span class="math inline"><em>C</em></span> using <span class="math inline"><em>B</em></span>, first move <span class="math inline"><em>n</em> − 1</span> discs from <span class="math inline"><em>A</em></span> to <span class="math inline"><em>B</em></span> using <span class="math inline"><em>C</em></span>; then move 1 disc from <span class="math inline"><em>A</em></span> to <span class="math inline"><em>C</em></span>; then move <span class="math inline"><em>n</em> − 1</span> discs from <span class="math inline"><em>B</em></span> to <span class="math inline"><em>C</em></span> using <span class="math inline"><em>A</em></span>.</p>
+</blockquote>
+<p>This translates naturally in the following implementation:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">def</span> hanoi[T](n: Int, from: T, middle: T, to: T): Unit =</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="kw">if</span> (n &gt; <span class="dv">0</span>) {</span>
+<span id="cb3-3"><a href="#cb3-3"></a>    <span class="fu">hanoi</span>(n - <span class="dv">1</span>, from, to , middle)</span>
+<span id="cb3-4"><a href="#cb3-4"></a>    <span class="fu">move</span>(from, to)</span>
+<span id="cb3-5"><a href="#cb3-5"></a>    <span class="fu">hanoi</span>(n - <span class="dv">1</span>, middle, from, to)</span>
+<span id="cb3-6"><a href="#cb3-6"></a>  }</span></code></pre></div>
+<p>If <code>move</code> is defined as:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">def</span> move[T](from: T, to: T) = <span class="fu">println</span>(s<span class="st">&quot;$from -&gt; $to&quot;</span>)</span></code></pre></div>
+<p>then <code>hanoi(3, "A", "B", "C")</code> produces the output:</p>
+<pre><code>A -&gt; C
+A -&gt; B
+C -&gt; B
+A -&gt; C
+B -&gt; A
+B -&gt; C
+A -&gt; C</code></pre>
+<p>which indeed solves the problem for 3 discs.</p></li>
+<li><p><em>When dealing with recursive data structures like lists and trees.</em></p>
+<p>For instance, the size of a binary tree is the size of its left tree plus the size of its right tree plus one:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">def</span> size[A](tree: BinTree[A]): Int = tree <span class="kw">match</span> {</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="kw">case</span> Empty =&gt; <span class="dv">0</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>  <span class="kw">case</span> Node(_, left, right) =&gt; <span class="dv">1</span> + <span class="fu">size</span>(left) + <span class="fu">size</span>(right)</span>
+<span id="cb6-4"><a href="#cb6-4"></a>}</span></code></pre></div></li>
+<li><p><em>When recursion is terminal (see below) <em>and</em> the language is optimized for tail recursion.</em></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">import</span> scala.<span class="fu">io</span>.<span class="fu">StdIn</span>.<span class="fu">readLine</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a>@tailrec</span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="kw">def</span> <span class="fu">ask</span>(prompt: String): Boolean = <span class="fu">readLine</span>(prompt).<span class="fu">trim</span>.<span class="fu">toUpperCase</span> <span class="kw">match</span> {</span>
+<span id="cb7-5"><a href="#cb7-5"></a>  <span class="kw">case</span> <span class="st">&quot;Y&quot;</span> | <span class="st">&quot;YES&quot;</span> =&gt; <span class="kw">true</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a>  <span class="kw">case</span> <span class="st">&quot;N&quot;</span> | <span class="st">&quot;NO&quot;</span> =&gt; <span class="kw">false</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a>  <span class="kw">case</span> _ =&gt; <span class="fu">ask</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">  yes or no? &quot;</span>)</span>
+<span id="cb7-8"><a href="#cb7-8"></a>}</span></code></pre></div>
+<p>Although this function keeps calling <code>ask</code> recursively until it gets a YES/NO answer, it will be compiled into a loop by the Scala compiler.</p></li>
+</ul>
+<h3 id="recursive-algorithms">Recursive algorithms</h3>
+<p>A key principle in designing recursive algorithms is to reduce a problem into one (or more) <em>smaller</em> instances of the same problem and to use the solution(s) to this(these) problem(s) to derive a solution to the original problem. For instance, the Towers of Hanoi function solves the problem of moving <span class="math inline"><em>n</em></span> discs by combining the solutions to two problems of moving <span class="math inline"><em>n</em> − 1</span> discs; the <code>size</code> function calculates the number of elements in a tree from the sizes of the (smaller) subtrees.</p>
+<p>While doing so, it is important:</p>
+<ul>
+<li><p><strong>that at least one branch of the computation is <em>not</em> recursive</strong>. There needs to be at least one case for which the problem can be solved without further recursive calls (e.g., moving 0 disc in the Towers of Hanoi).</p>
+<p>As an example of a mistake, consider this <code>last</code> function:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">// Incorrect!</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="kw">def</span> last[A](list: List[A]): A =</span>
+<span id="cb8-3"><a href="#cb8-3"></a>  <span class="kw">if</span> (list.<span class="fu">isEmpty</span>) <span class="kw">throw</span> <span class="kw">new</span> NoSuchElementException(<span class="st">&quot;last(empty)&quot;</span>) <span class="kw">else</span> <span class="fu">last</span>(list.<span class="fu">tail</span>)</span>
+<span id="cb8-4"><a href="#cb8-4"></a>}</span></code></pre></div>
+<p>It is based on the idea that the empty list has no last element, and that the last element of a non-empty list is the last element of its tail. However, it cannot possibly work as written because it does not have any value-returning non-recursive branch (the function either throws an exception or continues to run).</p></li>
+<li><p><strong>to make sure that <em>all</em> recursive subproblems are <em>smaller</em> in some way</strong> in order to guarantee termination. For instance, a list problem can be applied to a shorter list; a number problem can be applied to a smaller (positive) number; a tree problem can be applied to a subtree, etc.</p>
+<p>Here, an example of a common mistake would be:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="co">// Incorrect!</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="kw">def</span> <span class="fu">mergeSort</span>(list: List[Int]): List[Int] =</span>
+<span id="cb9-3"><a href="#cb9-3"></a>  <span class="kw">if</span> (list.<span class="fu">isEmpty</span>) list</span>
+<span id="cb9-4"><a href="#cb9-4"></a>  <span class="kw">else</span> {</span>
+<span id="cb9-5"><a href="#cb9-5"></a>    <span class="kw">val</span> (left, right) = list.<span class="fu">splitAt</span>(list.<span class="fu">length</span> / <span class="dv">2</span>)</span>
+<span id="cb9-6"><a href="#cb9-6"></a>    <span class="fu">merge</span>(<span class="fu">mergeSort</span>(left), <span class="fu">mergeSort</span>(right))</span>
+<span id="cb9-7"><a href="#cb9-7"></a>  }</span></code></pre></div>
+<p>The issue here is that <code>mergeSort(right)</code> is not guaranteed to be a call on a <em>smaller</em> list. If <code>list</code> contains exactly one elements, then <code>left</code> is empty and <code>right</code> is equal to <code>list</code> and the function will not terminate. (See later discussion of sorting for a correct <code>mergeSort</code> implementation.)</p>
+<p>When a problem has multiple parameters, it is sometimes enough that <em>one of them</em> or <em>a combination of them</em> becomes smaller. For instance, a pair that consists of a number and a list can become smaller by the number getting smaller, the list getting shorter or the sum of the number plus the length of the list getting shorter.</p>
+<p>Some cases are more complicated. For instance, in this classic example (known as <em>Ackermann function</em>), the computation is guaranteed to terminate because the pair <code>(x,y)</code> decreases in <em>lexicographic ordering</em> (either <code>x</code> decreases or <code>x</code> stays the same and <code>y</code> decreases):</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">def</span> <span class="fu">a</span>(x: Int, y: Int): Int = (x, y) <span class="kw">match</span> {</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  <span class="kw">case</span> (<span class="dv">0</span>, _) =&gt; y + <span class="dv">1</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="kw">case</span> (_, <span class="dv">0</span>) =&gt; <span class="fu">a</span>(x - <span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb10-4"><a href="#cb10-4"></a>  <span class="kw">case</span> _      =&gt; <span class="fu">a</span>(x - <span class="dv">1</span>, <span class="fu">a</span>(x, y - <span class="dv">1</span>))</span>
+<span id="cb10-5"><a href="#cb10-5"></a>}</span></code></pre></div></li>
+<li><p><strong>to focus on <em>using</em> the solutions to the smaller problems</strong> (to build a solution to the original problem), <em>not</em> on how these smaller problems are themselves solved. It is usually a beginner’s mistake to unfold the recursive calls to follow their computations. Instead, the solutions to the smaller problems should be taken for granted (given to us my the “magic” of recursion) and our focus should be on building a general solution using them.</p></li>
+</ul>
+<h3 id="tail-recursion">Tail recursion</h3>
+<p>A function with a single recursive call at the very end is said to be <em>tail recursive</em>. Because the recursive call is the last thing the function does, an optimization is possible: Instead of allocating a new stack frame for the call, have the call proceed within the current frame, which is not needed anymore. In other words, a tail recursive function can be implemented iteratively with no stack space needed.</p>
+<p>Many functional languages implement such an optimization. Java (13) does not. Scala does so but only under certain circumstances. For instance, Scala is unable to cope with mutually recursive functions that could, in theory, be optimized. There is also an added difficulty stemming from the fact that Scala is object-oriented: A recursive method can be overridden<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> and what looks like a tail call is now a call to a different method:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">class</span> C {</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">def</span> <span class="fu">m</span>(n: Int, s: String): String = <span class="kw">if</span> (n == <span class="dv">0</span>) s <span class="kw">else</span> <span class="fu">m</span>(n - <span class="dv">1</span>, <span class="st">&quot;*&quot;</span> + s)</span>
+<span id="cb11-3"><a href="#cb11-3"></a>}</span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="kw">val</span> c = <span class="kw">new</span> C</span>
+<span id="cb11-5"><a href="#cb11-5"></a>c.<span class="fu">m</span>(<span class="dv">5</span>, <span class="st">&quot;&quot;</span>)</span></code></pre></div>
+<p>This produces the string <code>"*****"</code>. Suppose now that method <code>m</code> is overridden in a class <code>D</code>:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">class</span> D <span class="kw">extends</span> C {</span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">m</span>(n: Int, s: String): String = <span class="st">&quot;(&quot;</span> + <span class="kw">super</span>.<span class="fu">m</span>(n, s) + <span class="st">&quot;)&quot;</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>}</span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="kw">val</span> d = <span class="kw">new</span> D</span>
+<span id="cb12-5"><a href="#cb12-5"></a>d.<span class="fu">m</span>(<span class="dv">5</span>, <span class="st">&quot;&quot;</span>)</span></code></pre></div>
+<p>This produces the string <code>"((((((*****))))))"</code>! Because of dynamic binding, the recursive call <code>m(n - 1, "*" + s)</code> in class <code>C</code> actually branches into the body of method <code>m</code> in class <code>D</code> and the situation becomes similar to that of mutually recursive functions: method <code>m</code> of <code>C</code> calls method <code>m</code> of <code>D</code>, which calls method <code>m</code> of <code>C</code> (via the <code>super</code> call). As of this writing, Scala does not optimize tail calls in mutually recursive functions.</p>
+<p>Scala provides an annotation <code>scala.annotation.tailrec</code>, which can be used only on methods that are optimized for tail recursion. This provides programmers with an easy way to confirm that the optimization will indeed take place. If the optimization is not possible, a compile-time error will ensue. In the example above, even though method <code>m</code> looks tail recursive in class <code>C</code>, compilation will fail if the <code>tailrec</code> annotation is applied.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><p><em>Recursive</em> functions are functions that contain calls to themselves. This re-execution of the function body can be used as an alternative to loops for complex programming. Recursion is especially well suited to functional computations, which are free of side effects.</p></li>
+<li><p>A function that invokes itself only once and as the last step of its computation is said to be <em>tail recursive</em>. Tail recursive functions can be optimized and implemented iteratively, without the need for additional stack space.</p></li>
+<li><p>Scala optimize some (but not all) tail recursive functions. The <code>@tailrec</code> annotation can only be applied to functions that are optimized. Using it helps programmers avoid the mistake of thinking that a function is optimized for tail recursion even though it actually is not.</p></li>
+<li><p>Recursive functions are a natural mechanism to implement <em>recursive algorithms</em> or to manipulate <em>recursive data structures</em>. It can also be used to mimic repetition, especially in languages that optimize tail recursion.</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Method overriding is an object-oriented concept, discussed at length later. <!-- in chapter\ -@sec:inheritance --><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>The annotation would be accepted and the optimization would take place if method <code>m</code> was <code>private</code> or <code>final</code> since in that case, it cannot be overridden.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-02-18 at 07:42:00 AM</footer>
+</body>

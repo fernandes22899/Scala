@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<!-- Generated from 507-higher_order.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>8-higher_order</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="higher-order-functions-and-methods-function-literals-and-partial-application">Higher-Order Functions and Methods, Function Literals and Partial Application</h2>
+<h3 id="higher-order-functionsmethods">Higher-order functions/methods</h3>
+<p>Functions (and methods) are said to be <em>higher-order</em> when they take functions as parameters or return functions as values. They are a staple of functional languages, in which functions are values and thus can be passed as parameters to or returned by other functions.</p>
+<p>As an example, consider the problem of looking for a value in a list using a linear search. It can be implemented in Scala as follows:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">def</span> find[A](l: List[A], target: A): Option[A] = l <span class="kw">match</span> {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="kw">case</span> Nil    =&gt; None</span>
+<span id="cb1-3"><a href="#cb1-3"></a>  <span class="kw">case</span> h :: t =&gt; <span class="kw">if</span> (h == target) Some(h) <span class="kw">else</span> <span class="fu">find</span>(t, target)</span>
+<span id="cb1-4"><a href="#cb1-4"></a>}</span></code></pre></div>
+<p>A drawback of this method is that one needs to already have an element equal to the target to initiate a search. How can one instead search for a student with a given id or the first number larger than 100?</p>
+<p>The algorithm (linear search) is the same for these cases. The only part that needs to change is the test <code>h == target</code>: it can be replaced with tests like <code>h.id = target</code> or <code>h &gt; 100</code>.</p>
+<p>Instead of writing separate linear search functions for each case, a better solution is to parametrize the search with criteria like <em>“to have id <em>x</em>”</em> or <em>“to be larger than 100”</em>. Those criteria are Boolean functions that can be given to the search function instead of a target:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">def</span> find[A](l: List[A], test: A =&gt; Boolean): Option[A] = l <span class="kw">match</span> {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>  <span class="kw">case</span> Nil =&gt; None</span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="kw">case</span> h :: t =&gt; <span class="kw">if</span> (<span class="fu">test</span>(h)) Some(h) <span class="kw">else</span> <span class="fu">find</span>(t, test)</span>
+<span id="cb2-4"><a href="#cb2-4"></a>}</span></code></pre></div>
+<p>Note how parameter <code>test</code> is itself a function, of type <code>A =&gt; Boolean</code> (it takes an <code>A</code> value as its input and produces a Boolean). This results in a more useful <code>find</code> function that can be used to search according to an arbitrary criteria:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">def</span> <span class="fu">hasIdX</span>(s: Student): Boolean = s.<span class="fu">id</span> == x  <span class="co">// true of students with id equal to x</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="fu">find</span>(students, hasIdX)                       <span class="co">// finds first student with id equal to x</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="kw">def</span> <span class="fu">largerThan100</span>(n: Int): Boolean = n &gt; <span class="dv">100</span> <span class="co">// true of numbers larger than 100</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="fu">find</span>(numbers, largerThan100)                 <span class="co">// finds first number larger than 100</span></span></code></pre></div>
+<h3 id="function-literals">Function literals</h3>
+<p>One undesirable thing in the example above is the need to define functions <code>hasIdX</code> and <code>largerThan100</code> so they can be passed to the <code>find</code> function. Contrast this with the case of a function <code>f</code> that takes a string and imagine that the only way to call <code>f</code> is to first build a string in a named variable:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">val</span> foo = <span class="kw">new</span> String(Array(<span class="ch">&#39;f&#39;</span>, <span class="ch">&#39;o&#39;</span>, <span class="ch">&#39;o&#39;</span>))</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">f</span>(foo)</span></code></pre></div>
+<p>This would be cumbersome. Instead, we simply call <code>f("foo")</code>. This is possible because the language syntax supports <em>string literals</em>, like <code>"foo"</code>. Since they rely heavily on higher-order functions, functional languages tend to support <em>function literals</em> in their syntax. These are also called <em>anonymous functions</em> or <em>lambdas</em>. They also exist in many programming languages that aim to support some functional constructs (e.g., Java 8 or Python).</p>
+<p>In Scala, the syntax used for function literals is: <code>(v1: T1, v2: T2, ...) =&gt; body</code>. For instance, the function below adds 1 to an integer:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a>(x: Int) =&gt; x + <span class="dv">1</span></span></code></pre></div>
+<p>Function literals can be used to simplify calls to higher-order functions like <code>find</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">find</span>(students, (s: Student) =&gt; s.<span class="fu">id</span> == x)) <span class="co">// finds first student with id equal to x</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="fu">find</span>(numbers, (n: Int) =&gt; n &gt; <span class="dv">100</span>)         <span class="co">// finds first number larger than 100</span></span></code></pre></div>
+<p>Function literals can also be used as return values of other functions. Higher-order function <code>withId</code> returns a Boolean function that tests if a student has a given id:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">def</span> <span class="fu">withId</span>(x: Int): Student =&gt; Boolean = {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">def</span> <span class="fu">hasIdX</span>(s: Student) = s.<span class="fu">id</span> == x</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  hasIdX</span>
+<span id="cb7-4"><a href="#cb7-4"></a>}</span></code></pre></div>
+<p>If can be written more conveniently using a function literal:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">def</span> <span class="fu">withId</span>(x: Int): Student =&gt; Boolean = (s: Student) =&gt; s.<span class="fu">id</span> == x</span></code></pre></div>
+<p>Function <code>withId</code> returns a Boolean function that can be used as a parameter to <code>find</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">find</span>(students, <span class="fu">withId</span>(<span class="dv">42</span>))</span></code></pre></div>
+<p>In some cases, the compiler can infer the types of the arguments on a function literal, allowing for a simpler syntax:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a>find[Int](numbers, x =&gt; x &gt; <span class="dv">100</span>)</span></code></pre></div>
+<p>Here, the type of <code>x</code> is known because <code>find[A]</code> has been instantiated explicitly as <code>find[Int]</code>. Instead of being a function of two arguments, the standard <code>find</code> in Scala is a method of <code>List</code>, which makes it easier for the compiler to know the type of the list elements when considering the method call. So, the following works with the standard <code>find</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a>numbers.<span class="fu">find</span>(x =&gt; x &gt; <span class="dv">100</span>)</span></code></pre></div>
+<h3 id="functions-versus-methods">Functions versus methods</h3>
+<p>So far, we have been using the words <em>function</em> and <em>method</em> almost interchangeably. In true functional languages (e.g., Haskell or SML), the core computational unit is a <em>function</em> and there is no notion of <em>method</em>. But Scala (and Java), being object oriented, have a notion of <em>method</em> that is different from <em>function</em>, which complicates matters in some measure.</p>
+<p>In Scala and in Java, objects have methods, which can be <em>invoked</em> (using the bytecode instructions <code>invokevirtual</code> for regular methods and <code>invokestatic</code> for static methods). Methods are not objects. They are not values. They cannot be stored in variables or passed to other methods.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> By contrast, <em>functions</em> (in Scala and to some degree in Java 8) <em>are</em> objects. This allows functions to be passed as parameters and stored in variables. For instance, the Scala function <code>(n: Int) =&gt; n &gt; 100</code> is actually an object that could also be defined as:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">new</span> Function[Int,Boolean] {</span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="kw">def</span> <span class="fu">apply</span>(n: Int): Boolean = n &gt; <span class="dv">100</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>}</span></code></pre></div>
+<p>Since Scala is object-oriented (and uses the same bytecode instructions as Java), Scala code tends to be written in terms of methods more than in terms of functions. Because methods cannot be used as values (and, for instance, passed to higher-order functions), Scala offers a bridge to create functions from methods easily by using a <em>trailing underscore (<code>_</code>)</em>. Consider class <code>Foo</code> and its instance <code>foo</code>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">class</span> Foo {</span>
+<span id="cb13-2"><a href="#cb13-2"></a>  <span class="kw">def</span> <span class="fu">method</span>(n: Int): Boolean = n &gt; <span class="dv">100</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a>}</span>
+<span id="cb13-4"><a href="#cb13-4"></a><span class="kw">val</span> foo = <span class="kw">new</span> Foo</span></code></pre></div>
+<p>Method <code>method</code> can be invoked, as in <code>foo.method(42)</code>, but cannot be stored in a variable of passed to a higher-order function because it is not itself a function. However, <code>foo.method _</code> <em>is</em> a function:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">val</span> f = foo.<span class="fu">method</span> _  <span class="co">// f has type Int =&gt; Boolean</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="fu">f</span>(<span class="dv">42</span>)</span>
+<span id="cb14-3"><a href="#cb14-3"></a>numbers.<span class="fu">find</span>(f)</span></code></pre></div>
+<p>Because we often need to transform methods into functions to pass them to higher-order functions, the Scala compiler automatically inserts such a transformation when a method name is used in a context that requires a function. So, the call:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a>numbers.<span class="fu">find</span>(foo.<span class="fu">method</span>)</span></code></pre></div>
+<p>is actually possible even though <code>method</code> is a method and not a function, because it is compiled into <code>numbers.find(foo.method _)</code>.</p>
+<p>A similar mechanism was introduced in Java 8. A “<code>::</code>” syntax can be used to refer to methods (<code>object::method</code>) or to constructors (<code>Class::new</code>) in such a way that they are converted into functions. Java has no <code>find</code> method on its lists, but filtering could be achieved this way:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">// this is Java</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a>Foo foo = <span class="kw">new</span> <span class="fu">Foo</span>(); <span class="co">// Foo class defined as in Scala</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a>numbers.<span class="fu">removeIf</span>(foo::method);</span></code></pre></div>
+<h3 id="partial-application">Partial application</h3>
+<p>In the syntax discussed above, the underscore represents the missing argument of method <code>method</code>. If a method has multiple arguments, it can be used to represent all of them or some of them. Replacing missing arguments with underscores is sometimes referred to as <em>partial application</em>. For instance, consider method <code>m</code> of class <code>Bar</code>:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">class</span> Bar {</span>
+<span id="cb17-2"><a href="#cb17-2"></a>  <span class="kw">def</span> <span class="fu">m</span>(s: String, n: Int) = s * n</span>
+<span id="cb17-3"><a href="#cb17-3"></a>}</span>
+<span id="cb17-4"><a href="#cb17-4"></a></span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="kw">val</span> bar = <span class="kw">new</span> Bar</span>
+<span id="cb17-6"><a href="#cb17-6"></a><span class="kw">val</span> s = bar.<span class="fu">m</span>(<span class="st">&quot;X&quot;</span>, <span class="dv">3</span>)  <span class="co">// the string &quot;XXX&quot;</span></span></code></pre></div>
+<p>The expression used to calculate <code>s</code> uses method <code>m</code> and three arguments: <code>bar</code>, <code>"X"</code> and <code>3</code>. One, two or three of these arguments can be omitted and replaced with an underscore, leading to different functions:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">val</span> a: (String, Int) =&gt; String      = bar.<span class="fu">m</span>(_,_)     <span class="co">// or bar.m _  but NOT bar.m(_)</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="kw">val</span> b: Int =&gt; String                = bar.<span class="fu">m</span>(<span class="st">&quot;X&quot;</span>, _)</span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="kw">val</span> c: String =&gt; String             = bar.<span class="fu">m</span>(_, <span class="dv">3</span>)</span>
+<span id="cb18-4"><a href="#cb18-4"></a><span class="kw">val</span> d: Bar =&gt; String                = _.<span class="fu">m</span>(<span class="st">&quot;X&quot;</span>, <span class="dv">3</span>)</span>
+<span id="cb18-5"><a href="#cb18-5"></a><span class="kw">val</span> e: (Bar, Int) =&gt; String         = _.<span class="fu">m</span>(<span class="st">&quot;X&quot;</span>, _)</span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="kw">val</span> f: (Bar, String) =&gt; String      = _.<span class="fu">m</span>(_, <span class="dv">3</span>)</span>
+<span id="cb18-7"><a href="#cb18-7"></a><span class="kw">val</span> g: (Bar, String, Int) =&gt; String = _.<span class="fu">m</span>(_, _)</span></code></pre></div>
+<p>When applied to suitable arguments, any one of these functions can produce the string <code>s</code>. All the expressions below are equal to “XXX”:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1"></a><span class="fu">a</span>(<span class="st">&quot;X&quot;</span>, <span class="dv">3</span>)</span>
+<span id="cb19-2"><a href="#cb19-2"></a><span class="fu">b</span>(<span class="dv">3</span>)</span>
+<span id="cb19-3"><a href="#cb19-3"></a><span class="fu">c</span>(<span class="st">&quot;X&quot;</span>)</span>
+<span id="cb19-4"><a href="#cb19-4"></a><span class="fu">d</span>(bar)</span>
+<span id="cb19-5"><a href="#cb19-5"></a><span class="fu">e</span>(bar, <span class="dv">3</span>)</span>
+<span id="cb19-6"><a href="#cb19-6"></a><span class="fu">f</span>(bar, <span class="st">&quot;X&quot;</span>)</span>
+<span id="cb19-7"><a href="#cb19-7"></a><span class="fu">g</span>(bar, <span class="st">&quot;X&quot;</span>, <span class="dv">3</span>)</span></code></pre></div>
+<p>This syntax is often used to build arguments for higher-order functions:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a>number.<span class="fu">find</span>(_ &gt; <span class="dv">100</span>)      <span class="co">// finds first number larger than 100</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a>students.<span class="fu">find</span>(_.<span class="fu">id</span> == x)  <span class="co">// finds first student with id equal to x</span></span></code></pre></div>
+<p>Some discussions of this topic might refer to something mysterious-sounding called <em><span class="math inline"><em>η</em></span>-conversion</em>. This is a notion that comes from <em><span class="math inline"><em>λ</em></span>-calculus</em>. It basically says that <code>x =&gt; m(x)</code> and <code>m</code> are equivalent and interchangeable. It allows a <em>method</em> <code>m</code> to be used as a <em>function</em> <code>x =&gt; m(x)</code>.</p>
+<h3 id="partial-functions">Partial<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> functions</h3>
+<p>In mathematics, partial functions are functions that may not be defined for all values in their domain. Regular, non-partial functions are sometimes called <em>total</em> functions. Scala implements partial functions through the <code>PartialFunction</code> types:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">val</span> sqrt = <span class="kw">new</span> PartialFunction[Double, Double] {</span>
+<span id="cb21-2"><a href="#cb21-2"></a>  <span class="kw">def</span> <span class="fu">apply</span>(x: Double) = Math.<span class="fu">sqrt</span>(x)</span>
+<span id="cb21-3"><a href="#cb21-3"></a>  <span class="kw">def</span> <span class="fu">isDefinedAt</span>(x: Double) = x &gt;= <span class="dv">0</span></span>
+<span id="cb21-4"><a href="#cb21-4"></a>}</span></code></pre></div>
+<p><code>PartialFunction[A, B]</code> is a subtype of <code>Function[A, B]</code> that adds an <code>isDefinedAt</code> method. Partial functions should only be called on those inputs for which they are defined.</p>
+<p>As with total functions, Scala supports syntax to define partial function literals:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb22-1"><a href="#cb22-1"></a>{</span>
+<span id="cb22-2"><a href="#cb22-2"></a>  <span class="kw">case</span> x <span class="kw">if</span> x &gt;= <span class="dv">0</span> =&gt; Math.<span class="fu">sqrt</span>(x)</span>
+<span id="cb22-3"><a href="#cb22-3"></a>}</span></code></pre></div>
+<p>This creates an instance of <code>PartialFunction[Double, Double]</code> that calculates the square root of non-negative values and is undefined for negative values. Note how that <code>case</code> keyword is used without a <code>match</code>. The <code>case</code> statement is used both to specify the values for which the function is defined and to calculate the output for those values.</p>
+<p>Some higher-order functions expects partial functions as their inputs. For instance, the standard method <code>collect</code> applies a partial function to all the elements of a collection for which the function is defined, producing a collection of results:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">val</span> l = List(<span class="fl">4.0</span>, <span class="fl">-4.0</span>, <span class="fl">3.2</span>, <span class="fl">-1.0</span>)</span>
+<span id="cb23-2"><a href="#cb23-2"></a>l.<span class="fu">collect</span>(sqrt)  <span class="co">// the list [2.0, 1.7888543819998317]</span></span></code></pre></div>
+<p>In the example above, function <code>sqrt</code> is not applied to <code>-4.0</code> and <code>-1.0</code>, since it is not defined for these values. The same computation could have used a partial function literal:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb24-1"><a href="#cb24-1"></a>l collect {</span>
+<span id="cb24-2"><a href="#cb24-2"></a>  <span class="kw">case</span> x <span class="kw">if</span> x &gt;= <span class="dv">0</span> =&gt; Math.<span class="fu">sqrt</span>(x)</span>
+<span id="cb24-3"><a href="#cb24-3"></a>}</span></code></pre></div>
+<p><em>Partial</em> function literals are often used with higher-order functions that expect <em>total</em> functions because the <code>case</code> statement enables pattern-matching:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">val</span> p: List[(Int, Int)] = ...</span>
+<span id="cb25-2"><a href="#cb25-2"></a><span class="kw">val</span> q: Set[Option[Int]] = ...</span>
+<span id="cb25-3"><a href="#cb25-3"></a></span>
+<span id="cb25-4"><a href="#cb25-4"></a>p <span class="fu">find</span> (x =&gt; x._<span class="dv">1</span> * x._<span class="dv">1</span> + x._<span class="dv">2</span> * x._<span class="dv">2</span> &gt; <span class="dv">10</span>)</span>
+<span id="cb25-5"><a href="#cb25-5"></a></span>
+<span id="cb25-6"><a href="#cb25-6"></a>p find { <span class="kw">case</span> (a, b) =&gt; a * a + b * b &gt; <span class="dv">10</span> }</span>
+<span id="cb25-7"><a href="#cb25-7"></a></span>
+<span id="cb25-8"><a href="#cb25-8"></a>q <span class="fu">find</span> (x =&gt; x.<span class="fu">nonEmpty</span> &amp;&amp; x.<span class="fu">get</span> &gt; <span class="dv">0</span>)</span>
+<span id="cb25-9"><a href="#cb25-9"></a></span>
+<span id="cb25-10"><a href="#cb25-10"></a>q find {</span>
+<span id="cb25-11"><a href="#cb25-11"></a>  <span class="kw">case</span> Some(v) =&gt; v &gt; <span class="dv">0</span></span>
+<span id="cb25-12"><a href="#cb25-12"></a>  <span class="kw">case</span> _ =&gt; <span class="kw">false</span></span>
+<span id="cb25-13"><a href="#cb25-13"></a>}</span></code></pre></div>
+<p>The two searches on <code>p</code> are equivalent. So are the two searches on <code>q</code>.</p>
+<p>As a side note, Scala distinguishes between a function of two arguments and a function of a single argument that is a pair. (Other languages, like SML, only use the second form.) For instance:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb26-1"><a href="#cb26-1"></a>(a, b) =&gt; a + b</span></code></pre></div>
+<p>has type <code>(Int, Int) =&gt; Int</code> (a function of two arguments), while:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb27-1"><a href="#cb27-1"></a>{ <span class="kw">case</span> (a, b) =&gt; a + b }</span></code></pre></div>
+<p>has type <code>((Int, Int)) =&gt; Int</code> (a function of a single argument that is a pair). Since <code>p</code> is a list of pairs, <code>p.find</code> needs a function that works on pairs, not a function of multiple arguments: <code>p find ((a, b) =&gt; a * a + b * b &gt; 10)</code> would not work.</p>
+<h3 id="inversion-of-control">Inversion of control</h3>
+<p>The use of higher-order functions is considered by some to be part of the larger notion of <em>inversion of control</em>. The idea is that control flow moves from the caller into the callee, which uses callbacks into the caller. For instance, one can search for a value larger than 10 in a list using recursion:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb28-1"><a href="#cb28-1"></a><span class="kw">def</span> <span class="fu">search</span>(l: List[Int]): Option[Int] = l <span class="kw">match</span> {</span>
+<span id="cb28-2"><a href="#cb28-2"></a>  <span class="kw">case</span> Nil =&gt; None</span>
+<span id="cb28-3"><a href="#cb28-3"></a>  <span class="kw">case</span> h :: t =&gt; <span class="kw">if</span> (h &gt; <span class="dv">10</span>) Some(h) <span class="kw">else</span> <span class="fu">search</span>(t)</span>
+<span id="cb28-4"><a href="#cb28-4"></a>}</span></code></pre></div>
+<p>or in an array using iteration:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">var</span> elem = Option.<span class="fu">empty</span>[Int]</span>
+<span id="cb29-2"><a href="#cb29-2"></a><span class="kw">var</span> i = <span class="dv">0</span></span>
+<span id="cb29-3"><a href="#cb29-3"></a><span class="kw">while</span> (elem.<span class="fu">isEmpty</span> &amp;&amp; i &lt; a.<span class="fu">length</span>) {</span>
+<span id="cb29-4"><a href="#cb29-4"></a>  <span class="kw">if</span> (<span class="fu">a</span>(i) &gt; <span class="dv">10</span>) elem = Some(<span class="fu">a</span>(i))</span>
+<span id="cb29-5"><a href="#cb29-5"></a>  i += <span class="dv">1</span></span>
+<span id="cb29-6"><a href="#cb29-6"></a>}</span></code></pre></div>
+<p>In both cases, the data structure is queried for its values but the flow of control (recursion, while loop) remains within the calling code. If instead one uses a higher-order method:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb30-1"><a href="#cb30-1"></a>l.<span class="fu">find</span>(_ &gt; <span class="dv">10</span>)</span>
+<span id="cb30-2"><a href="#cb30-2"></a>a.<span class="fu">find</span>(_ &gt; <span class="dv">10</span>)</span></code></pre></div>
+<p>the implementation of <code>find</code> is responsible for the flow of control (whatever looping and/or recursion <code>Array#find</code> and <code>List#find</code> use) and makes callbacks to the user-provided code (the function <code>_ &gt; 10</code>).</p>
+<h3 id="higher-order-functions-in-other-languages">Higher-order functions in other languages</h3>
+<p>Java 8 has introduced some higher-order functions (like <code>removeIf</code> above, which is <code>filterNot</code> in Scala). Java is limited because it does not have a proper type for function literals. Instead, it relies on a <code>@FunctionalInterface</code> annotation to designate types that can be used as lambdas. Java also suffers from the presence of <em>primitive values</em> in the type system. For instance, in addition to the interface <code>Function&lt;T,R&gt;</code> of functions from <code>T</code> to <code>R</code>, one also finds <code>IntFunction&lt;R&gt;</code> (from <code>int</code> to <code>R</code>), <code>ToIntFunction&lt;T&gt;</code> (from <code>T</code> to <code>int</code>), <code>IntPredicate</code> (from <code>int</code> to <code>boolean</code>), <code>IntConsumer</code> (from <code>int</code> to <code>void</code>), <code>IntSupplier</code> (from no argument to <code>int</code>), <code>IntUnaryOperator</code> (from <code>int</code> to <code>int</code>), … and so on for all the primitive types. In the same way, its type <code>Stream</code>, in addition to methods <code>map</code> and <code>flatMap</code>, also has methods <code>mapToInt</code> and <code>flatMapToInt</code>, which produce not a <code>Stream</code> but an <code>IntStream</code>, etc.</p>
+<p>Function literals do not work as nicely in Java as they do in Scala. For instance, the function <code>(t: Throwable) =&gt; t.getMessage.length</code> in Scala has type <code>Throwable =&gt; Int</code>. In Java, it is written as <code>(Throwable t) -&gt; t.getMessage().length()</code> and has type <code>ToIntFunction&lt;Throwable&gt;</code>:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb31-1"><a href="#cb31-1"></a>ToIntFunction&lt;<span class="bu">Throwable</span>&gt; f = (<span class="bu">Throwable</span> t) -&gt; t.<span class="fu">getMessage</span>().<span class="fu">length</span>(); <span class="co">// OK</span></span>
+<span id="cb31-2"><a href="#cb31-2"></a></span>
+<span id="cb31-3"><a href="#cb31-3"></a><span class="co">// rejected because Java functions are not covariant</span></span>
+<span id="cb31-4"><a href="#cb31-4"></a>ToIntFunction&lt;<span class="bu">Exception</span>&gt; g = f;</span>
+<span id="cb31-5"><a href="#cb31-5"></a></span>
+<span id="cb31-6"><a href="#cb31-6"></a><span class="co">// rejected because Object is not a functional interface</span></span>
+<span id="cb31-7"><a href="#cb31-7"></a><span class="bu">Object</span> x = (<span class="bu">Throwable</span> t) -&gt; t.<span class="fu">getMessage</span>().<span class="fu">length</span>();</span>
+<span id="cb31-8"><a href="#cb31-8"></a></span>
+<span id="cb31-9"><a href="#cb31-9"></a><span class="co">// accepted even though the previous is rejected</span></span>
+<span id="cb31-10"><a href="#cb31-10"></a><span class="bu">Object</span> x1 = f;</span>
+<span id="cb31-11"><a href="#cb31-11"></a></span>
+<span id="cb31-12"><a href="#cb31-12"></a><span class="co">// rejected because ToIntFunction is not a subtype of Function</span></span>
+<span id="cb31-13"><a href="#cb31-13"></a>Function&lt;<span class="bu">Throwable</span>,?&gt; y = f;</span></code></pre></div>
+<p>Any of these would work fine in Scala:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">val</span> f: Throwable =&gt; Int = (t: Throwable) =&gt; t.<span class="fu">getMessage</span>.<span class="fu">length</span></span>
+<span id="cb32-2"><a href="#cb32-2"></a><span class="kw">val</span> g: Exception =&gt; Int = f</span>
+<span id="cb32-3"><a href="#cb32-3"></a><span class="kw">val</span> x: AnyRef = (t: Throwable) =&gt; t.<span class="fu">getMessage</span>.<span class="fu">length</span></span>
+<span id="cb32-4"><a href="#cb32-4"></a><span class="kw">val</span> y: Throwable =&gt; Any = f</span></code></pre></div>
+<p>Another language worth mentioning here is JavaScript, which makes heavy use of functions and especially of function literals. The situation is the opposite of Scala and Java: JavaScript has no proper notion of <em>method</em>; it simulates it by storing <em>functions</em> inside objects. In JavaScript, the syntax <code>function(args){body}</code> denotes a function literal. Such functions can be used as constructors or as methods:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb33-1"><a href="#cb33-1"></a><span class="co">// this is JavaScript</span></span>
+<span id="cb33-2"><a href="#cb33-2"></a><span class="kw">var</span> Counter <span class="op">=</span> <span class="kw">function</span>(init) <span class="op">{</span></span>
+<span id="cb33-3"><a href="#cb33-3"></a>  <span class="kw">var</span> count <span class="op">=</span> init<span class="op">;</span></span>
+<span id="cb33-4"><a href="#cb33-4"></a>  <span class="kw">this</span>.<span class="at">next</span> <span class="op">=</span> <span class="kw">function</span>() <span class="op">{</span></span>
+<span id="cb33-5"><a href="#cb33-5"></a>    count <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb33-6"><a href="#cb33-6"></a>    <span class="cf">return</span> count<span class="op">;</span></span>
+<span id="cb33-7"><a href="#cb33-7"></a>  <span class="op">}</span></span>
+<span id="cb33-8"><a href="#cb33-8"></a><span class="op">};</span></span>
+<span id="cb33-9"><a href="#cb33-9"></a></span>
+<span id="cb33-10"><a href="#cb33-10"></a><span class="kw">var</span> c <span class="op">=</span> <span class="kw">new</span> <span class="at">Counter</span>(<span class="dv">10</span>)<span class="op">;</span></span>
+<span id="cb33-11"><a href="#cb33-11"></a><span class="va">c</span>.<span class="at">next</span>()<span class="op">;</span> <span class="co">// 11</span></span>
+<span id="cb33-12"><a href="#cb33-12"></a><span class="va">c</span>.<span class="at">next</span>()<span class="op">;</span> <span class="co">// 12</span></span></code></pre></div>
+<p>Note how <code>Counter</code> is actually a function (which does not return anything) and becomes a constructor by the use of keyword “<code>new</code>”. Note also how (pseudo-)method <code>next</code> is defined by storing a function into a property.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+<p>JavaScript is a language primarily concerned with <em>events</em> and it uses higher-order functions to specify event handlers. Typical JavaScript code looks like this:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb34-1"><a href="#cb34-1"></a><span class="co">// this is JavaScript</span></span>
+<span id="cb34-2"><a href="#cb34-2"></a><span class="va">button</span>.<span class="at">onclick</span> <span class="op">=</span> <span class="kw">function</span>(e) <span class="op">{</span></span>
+<span id="cb34-3"><a href="#cb34-3"></a>  <span class="co">// do something, using mouse event &#39;e&#39;</span></span>
+<span id="cb34-4"><a href="#cb34-4"></a><span class="op">};</span></span></code></pre></div>
+<p>In the same way, a function can be passed to a timer to trigger regular events:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb35-1"><a href="#cb35-1"></a><span class="co">// this is JavaScript</span></span>
+<span id="cb35-2"><a href="#cb35-2"></a><span class="at">setInterval</span>(<span class="kw">function</span>() <span class="op">{</span> <span class="co">/* do something every second */</span> <span class="op">},</span> <span class="dv">1000</span>)<span class="op">;</span></span></code></pre></div>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Java’s <em>reflection</em> framework has a <code>Method</code> object that <em>represents</em> a method, but it is not a method (or a function).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>This has nothing to do with partial application.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>In this case, the compiler might actually generate an ordinary (total) function object from the partial function literal syntax, as an optimization.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p><em>Fields</em> are called <em>properties</em> in JavaScript.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-03-05 at 07:55:21 AM</footer>
+</body>

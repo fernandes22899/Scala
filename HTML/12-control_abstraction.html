@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!-- Generated from 513-control_abstraction.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>12-control_abstraction</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="control-abstraction">Control Abstraction</h2>
+<h3 id="examples">Examples</h3>
+<p>The unit-testing tool <em>ScalaTest</em> defines a <code>FunSuite</code> class in which tests are written like this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">test</span>(<span class="st">&quot;this is an important test&quot;</span>) {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="kw">val</span> l = List(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb1-3"><a href="#cb1-3"></a>  <span class="fu">assert</span>(l.<span class="fu">nonEmpty</span>)</span>
+<span id="cb1-4"><a href="#cb1-4"></a>}</span></code></pre></div>
+<p>Although <code>test</code> appears similar to a control structure like <code>if</code> or <code>while</code>, it is not built-in in Scala and is in fact a regular method of class <code>FunSuite</code>. Similarly, the package <code>scala.util.control.Breaks</code> makes it possible to write code like this to process values in an array up to the first <code>null</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a>breakable {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>  <span class="kw">for</span> (i &lt;- array.<span class="fu">indices</span>) {</span>
+<span id="cb2-3"><a href="#cb2-3"></a>    <span class="kw">if</span> (<span class="fu">array</span>(i) == <span class="kw">null</span>)</span>
+<span id="cb2-4"><a href="#cb2-4"></a>      <span class="fu">break</span>()</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="co">// process array(i)</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a>  }</span>
+<span id="cb2-7"><a href="#cb2-7"></a>}</span></code></pre></div>
+<p>Scala has no built-in <code>break</code> statement: <code>break</code> and <code>breakable</code> are not keywords; they are regular methods from class <code>Breaks</code>.</p>
+<p>Methods like <code>test</code> or <code>breakable</code> rely on two features of the language detailed below: <em>Currying</em> and <em>pass-by-name</em> arguments.</p>
+<h3 id="single-argument-functions">Single-argument functions</h3>
+<p>Recall that a function (or method) that takes a single argument can be applied to a block expression without additional parentheses:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">def</span> <span class="fu">f</span>(x: Int) = x + <span class="dv">1</span></span></code></pre></div>
+<p>This function can be called on simple expressions like <code>f(10)</code> or <code>f(3 * x + 1)</code> or on a block, like:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a>f {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="kw">val</span> n = <span class="dv">10</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>  n * n</span>
+<span id="cb4-4"><a href="#cb4-4"></a>}</span></code></pre></div>
+<p>This gives <code>f</code> the look of a built-in control structure, even though it is a regular, single-argument function/method.</p>
+<h3 id="pass-by-name-arguments">Pass-by-name arguments</h3>
+<p>In the examples above, <code>test</code> and <code>breakable</code> are not being passed simple values, but instead <em>unevaluated</em> blocks of code. This is enabled in Scala through <em>pass-by-name</em> arguments. Consider the code snippet below:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">def</span> <span class="fu">pr</span>(s: String) = {</span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">println</span>(<span class="st">&quot;pr starts&quot;</span>)</span>
+<span id="cb5-3"><a href="#cb5-3"></a>  <span class="fu">println</span>(s)</span>
+<span id="cb5-4"><a href="#cb5-4"></a>  <span class="fu">println</span>(<span class="st">&quot;pr ends&quot;</span>)</span>
+<span id="cb5-5"><a href="#cb5-5"></a>}</span>
+<span id="cb5-6"><a href="#cb5-6"></a></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="kw">def</span> <span class="fu">up</span>(s: String) = {</span>
+<span id="cb5-8"><a href="#cb5-8"></a>  <span class="fu">println</span>(s.<span class="fu">length</span>)</span>
+<span id="cb5-9"><a href="#cb5-9"></a>  s.<span class="fu">toUpperCase</span></span>
+<span id="cb5-10"><a href="#cb5-10"></a>}</span>
+<span id="cb5-11"><a href="#cb5-11"></a></span>
+<span id="cb5-12"><a href="#cb5-12"></a><span class="fu">pr</span>(<span class="fu">up</span>(<span class="st">&quot;foo&quot;</span>))</span></code></pre></div>
+<p>This code produces the output:</p>
+<pre><code>3
+pr starts
+FOO
+pr ends</code></pre>
+<p>This is as expected: First, function <code>up</code> is called on <code>"foo"</code> and prints 3, then string <code>"FOO"</code> is passed to function <code>pr</code>, which prints the next three strings. Contrast this with the following code:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">def</span> <span class="fu">pr</span>(s: =&gt; String) = {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="fu">println</span>(<span class="st">&quot;pr starts&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="fu">println</span>(s)</span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="fu">println</span>(<span class="st">&quot;pr ends&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>}</span>
+<span id="cb7-6"><a href="#cb7-6"></a></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="kw">def</span> <span class="fu">up</span>(s: String) = {</span>
+<span id="cb7-8"><a href="#cb7-8"></a>  <span class="fu">println</span>(s.<span class="fu">length</span>)</span>
+<span id="cb7-9"><a href="#cb7-9"></a>  s.<span class="fu">toUpperCase</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a>}</span>
+<span id="cb7-11"><a href="#cb7-11"></a></span>
+<span id="cb7-12"><a href="#cb7-12"></a><span class="fu">pr</span>(<span class="fu">up</span>(<span class="st">&quot;foo&quot;</span>))</span></code></pre></div>
+<p>The only change is the <code>=&gt;</code> in the declaration of parameter <code>s</code> in <code>pr</code>. This is used in Scala to indicate that, when <code>pr</code> is called, its argument is passed by name, <em>unevaluated</em>. The code above produces the following output:</p>
+<pre><code>pr starts
+3
+FOO
+pr ends</code></pre>
+<p>The expression <code>up("foo")</code> is passed to function <code>pr</code> unevaluated. The first thing that happens next is that <code>pr</code> prints <code>"pr starts"</code>. Then, it needs the value of <code>s</code> to print it and the call <code>up("foo")</code> is evaluated, which prints 3. Finally, function <code>pr</code> prints the last two strings.</p>
+<h3 id="user-defined-control-structures.">User-defined control structures.</h3>
+<p>Combined with the special block syntax of single-argument functions, pass-by-name parameters can be used to define methods that appear like built-in control structures:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">def</span> <span class="fu">doTwice</span>(code: =&gt; Unit) = {</span>
+<span id="cb9-2"><a href="#cb9-2"></a>  code</span>
+<span id="cb9-3"><a href="#cb9-3"></a>  code</span>
+<span id="cb9-4"><a href="#cb9-4"></a>}</span>
+<span id="cb9-5"><a href="#cb9-5"></a></span>
+<span id="cb9-6"><a href="#cb9-6"></a>doTwice {</span>
+<span id="cb9-7"><a href="#cb9-7"></a>  <span class="fu">println</span>(<span class="st">&quot;hello&quot;</span>)</span>
+<span id="cb9-8"><a href="#cb9-8"></a>}</span></code></pre></div>
+<p>This prints the string <code>hello</code> twice. The expression <code>println("hello")</code> is passed unevaluated to function <code>doTwice</code>, which runs it twice. One could use the same approach to define a never-ending loop:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">def</span> loop[A](code: =&gt; A): Nothing = {</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  @tailrec</span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="kw">def</span> <span class="fu">loopForever</span>(): Nothing = {</span>
+<span id="cb10-4"><a href="#cb10-4"></a>    code; <span class="fu">loopForever</span>()</span>
+<span id="cb10-5"><a href="#cb10-5"></a>  }</span>
+<span id="cb10-6"><a href="#cb10-6"></a>  <span class="fu">loopForever</span>()</span>
+<span id="cb10-7"><a href="#cb10-7"></a>}</span>
+<span id="cb10-8"><a href="#cb10-8"></a></span>
+<span id="cb10-9"><a href="#cb10-9"></a>loop {</span>
+<span id="cb10-10"><a href="#cb10-10"></a>  <span class="kw">val</span> socket = server.<span class="fu">accept</span>()</span>
+<span id="cb10-11"><a href="#cb10-11"></a>  ...</span>
+<span id="cb10-12"><a href="#cb10-12"></a>}</span></code></pre></div>
+<p>How could one write a loop that repeats for a given number of iterations? The following function would work:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">def</span> repeat[A](n: Int, code: =&gt; A): Unit = <span class="kw">for</span> (_ &lt;- <span class="dv">1</span> to n) code</span></code></pre></div>
+<p>but what is lost is the ability to make a call to it look like built-in control structures. Calling <code>repeat</code> with blocks of code does not look very nice:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">repeat</span>(<span class="dv">5</span>, </span>
+<span id="cb12-2"><a href="#cb12-2"></a>  {</span>
+<span id="cb12-3"><a href="#cb12-3"></a>    ...</span>
+<span id="cb12-4"><a href="#cb12-4"></a>  })</span></code></pre></div>
+<p>A better definition of <code>repeat</code> would rely on <em>Currying</em>.</p>
+<h3 id="currying">Currying</h3>
+<p>The distinctive characteristic of <em>Curried</em> functions (and methods) is that they use multiple argument lists:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">def</span> <span class="fu">f</span>(s: String)(n: Int) = s * n</span></code></pre></div>
+<p>Function <code>f</code> uses two lists of arguments. It can be called like this: <code>f("A")(3)</code>, which produces the string <code>"AAA"</code>.</p>
+<p>One way to think about a Curried function is that it is a function of the first argument list that returns a function to process the remaining argument lists.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> For instance, <code>f("A")</code> is like a function of type <code>Int =&gt; String</code> that takes an integer argument and produces a string that contains that many <code>A</code>s:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">val</span> g: Int =&gt; String = <span class="fu">f</span>(<span class="st">&quot;A&quot;</span>)</span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="fu">g</span>(<span class="dv">3</span>)  <span class="co">// the string &quot;AAA&quot;</span></span></code></pre></div>
+<p>This makes it possible to use <code>f("A")</code> as the input of any higher-order function that expects an argument of type <code>Int =&gt; String</code>, e.g.:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a>List.<span class="fu">tabulate</span>(<span class="dv">5</span>)(<span class="fu">f</span>(<span class="st">&quot;A&quot;</span>))  <span class="co">// the list &quot;&quot;, &quot;A&quot;, &quot;AA&quot;, &quot;AAA&quot;, &quot;AAAA&quot;</span></span></code></pre></div>
+<p>Currying can be used to improve the <code>repeat</code> method above:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">def</span> <span class="fu">repeat</span>(n: Int)(code: =&gt; Unit) = <span class="kw">for</span> (_ &lt;- <span class="dv">1</span> to n) code</span></code></pre></div>
+<p>This variant can be called like this:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1"></a><span class="fu">repeat</span>(<span class="dv">5</span>) {</span>
+<span id="cb17-2"><a href="#cb17-2"></a>  ...</span>
+<span id="cb17-3"><a href="#cb17-3"></a>}</span></code></pre></div>
+<p>Although the <code>while</code> loop is native to Scala, it could have been implemented in terms of tail recursion:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">def</span> asLongAs[A](condition: =&gt; Boolean)(body: =&gt; A): Unit = {</span>
+<span id="cb18-2"><a href="#cb18-2"></a>  @tailrec</span>
+<span id="cb18-3"><a href="#cb18-3"></a>  <span class="kw">def</span> <span class="fu">loop</span>(): Unit = <span class="kw">if</span> (condition) {</span>
+<span id="cb18-4"><a href="#cb18-4"></a>    body</span>
+<span id="cb18-5"><a href="#cb18-5"></a>    <span class="fu">loop</span>()</span>
+<span id="cb18-6"><a href="#cb18-6"></a>  }</span>
+<span id="cb18-7"><a href="#cb18-7"></a>  <span class="fu">loop</span>()</span>
+<span id="cb18-8"><a href="#cb18-8"></a>}</span>
+<span id="cb18-9"><a href="#cb18-9"></a></span>
+<span id="cb18-10"><a href="#cb18-10"></a><span class="fu">asLongAs</span>(n &lt; <span class="dv">10</span>) {</span>
+<span id="cb18-11"><a href="#cb18-11"></a>  n += <span class="dv">1</span></span>
+<span id="cb18-12"><a href="#cb18-12"></a>  ...</span>
+<span id="cb18-13"><a href="#cb18-13"></a>}</span></code></pre></div>
+<h3 id="implementing-breakable">Implementing <code>breakable</code></h3>
+<p>Going back to the illustrative examples we started from, <code>breakable</code> can be implemented by using a pass-by-name argument:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">package</span> <span class="kw">object</span> breakable {</span>
+<span id="cb19-2"><a href="#cb19-2"></a></span>
+<span id="cb19-3"><a href="#cb19-3"></a><span class="kw">private</span> <span class="kw">object</span> Breaking <span class="kw">extends</span> Exception</span>
+<span id="cb19-4"><a href="#cb19-4"></a></span>
+<span id="cb19-5"><a href="#cb19-5"></a>  <span class="kw">def</span> breakable[A](code: =&gt; A): Unit = {</span>
+<span id="cb19-6"><a href="#cb19-6"></a>    <span class="kw">try</span> code <span class="kw">catch</span> {</span>
+<span id="cb19-7"><a href="#cb19-7"></a>      <span class="kw">case</span> Breaking =&gt; ()</span>
+<span id="cb19-8"><a href="#cb19-8"></a>    }</span>
+<span id="cb19-9"><a href="#cb19-9"></a>  }</span>
+<span id="cb19-10"><a href="#cb19-10"></a></span>
+<span id="cb19-11"><a href="#cb19-11"></a>  <span class="kw">def</span> <span class="fu">break</span>(): Nothing = <span class="kw">throw</span> Breaking</span>
+<span id="cb19-12"><a href="#cb19-12"></a>}</span></code></pre></div>
+<h3 id="implementing-test">Implementing <code>test</code></h3>
+<p>A method similar to <code>FunSuite.test</code> can be implemented using Currying and a pass-by-name argument. The purpose of <code>test</code> is to store the code to be tested in a data structure so it can be run when the test suite is run:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">private</span> <span class="kw">val</span> tests = <span class="kw">new</span> mutable.<span class="fu">HashMap</span>[String, () =&gt; Unit]</span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="kw">def</span> test[A](name: String)(code: =&gt; A) {</span>
+<span id="cb20-4"><a href="#cb20-4"></a>  <span class="fu">tests</span>(name) = () =&gt; code</span>
+<span id="cb20-5"><a href="#cb20-5"></a>}</span></code></pre></div>
+<p>The <code>test</code> method has to be careful not to evaluate the given code, which is to be run later. Using a <code>Map[String, A]</code> would not work. The call <code>tests(name) = code</code> is equivalent to <code>tests.update(name, code)</code>, but the <code>update</code> method uses regular pass-by-value arguments, so this would actually evaluate <code>code</code>, thus running the test. Instead, the map stores functions that will evaluate the testing code when called:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1"></a><span class="fu">tests</span>(<span class="st">&quot;this is an important test&quot;</span>)()  <span class="co">// runs the test</span></span></code></pre></div>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><p>By default, in Java and in Scala, all arguments to methods are passed <em>by value</em>.</p></li>
+<li><p>In Scala, however, this can be changed. Method arguments can be passed <em>by name</em>, by adding an arrow <code>=&gt;</code> in front of the type of the argument. By-name arguments are passed unevaluated, thus enabling a form of lazy evaluation.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> This makes it possible for a method to take a block of code and evaluate it zero, one, or more times.</p></li>
+<li><p><em>Curried</em> methods use multiple lists of arguments. If the last list contains a single argument, calls to the method can use the special syntax for single-argument calls, using curly braces: <code>f(...)(...) { ... }</code></p></li>
+<li><p>Currying and by-name arguments can be combined to define methods that look very much like built-in control structures when they are called.</p></li>
+<li><p>Many constructs in Scala that look like language primitives are actually implemented in libraries as regular methods, using these techniques.</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>That is exactly what they are in some functional languages like SML.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>Lazily evaluated types, like <code>LazyList</code>, often rely on by-name arguments in their implementation.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-03-12 at 12:50:51 PM</footer>
+</body>

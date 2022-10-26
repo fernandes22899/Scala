@@ -1,0 +1,16 @@
+[debug] javaOptions: Vector(-Xmx1G)
+[debug] Forking tests - parallelism = false
+[debug] Create a single-thread test executor
+[debug] Runner for org.scalatest.tools.Framework produced 1 initial tasks for 1 tests.
+[debug]   Running TaskDef(SampleTests, sbt.ForkMain$SubclassFingerscan@2f7c7260, false, [SuiteSelector])
+[info] SampleTests:
+[info] - sample
+[info] - sample2
+[debug]     Produced 0 nested tasks and 2 events.
+[info] Run completed in 906 milliseconds.
+[info] Total number of tests run: 2
+[info] Suites: completed 1, aborted 0
+[info] Tests: succeeded 2, failed 0, canceled 0, ignored 0, pending 0
+[info] All tests passed.
+[debug] Passed tests:
+[debug] 	SampleTests

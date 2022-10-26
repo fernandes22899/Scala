@@ -1,0 +1,19 @@
+[info] waiting for lock on /home/tester/.sbt/boot/sbt.boot.lock to be available...
+[info] welcome to sbt 1.4.6 (AdoptOpenJDK Java 15.0.1)
+[info] loading project definition from /assigns/jjf1027/GIT/0/project
+[info] loading settings for project dummy from build.sbt,dummy.sbt ...
+[info] set current project to dummy (in build file:/assigns/jjf1027/GIT/0/)
+[success] Total time: 0 s, completed Jun 7, 2021, 10:42:52 AM
+[info] compiling 1 Scala source to /assigns/jjf1027/GIT/0/target/scala-2.13/classes ...
+[info] Non-compiled module 'compiler-bridge_2.13' for Scala 2.13.6. Compiling...
+[info]   Compilation completed in 10.368s.
+[info] done compiling
+[info] compiling 4 Scala sources to /assigns/jjf1027/GIT/0/target/scala-2.13/test-classes ...
+[info] done compiling
+[info] running (fork) grading.Grade 
+EasySuite:
+- sample (26 milliseconds)
+- grading (0 milliseconds)
+time: 0.2 seconds
+grade: 100 / 100
+[success] Total time: 20 s, completed Jun 7, 2021, 10:43:12 AM

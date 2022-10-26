@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!-- Generated from 303-scala-mindset.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3-scala-mindset</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="scala-mindset">Scala mindset</h2>
+<p>Scala’s syntax is not that different from Java’s. But syntax is rarely the issue when it comes to learning a programming language. There is a way to “think Scala” that is different from Java, and this section introduces a few tips that will help Java programmers come to Scala more easily.</p>
+<h3 id="no-break-or-continue">No <code>break</code> or <code>continue</code></h3>
+<p>Scala has no <code>break</code> or <code>continue</code> statement. Scala’s programming style favors <em>recursion</em> over <em>iteration</em> and many <code>while</code> loops that would be written using <code>break</code> or <code>continue</code> in Java are written as recursive functions in Scala and can dispense with the <code>break</code> and <code>continue</code> statements altogether.</p>
+<p>For instance, the Java method:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">// this is Java</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="dt">void</span> <span class="fu">processFirst</span>(<span class="bu">Elements</span> source) {</span>
+<span id="cb1-3"><a href="#cb1-3"></a>  <span class="kw">while</span> (source.<span class="fu">hasNext</span>()) {</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    <span class="bu">Element</span> element = source.<span class="fu">next</span>();</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    <span class="kw">if</span> (element.<span class="fu">hasDesiredProperty</span>()) {</span>
+<span id="cb1-6"><a href="#cb1-6"></a>      <span class="fu">process</span>(element);</span>
+<span id="cb1-7"><a href="#cb1-7"></a>      <span class="kw">break</span>;</span>
+<span id="cb1-8"><a href="#cb1-8"></a>    }</span>
+<span id="cb1-9"><a href="#cb1-9"></a>  }</span>
+<span id="cb1-10"><a href="#cb1-10"></a>}</span></code></pre></div>
+<p>could be written, in Scala:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">def</span> <span class="fu">processFirst</span>(source: Elements) {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>  <span class="kw">if</span> (source.<span class="fu">hasNext</span>) {</span>
+<span id="cb2-3"><a href="#cb2-3"></a>    <span class="kw">val</span> element = source.<span class="fu">next</span>()</span>
+<span id="cb2-4"><a href="#cb2-4"></a>    <span class="kw">if</span> (element.<span class="fu">hasDesiredProperty</span>)</span>
+<span id="cb2-5"><a href="#cb2-5"></a>      <span class="fu">process</span>(element)</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    <span class="kw">else</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>      <span class="fu">processFirst</span>(source)</span>
+<span id="cb2-8"><a href="#cb2-8"></a>  }</span>
+<span id="cb2-9"><a href="#cb2-9"></a>}</span></code></pre></div>
+<p>Actually, In Scala, the method is even more likely to forgo iteration/recursion entirely and rely instead on existing higher-order functions, as in:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">def</span> <span class="fu">processFirst</span>(source: Elements) =</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="kw">for</span> (element &lt;- source.<span class="fu">find</span>(_.<span class="fu">hasDesiredProperty</span>)) <span class="fu">process</span>(element)</span></code></pre></div>
+<p>Higher-order functions such as <code>find</code> are covered later.</p>
+<h3 id="hidden-methods">Hidden methods</h3>
+<p>Some methods names have a special meaning in Scala. For instance, an object <code>x</code> with a method <code>apply</code> can be used like this: <code>x(&lt;arg&gt;)</code>; this is actually compiled into <code>x.apply(&lt;arg&gt;)</code>. Many predefined classes have suitable <code>apply</code> methods. For instance:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">val</span> a = Array(<span class="st">&quot;foo&quot;</span>, <span class="st">&quot;bar&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">a</span>(<span class="dv">1</span>)       <span class="co">// string &quot;bar&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>a.<span class="fu">apply</span>(<span class="dv">1</span>) <span class="co">// same thing</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a></span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="kw">val</span> s = <span class="st">&quot;a string&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="fu">s</span>(<span class="dv">3</span>)       <span class="co">// character &#39;t&#39;</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a>s.<span class="fu">apply</span>(<span class="dv">3</span>) <span class="co">// same thing</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a></span>
+<span id="cb4-9"><a href="#cb4-9"></a><span class="kw">val</span> m = Map(<span class="dv">520</span> -&gt; <span class="st">&quot;C&quot;</span>, <span class="dv">671</span> -&gt; <span class="st">&quot;Scala&quot;</span>)</span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="fu">m</span>(<span class="dv">671</span>)       <span class="co">// string &quot;Scala&quot;</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a>m.<span class="fu">apply</span>(<span class="dv">520</span>) <span class="co">// same thing</span></span></code></pre></div>
+<p>Note how array elements are accessed using an <code>apply</code> method and thus using parentheses, not brackets. This syntax is available to any user-defined type that implements an <code>apply</code> method:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">class</span> <span class="fu">Exp</span>(base: Int) {</span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="kw">def</span> <span class="fu">apply</span>(n: Int): Int = {</span>
+<span id="cb5-3"><a href="#cb5-3"></a>    <span class="kw">var</span> r = <span class="dv">1</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>    <span class="kw">var</span> i = n</span>
+<span id="cb5-5"><a href="#cb5-5"></a>    <span class="kw">while</span> (i &gt; <span class="dv">0</span>) {</span>
+<span id="cb5-6"><a href="#cb5-6"></a>      i -= <span class="dv">1</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a>      r *= base</span>
+<span id="cb5-8"><a href="#cb5-8"></a>    }</span>
+<span id="cb5-9"><a href="#cb5-9"></a>    r</span>
+<span id="cb5-10"><a href="#cb5-10"></a>  }</span>
+<span id="cb5-11"><a href="#cb5-11"></a>}</span>
+<span id="cb5-12"><a href="#cb5-12"></a></span>
+<span id="cb5-13"><a href="#cb5-13"></a><span class="kw">val</span> exp2 = <span class="kw">new</span> <span class="fu">Exp</span>(<span class="dv">2</span>)</span>
+<span id="cb5-14"><a href="#cb5-14"></a><span class="fu">exp2</span>(<span class="dv">5</span>)  <span class="co">// 32</span></span></code></pre></div>
+<p>Objects that implement a suitable <code>update</code> method can be used like this: <code>x(&lt;arg1&gt;) = &lt;arg2&gt;</code>, which is compiled into <code>x.update(&lt;arg1&gt;, &lt;arg2&gt;)</code>. In particular, this is how arrays are modified:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">a</span>(<span class="dv">0</span>) = <span class="st">&quot;FOO&quot;</span>       <span class="co">// changes the array to (&quot;FOO&quot;, &quot;bar&quot;)</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>a.<span class="fu">update</span>(<span class="dv">1</span>, <span class="st">&quot;BAR&quot;</span>) <span class="co">// changes the array to (&quot;FOO&quot;, &quot;BAR&quot;)</span></span></code></pre></div>
+<p>It is important to be aware of the existence of these methods in order to locate relevant information in the standard documentation.</p>
+<p>Other special methods include <code>unapply</code> and <code>unapplySeq</code>, which are used to implement <em>extractors</em> and will be described later.</p>
+<h3 id="implicit-conversions">Implicit conversions</h3>
+<p>The Scala expression <code>"X" * 42</code> is actually a method call: <code>"X".*(42)</code>. But <code>String</code> has no method <code>*</code>. In the same way, <code>3 max 5</code> is <code>3.max(5)</code> but <code>Int</code> has no method <code>max</code>. What happens is that, at compile-time, the <code>Int</code> 3 is converted into a <code>RichInt</code>, which has the <code>max</code> method. <code>3 max 5</code> is actually compiled into <code>new RichInt(3).max(5)</code>. In order to see everything what is available on an <code>Int</code> value, one must therefore check the API of <code>RichInt</code>. Other primitive types have rich wrappers as well (<code>RichBoolean</code>, <code>RichFloat</code>, etc.). In the case of strings, method <code>*</code> is defined in <code>StringOps</code> (and there is an implicit conversion from <code>String</code> to <code>StringOps</code>).</p>
+<p>Note that even though <code>new RichInt(3)</code> conceptually creates a new object, no such object is created at runtime. Instead, a Java static method is called with <code>3</code> and <code>5</code> as its arguments. This optimization is enabled because <code>RichInt</code> extends <code>AnyVal</code> and not <code>AnyRef</code> like ordinary classes. Class <code>AnyVal</code> will be covered in more detail later.</p>
+<h3 id="importing-mutable-collections">Importing mutable collections</h3>
+<p>Importing <code>scala.collection.mutable.Set</code> (or <code>Map</code>) can be confusing, especially if the immutable variants are used at the same time; when <code>Set</code> appears in the code, it may not be obvious if the set is mutable or not. One popular remedy is to only import <code>scala.collection.mutable</code> and to use the type <code>mutable.Set</code> explicitly:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">mutable</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="kw">val</span> m = mutable.<span class="fu">Set</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span></code></pre></div>
+<p>Another approach is to rename the type when it is imported:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">mutable</span>.{ Set =&gt; MutableSet }</span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="kw">val</span> m = <span class="fu">MutableSet</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span></code></pre></div>
+<h3 id="valmutable-versus-varimmutable"><code>val</code>/mutable versus <code>var</code>/immutable</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">var</span> c = scala.<span class="fu">collection</span>.<span class="fu">immutable</span>.<span class="fu">Set</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="kw">val</span> mc = scala.<span class="fu">collection</span>.<span class="fu">mutable</span>.<span class="fu">Set</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb9-3"><a href="#cb9-3"></a></span>
+<span id="cb9-4"><a href="#cb9-4"></a>c += <span class="dv">4</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a>mc += <span class="dv">4</span></span></code></pre></div>
+<p>In the code above, <code>c</code> is an immutable set and <code>mc</code> is a mutable set. The last two lines add 4 to each set, but does it very differently on <code>c</code> and on <code>mc</code>:</p>
+<ul>
+<li><p><code>c += 4</code> is compiled into <code>c = c + 4</code>, which is <code>c = c.+(4)</code>. In other words, a method <code>+</code> is used and the statement is a reassignment of a <code>var</code>.</p></li>
+<li><p><code>mc += 4</code> is compiled into <code>mc.+=(4)</code>. This is a call to method <code>+=</code> of mutable set. Variable <code>mc</code> is not reassigned (and could not have been since it is declared as <code>val</code>).</p></li>
+</ul>
+<p>The name of method <code>+=</code> was chosen so the code with a mutable <code>val</code> and the code with an immutable <code>var</code> look similar. Many mutable collections have a <code>+=</code> method. Very often, when deciding how to represent the state of a mutable object in Scala, there is a choice between a <code>val</code> of a mutable type and a <code>var</code> of an immutable type. <code>val</code> of an immutable type is used to build immutable objects (also called <em>functional objects</em>). <code>var</code> of a mutable type is fraught with dangers and is less commonly used (e.g., to reset a field to <code>null</code> after it is not needed, for garbage collection).</p>
+<p>Note that in the example above, <code>c == mc</code> and <code>mc == c</code> are both true. Sets of different types (mutable, immutable, <code>HashSet</code>, <code>TreeSet</code>, etc.) can be compared for equality and are equal if they contain the same elements. Note, however, that a set and a list are never equal, even if they contains the same elements.</p>
+<h3 id="pure-functions-vs-side-effects">Pure functions vs side effects</h3>
+<p>Functions (or methods) are said to be <em>pure</em> if they only produce a value without other side effects. For instance:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">def</span> <span class="fu">f</span>(s: String): String = <span class="st">&quot;(&quot;</span> + s + <span class="st">&quot;)&quot;</span></span></code></pre></div>
+<p>is pure, but:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">def</span> <span class="fu">g</span>(s: String): Unit = <span class="fu">println</span>(<span class="st">&quot;(&quot;</span> + s + <span class="st">&quot;)&quot;</span>)</span></code></pre></div>
+<p>is not. Functional programming favors the use of pure functions, without side effects. Object-oriented programming, on the other hand, tends to use impure methods that modify the state of an object. Scala favors a style of <em>functional object-oriented programming</em> in which an object’s method often creates a new (immutable) instance instead of modifying the state of the object. For instance, in Java:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">// this is Java</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="bu">Set</span>&lt;<span class="bu">String</span>&gt; someSet = ...</span>
+<span id="cb12-3"><a href="#cb12-3"></a>someSet.<span class="fu">addAll</span>(someOtherSet)</span></code></pre></div>
+<p><em>modifies</em> the state of <code>someSet</code> by adding to it all the elements of <code>someOtherSet</code>. By contrast, in Scala:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">val</span> someSet: Set[String] = ...</span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="kw">val</span> newSet = someSet.<span class="fu">union</span>(someOtherSet)</span></code></pre></div>
+<p><em>does not</em> modify <code>someSet</code> but instead produces a <em>new set</em> that contains all the elements from <code>someSet</code> and <code>someOtherSet</code>. A line <code>someSet.union(someOtherSet)</code> by itself, without using or storing the resulting set, is useless.</p>
+<p>A pure function must return the results of its computation. Therefore, it will never have type <code>Unit</code>. An impure function can be used solely for its side effects (and return <code>Unit</code>) but can also have side effects <em>and</em> return a value, in which case its return type will not be <code>Unit</code>:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">def</span> <span class="fu">squareAndPrint</span>(x: Double): Double = {</span>
+<span id="cb14-2"><a href="#cb14-2"></a>  <span class="kw">val</span> sq = x * x</span>
+<span id="cb14-3"><a href="#cb14-3"></a>  <span class="fu">println</span>(sq)</span>
+<span id="cb14-4"><a href="#cb14-4"></a>  sq</span>
+<span id="cb14-5"><a href="#cb14-5"></a>}</span></code></pre></div>
+<p>This function calculates the square of <code>x</code> <em>and</em> also prints it. It is not pure and has return type <code>Double</code>.</p>
+<p>When a function or method is called for side effects and does not return any useful value (like function <code>g</code>) above, it uses <code>Unit</code> as its return type (in Java, it would use <code>void</code>). Scala offers two ways to write functions that return <em>unit</em>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">def</span> <span class="fu">sideEffectFunction</span>(x: Int): Unit = ...</span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="kw">def</span> <span class="fu">sideEffectFunction</span>(x: Int) {...}</span></code></pre></div>
+<p>Note how the second syntax has no <code>=</code> sign. This can be a source of mistakes:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">def</span> <span class="fu">f</span>(s: String) = {</span>
+<span id="cb16-2"><a href="#cb16-2"></a>  <span class="kw">val</span> n = s.<span class="fu">toInt</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a>  (n + <span class="dv">1</span>).<span class="fu">toString</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a>}</span>
+<span id="cb16-5"><a href="#cb16-5"></a></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="kw">def</span> <span class="fu">g</span>(s: String) {</span>
+<span id="cb16-7"><a href="#cb16-7"></a>  <span class="kw">val</span> n = s.<span class="fu">toInt</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a>  (n + <span class="dv">1</span>).<span class="fu">toString</span></span>
+<span id="cb16-9"><a href="#cb16-9"></a>}</span></code></pre></div>
+<p>The only difference between the definition of <code>f</code> and that of <code>g</code> is the missing <code>=</code> in <code>g</code>. As a consequence, <code>f</code> has type <code>String =&gt; String</code> and <code>f("100")</code> is <code>"101"</code>, but <code>g</code> has type <code>String =&gt; Unit</code> and <code>g(any string)</code> is <em>unit</em>!</p>
+<p>The second form of definition (without <code>=</code>) has been deprecated in Scala 2.12 and should be avoided.</p>
+<h3 id="summary">Summary</h3>
+<p>Scala is a hybrid language. Classes and methods can be used to structure code in an object-oriented fashion, but Scala nudges programmers toward a functional style when implementing them. Many loops are replaced with (tail) recursion or with calls to higher-order methods. Fields and local variables are introduced by <code>val</code> as often as possible, that is, unless they need to be reassigned. Immutable (persistent) data structures like <code>List</code> or (immutable) maps and sets are used heavily. Many functions are pure, without side effects, and many objects are functional (immutable), offering methods to create new objects instead of modifying existing ones.</p>
+<footer>2020-02-04 at 12:06:55 PM</footer>
+</body>

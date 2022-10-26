@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<!-- Generated from 505-streams.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>7-streams</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="streams">Streams</h2>
+<h3 id="streams-as-lazy-lists">Streams as lazy lists</h3>
+<p>Streams in Scala are implemented as instance of a type <code>LazyList</code>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> Non-empty <em>lazy</em> lists have a head and a tail, just like lists, but these are evaluated lazily, as needed. In particular, a lazy list can be (conceptually) infinite. For instance, the 0, 1, 2, … sequence can be built as a lazy list:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">val</span> s1 = LazyList.<span class="fu">from</span>(<span class="dv">0</span>) <span class="co">// the 0, 1, 2, ... sequence</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">s1</span>(<span class="dv">0</span>)                     <span class="co">// this is 0</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">s1</span>(<span class="dv">1</span>)                     <span class="co">// this is 1</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">s1</span>(<span class="dv">2</span>)                     <span class="co">// this is 2</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="fu">s1</span>(<span class="dv">1000000</span>)               <span class="co">// this is 1000000</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="fu">s1</span>(<span class="dv">0</span>)                     <span class="co">// this is still 0</span></span></code></pre></div>
+<p>The <code>LazyList</code> companion object offers several ways to build lazy lists. For instance, an infinite list of pseudo-random numbers can be obtained using <code>continually</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">val</span> s2 = LazyList.<span class="fu">continually</span>(Random.<span class="fu">nextFloat</span>())</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="fu">s2</span>(<span class="dv">0</span>)  <span class="co">// a random number x</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="fu">s2</span>(<span class="dv">1</span>)  <span class="co">// another random number</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="fu">s2</span>(<span class="dv">2</span>)  <span class="co">// another random number</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="fu">s2</span>(<span class="dv">0</span>)  <span class="co">// the random number x from before</span></span></code></pre></div>
+<h3 id="building-streams">Building streams</h3>
+<p>Lazy lists can be built from a “cons” and an empty (lazy) list. The empty list is <code>LazyList()</code> or <code>LazyList.empty</code> and the “cons” is “<code>#::</code>”. Accordingly, <code>1 #:: 2 #:: 3 #:: LaziList.empty</code> is the <em>stream</em> <code>&lt;1, 2, 3&gt;</code> in the same way that <code>1 :: 2 :: 3 :: Nil</code> is the <em>list</em> <code>[1, 2, 3]</code>. These operators can be used to build streams recursively as we do lists. The sequence <code>s1</code> above could also be constructed as:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">def</span> <span class="fu">countUp</span>(n: Int): LazyList[Int] = n #:: <span class="fu">countUp</span>(n + <span class="dv">1</span>)</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">val</span> s1 = <span class="fu">countUp</span>(<span class="dv">0</span>)</span></code></pre></div>
+<p>This produces an infinite sequence with the numbers 0, 1, 2, …, like before. Note that, at first sight, function <code>countUp</code> looks nonsensical because it has no non-recursive branch and therefore cannot possibly terminate. Indeed, the same function on lists would be non-terminating:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">def</span> <span class="fu">countUp</span>(n: Int): List[Int] = n :: <span class="fu">countUp</span>(n + <span class="dv">1</span>) <span class="co">// nonsensical: will not terminate</span></span></code></pre></div>
+<p>But lazy lists are different. The tail of a list is evaluated lazily, and therefore the recursive call <code>countUp(n + 1)</code> is not applied at the time <code>countUp(0)</code> is called. Those recursive calls will take place later, one at a time, when values from the sequence are needed. Of course, code that requires all the values (e.g., <code>s1.toList</code> or <code>s1.last</code>) would run forever.</p>
+<p>The infinite sequence of random values can also be built recursively:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">def</span> <span class="fu">buildRand</span>(): LazyList[Float] = Random.<span class="fu">nextFloat</span>() #:: <span class="fu">buildRand</span>()</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="kw">val</span> s2 = <span class="fu">buildRand</span>()</span></code></pre></div>
+<p>Again, we see the unusual pattern of a recursion without a terminal case, resulting in an infinite sequence. This also works:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">val</span> s2: LazyList[Float] = Random.<span class="fu">nextFloat</span>() #:: s2</span></code></pre></div>
+<h3 id="pattern-matching">Pattern matching</h3>
+<p><code>#::</code> can be used in patterns like <code>::</code> is used for lists, making stream code look very similar to list code:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">def</span> getAt[A](s: LazyList[A], i: Int): A = (s, i) <span class="kw">match</span> {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">case</span> (<span class="fu">LazyList</span>(), _) =&gt; <span class="kw">throw</span> <span class="kw">new</span> NoSuchElementException(<span class="st">&quot;getAt(empty)&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="kw">case</span> (h #:: _, <span class="dv">0</span>)    =&gt; h</span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="kw">case</span> (_ #:: t, _)    =&gt; <span class="fu">getAt</span>(t, i - <span class="dv">1</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>}</span></code></pre></div>
+<p>Unfortunately, <code>LazyList</code> does not define a “<code>Nil</code>” that can be used to match the empty list, hence the use of the <code>LazyList()</code> pattern. Alternatively, one can define <code>Empty</code> and use it as a pattern:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">val</span> Empty = LazyList.<span class="fu">empty</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="kw">def</span> getAt[A](s: LazyList[A], i: Int): A = (s, i) <span class="kw">match</span> {</span>
+<span id="cb8-4"><a href="#cb8-4"></a>  <span class="kw">case</span> (Empty, _)   =&gt; <span class="kw">throw</span> <span class="kw">new</span> NoSuchElementException(<span class="st">&quot;getAt(empty)&quot;</span>)</span>
+<span id="cb8-5"><a href="#cb8-5"></a>  <span class="kw">case</span> (h #:: _, <span class="dv">0</span>) =&gt; h</span>
+<span id="cb8-6"><a href="#cb8-6"></a>  <span class="kw">case</span> (_ #:: t, _) =&gt; <span class="fu">getAt</span>(t, i - <span class="dv">1</span>)</span>
+<span id="cb8-7"><a href="#cb8-7"></a>}</span></code></pre></div>
+<h4 id="using-streams">Using streams</h4>
+<p>Streams are often used in functional programming to decouple data-producing and data-consuming code without allocating intermediate data structures. For instance, consider the <em>Towers of Hanoi</em> example from before. A function that prints all the necessary moves can be implemented as follows:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">def</span> printHanoi[A](n: Int, left: A, middle: A, right: A): Unit = {</span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="kw">if</span> (n &gt; <span class="dv">0</span>) {</span>
+<span id="cb9-3"><a href="#cb9-3"></a>    <span class="fu">printHanoi</span>(n - <span class="dv">1</span>, left, right, middle)</span>
+<span id="cb9-4"><a href="#cb9-4"></a>    <span class="fu">println</span>(s<span class="st">&quot;$left  -&gt;  $right&quot;</span>)</span>
+<span id="cb9-5"><a href="#cb9-5"></a>    <span class="fu">printHanoi</span>(n - <span class="dv">1</span>, middle, left, right)</span>
+<span id="cb9-6"><a href="#cb9-6"></a>  }</span>
+<span id="cb9-7"><a href="#cb9-7"></a>}</span></code></pre></div>
+<p>The problem with this function is that the code that generates the moves and the code that displays them are intertwined. This is undesirable, especially in more realistic cases where, for instance, data is generated from complex searches and moves are displayed in fancy graphical interfaces.</p>
+<p>To separate the two, one can write a function that produces a list of moves and another that displays them:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">def</span> listHanoi[A](n: Int, left: A, middle: A, right: A): List[(A, A)] =</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  <span class="kw">if</span> (n &lt;= <span class="dv">0</span>) Nil</span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="kw">else</span> <span class="fu">listHanoi</span>(n - <span class="dv">1</span>, left, right, middle) ::: (left, right) :: <span class="fu">listHanoi</span>(n - <span class="dv">1</span>, middle, left, right)</span>
+<span id="cb10-4"><a href="#cb10-4"></a></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="kw">def</span> displayHanoi[A](moves: List[(A, A)]) = ...</span></code></pre></div>
+<p>The drawback of this approach is that all the moves need to be generated and stored before the first move is displayed. This could have adverse effects in more realistic scenarios (memory usage, delays, unnecessary computations).</p>
+<p>Ideally, we would like to use an iterator, which we said earlier are well-suited to this situation: Moves would be produced one at a time when needed by the displaying function, with no need to pre-generate all of them.</p>
+<p>To write an iterator that produces the <em>Towers of Hanoi</em> moves is not easy.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> But to write code that produces a <em>stream</em> of moves is straightforward:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">def</span> streamHanoi[A](n: Int, left: A, middle: A, right: A): LazyList[(A, A)] =</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">if</span> (n &lt;= <span class="dv">0</span>) LazyList.<span class="fu">empty</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a>  <span class="kw">else</span> <span class="fu">streamHanoi</span>(n - <span class="dv">1</span>, left, right, middle) #::: (left, right) #:: <span class="fu">streamHanoi</span>(n - <span class="dv">1</span>, middle, left, right)</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="kw">def</span> displayHanoi[A](moves: LazyList[(A, A)]) = ...</span></code></pre></div>
+<p>Notice how similar this code is to the list-producing code above. The key difference is that moves are now produced on demand as they are displayed. In particular, a call like <code>streamHanoi(100, "L", "M", "R")</code> poses no difficulty while <code>listHanoi(100, "L", "M", "R")</code> would fail because a list of 1,267,650,600,228,229,401,496,703,205,375 moves cannot possibly be created.</p>
+<h3 id="limitations-of-streams">Limitations of streams</h3>
+<p>Streams suffer from two main limitations:</p>
+<ul>
+<li><p><em>Performance</em>. Code based on <code>LazyList</code> tends to be slower than code based on regular lists or on iterators.</p></li>
+<li><p><em>Memory leaks</em>. Streams generate their values lazily, but since they store them after they have been generated, they can grow in size. In a pattern where values are produced as a stream and consumed elsewhere, it is very important <em>not</em> to keep a reference onto the head of the list, so that values can be garbage-collected after they are consumed.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p></li>
+</ul>
+<p>Furthermore, streams, like iterators, have a rich interface that can become treacherous. Calling <code>size</code> on a lazy list does not destroy its contents like it does on an iterator, but it forces evaluation of these contents, laziness is lost, and the stream is reduced to a (less efficient) regular list.</p>
+<p><code>LazyList</code> has an <code>iterator</code> method (if all is needed is an iterator but the stream was easier to build, as in the <em>Towers of Hanoi</em> example), and iterators have a <code>to(LazyList)</code> method (which enables storing the values produced by the iterator).</p>
+<p>A form of streams was added to Java 8, but it is messy and overly complicated (see <a href="https://docs.oracle.com/en/java/javase/13/docs/api/java.base/java/util/stream/package-summary.html" class="uri">https://docs.oracle.com/en/java/javase/13/docs/api/java.base/java/util/stream/package-summary.html</a> for details).</p>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><p><em>Streams</em> are similar to lists, except that their content is evaluated <em>lazily</em>. In Scala, streams are implemented in the class <code>LazyList</code>.</p></li>
+<li><p>Because stream values are calculated on demand, streams can (conceptually) be <em>infinite</em>.</p></li>
+<li><p><code>#::</code> is the stream equivalent of <code>::</code> on lists. It can be used to build streams (lazily) or in pattern matching, making stream code look very similar to list code.</p></li>
+<li><p>Like iterators, streams can be used to decouple data production from data consumption. Stream can be easier to use than iterators because values are stored in the stream after they are computed and can be retrieved later. However, this can also result in <em>memory leaks</em> if values are not discarded from the stream after they are used.</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>The <code>Stream</code> class was deprecated in Scala 2.13.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>The name is unimportant but needs to begin with an uppercase letter.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>It is, but only because there exist an alternative, non-recursive algorithm.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p>For this reason, the <code>displayHanoi</code> method above is problematic: as long as it’s running, variable <code>moves</code> will keep a reference onto the stream. A <code>startDisplayHanoi</code> method, that initiates the display and returns immediately, would be preferable.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-02-20 at 11:53:39 AM</footer>
+</body>

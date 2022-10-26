@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<!-- Generated from 501-functions.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4-functions</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="more-on-method-definition">More on Method Definition</h2>
+<h3 id="type-parameters">Type parameters</h3>
+<p>Consider the method <code>first</code>, which returns the first element of a list:<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">def</span> <span class="fu">first</span>(l: List[Any]) = l.<span class="fu">head</span></span></code></pre></div>
+<p>The problem with this method is that it has type <code>List[Any] =&gt; Any</code>. When applied to a list of integers, the method returns a value of type <code>Any</code> and type information is lost:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">first</span>(List(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>))                    <span class="co">// has type Any</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="fu">first</span>(List(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>)) + <span class="dv">10</span>               <span class="co">// does not compile</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="fu">first</span>(List(<span class="st">&quot;foo&quot;</span>, <span class="st">&quot;bar&quot;</span>))             <span class="co">// has type Any</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="fu">first</span>(List(<span class="st">&quot;foo&quot;</span>, <span class="st">&quot;bar&quot;</span>)).<span class="fu">toUpperCase</span> <span class="co">// does not compile</span></span></code></pre></div>
+<p>One way around the problem would be to use a <em>typecast</em>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">first</span>(List(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>)).<span class="fu">asInstanceOf</span>[Int] + <span class="dv">10</span></span></code></pre></div>
+<p>Another, better way is to use a <em>type parameter</em>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">def</span> first[A](l: List[A]) = l.<span class="fu">head</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="fu">first</span>(List(<span class="st">&quot;foo&quot;</span>, <span class="st">&quot;bar&quot;</span>)).<span class="fu">toUpperCase</span> <span class="co">// does work, as first(List(&quot;foo&quot;, &quot;bar&quot;)) has type String, not Any</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="fu">first</span>(List(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>)) + <span class="dv">10</span>   <span class="co">// does work, as first(List(1,2,3)) has type Int, not Any</span></span></code></pre></div>
+<p>The method now has type <code>List[A] =&gt; A</code>, with <code>A</code> being calculated (<em>inferred</em>) by the compiler (<code>String</code> for the first expression, <code>Int</code> for the second one). The advantage of the type parameter approach is that mistakes (e.g., the list contains strings instead of numbers) are caught at compile time instead of a <code>ClassCastException</code> thrown by <code>asInstanceOf</code> at runtime. Methods can take multiple type parameters, as in <code>def m[A,B,C](...)</code>.</p>
+<p>The actual value of a type parameter at call time is usually inferred by the compiler. In cases where type inference is unable to decide a type parameter, it can be set manually:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a>first[Int](...)</span></code></pre></div>
+<p>Methods can take also take type parameters in Java:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1"></a><span class="co">// this is Java</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="kw">public</span> &lt;T&gt; T <span class="fu">first</span>(<span class="bu">List</span>&lt;T&gt; l) {</span>
+<span id="cb6-3"><a href="#cb6-3"></a>  <span class="kw">return</span> l.<span class="fu">get</span>(<span class="dv">0</span>);</span>
+<span id="cb6-4"><a href="#cb6-4"></a>}</span></code></pre></div>
+<p>When applied to an argument of type <code>List&lt;Integer&gt;</code>, this method will return a value of type <code>Integer</code>, thus avoiding an unnecessary typecast. Note that <code>x.asInstanceOf[Int]</code> in Scala is <code>(Integer)x</code> in Java.</p>
+<h3 id="default-arguments">Default arguments</h3>
+<p>Method arguments can have default values:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">def</span> <span class="fu">myPrint</span>(msg: String, prefix: String = <span class="st">&quot;&quot;</span>) = <span class="fu">println</span>(prefix + msg)</span></code></pre></div>
+<p>This method can be called as <code>myPrint("hello")</code> or as <code>myPrint("hello", "&gt; ")</code>. Default arguments do not exist in Java, but are available in other languages like Python.</p>
+<h3 id="named-arguments">Named arguments</h3>
+<p>To improve code readability, arguments can also be named on the calling site. This can be useful when methods have multiple arguments of the same type. For instance, the <code>myPrint</code> method above could mistakenly be called as <code>myPrint("&gt; ", "hello")</code>. Instead, the following calls are all valid and easier to read:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">myPrint</span>(<span class="st">&quot;hello&quot;</span>, prefix=<span class="st">&quot;&gt; &quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="fu">myPrint</span>(msg=<span class="st">&quot;hello&quot;</span>, prefix=<span class="st">&quot;&gt; &quot;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="fu">myPrint</span>(prefix=<span class="st">&quot;&gt; &quot;</span>, msg=<span class="st">&quot;hello&quot;</span>)</span></code></pre></div>
+<p>Named arguments are often used with Boolean values:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">val</span> w = <span class="kw">new</span> Writer(<span class="st">&quot;/var/log/app.log&quot;</span>, <span class="kw">true</span>)</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="kw">val</span> w = <span class="kw">new</span> Writer(<span class="st">&quot;/var/log/app.log&quot;</span>, autoflush=<span class="kw">true</span>)</span></code></pre></div>
+<p>The second call is much easier to read, without having to check the declaration of class <code>Writer</code>.</p>
+<p>Named arguments are necessary to make calls to methods that use default values for arguments other than the last:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">def</span> <span class="fu">exp</span>(base: Int = <span class="dv">2</span>, exponent: Int): Int = ...</span></code></pre></div>
+<p>This method can be called as:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">exp</span>(<span class="dv">3</span>, <span class="dv">2</span>)        <span class="co">// 3^2 = 9</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="fu">exp</span>(exponent=<span class="dv">10</span>) <span class="co">// 2^10 = 1024</span></span></code></pre></div>
+<p>The call <code>exp(10)</code> is rejected at compile-time.</p>
+<h3 id="repeated-arguments">Repeated arguments</h3>
+<p>The last argument of a method can be repeated by adding <code>*</code> to its type:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">def</span> <span class="fu">average</span>(first: Double, others: Double*) = (first + others.<span class="fu">sum</span>) / (<span class="dv">1</span> + others.<span class="fu">length</span>)</span></code></pre></div>
+<p>This syntax indicates that the argument <code>others</code> can appear 0 or more times. The following are all valid calls to method <code>average</code>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="fu">average</span>(<span class="fl">1.0</span>, <span class="fl">2.3</span>, <span class="fl">4.1</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="fu">average</span>(<span class="fl">10.0</span>, <span class="fl">20.0</span>)</span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="fu">average</span>(<span class="fl">10.0</span>)</span></code></pre></div>
+<p>In the body of the method, <code>others</code> has type <code>Seq[Double]</code>, which is an immutable sequence. However, method <code>average</code> cannot be called directly on a <code>Seq[Double]</code> value:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">val</span> l = List(<span class="fl">1.0</span>, <span class="fl">2.3</span>, <span class="fl">4.1</span>)</span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="fu">average</span>(l.<span class="fu">head</span>, l.<span class="fu">tail</span>)  <span class="co">// rejected at compile-time</span></span></code></pre></div>
+<p>Instead, additional syntax is needed to indicate that <code>l.tail</code> represents multiple arguments of type <code>Double</code>, not a single argument of type <code>Seq[Double]</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="fu">average</span>(l.<span class="fu">head</span>, l.<span class="fu">tail</span>: _*)</span></code></pre></div>
+<p>This works and calculates the average of the numbers in <code>l</code>.</p>
+<p>Repeated arguments are also known as variable-length arguments, or <em>varargs</em>. They are supported in many languages, including Java:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">// this is Java</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="dt">double</span> <span class="fu">average</span>(<span class="dt">double</span> first, <span class="dt">double</span><span class="kw">... </span>others) {</span>
+<span id="cb16-3"><a href="#cb16-3"></a>  <span class="dt">double</span> sum = first;</span>
+<span id="cb16-4"><a href="#cb16-4"></a>  <span class="kw">for</span> (<span class="dt">double</span> x : others)</span>
+<span id="cb16-5"><a href="#cb16-5"></a>    sum += x;</span>
+<span id="cb16-6"><a href="#cb16-6"></a>  <span class="kw">return</span> sum / (<span class="dv">1</span> + others.<span class="fu">length</span>);</span>
+<span id="cb16-7"><a href="#cb16-7"></a>}</span></code></pre></div>
+<p>In Java, <code>others</code> has type <code>double[]</code> inside method <code>average</code>.</p>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><p>Methods can have one or more <em>type parameters</em> (called <em>generics</em> in Java). When a method is called, its type parameters are instantiated to specific types (usually by the compiler type inference mechanisms). Type parameters are preferred to <em>typecasts</em>, as they allow mistakes to be detected at compile time instead of runtime.</p></li>
+<li><p>Method arguments can have <em>default values</em>, specified as part of the method definition. This makes it possible for calls to the method not to supply the arguments.</p></li>
+<li><p>Method calls can explicitly <em>name arguments</em>. This can help distinguish among arguments of the same type, or emphasize the meaning of arguments with simple types (especially Boolean). It also makes it possible to call a method with arguments listed in a different order from the method declaration.</p></li>
+<li><p>The last argument of a method can be a <em>repeated argument</em>. Such arguments can appear zero or more times when the method is called. In a method’s body, they appear as a sequence (<code>Seq</code> in Scala; an array in Java). They are sometimes referred to as <em>varargs</em> (for <em>variable-length arguments</em>).</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>The method is unnecessary since the <code>List</code> type already has a method <code>head</code> for this purpose.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>It is customary in Java to name type parameters <code>T</code> or <code>U</code> or <code>E</code> (for element) or <code>K</code> (for key). Scala tends to use <code>A</code>, <code>B</code>, <code>C</code>, … instead.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-02-11 at 09:20:59 AM</footer>
+</body>

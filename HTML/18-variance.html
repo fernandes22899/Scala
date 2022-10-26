@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<!-- Generated from 708-variance.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>18-variance</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="type-variance">Type Variance</h2>
+<h3 id="motivation">Motivation</h3>
+<p>Consider a type hierarchy. To keep things simple, assume a type <code>Publication</code> and two subtypes <code>Book</code> and <code>Magazine</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">trait</span> Publication {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="kw">def</span> title: String</span>
+<span id="cb1-3"><a href="#cb1-3"></a>}</span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="kw">case</span> <span class="kw">class</span> Book(title: String) <span class="kw">extends</span> Publication</span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="kw">case</span> <span class="kw">class</span> <span class="fu">Magazine</span>(title: String) <span class="kw">extends</span> Publication</span></code></pre></div>
+<p>Let collections of publications be represented as mutable sets:<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">mutable</span>.<span class="fu">Set</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">val</span> books: Set[Book] = ...</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">val</span> magazines: Set[Magazine] = ...</span></code></pre></div>
+<p>One can write a method that prints the titles of a collection of publications:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">def</span> <span class="fu">printTitles</span>(collection: Set[Publication]) = <span class="kw">for</span> (p &lt;- collection) <span class="fu">println</span>(p.<span class="fu">title</span>)</span></code></pre></div>
+<p>This method, however, cannot be applied to our <code>books</code> or <code>magazines</code> collections:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">printTitles</span>(books)</span></code></pre></div>
+<p>This is rejected at compile-time with an <span id="error">error</span>:</p>
+<pre><code>Error: type mismatch;
+ found   : scala.collection.mutable.Set[Book]
+ required: scala.collection.mutable.Set[Publication]
+Note: Book &lt;: Publication, but trait Set is invariant in type A.
+You may wish to investigate a wildcard type such as `_ &lt;: Publication`. (SLS 3.2.10)</code></pre>
+<p>The error message is informative. The problem is that <code>Set[Book]</code> is <em>not</em> a subtype of <code>Set[Publication]</code>, even though <code>Book</code> <em>is</em> a subtype of <code>Publication</code>.</p>
+<p>The situation is the same in Java:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1"></a><span class="co">// this is Java</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="kw">import</span><span class="im"> java.util.Set;</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="kw">interface</span> Publication {</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="bu">String</span> <span class="fu">title</span>();</span>
+<span id="cb6-6"><a href="#cb6-6"></a>}</span>
+<span id="cb6-7"><a href="#cb6-7"></a></span>
+<span id="cb6-8"><a href="#cb6-8"></a><span class="kw">class</span> <span class="bu">Book</span> <span class="kw">implements</span> Publication {</span>
+<span id="cb6-9"><a href="#cb6-9"></a>  <span class="kw">public</span> <span class="bu">Book</span>(<span class="bu">String</span> title) {</span>
+<span id="cb6-10"><a href="#cb6-10"></a>    <span class="kw">this</span>.<span class="fu">title</span> = title;</span>
+<span id="cb6-11"><a href="#cb6-11"></a>  }</span>
+<span id="cb6-12"><a href="#cb6-12"></a>  <span class="kw">private</span> <span class="dt">final</span> <span class="bu">String</span> title;</span>
+<span id="cb6-13"><a href="#cb6-13"></a>  <span class="kw">public</span> <span class="bu">String</span> <span class="fu">title</span>() {</span>
+<span id="cb6-14"><a href="#cb6-14"></a>    <span class="kw">return</span> title;</span>
+<span id="cb6-15"><a href="#cb6-15"></a>  }</span>
+<span id="cb6-16"><a href="#cb6-16"></a>}</span>
+<span id="cb6-17"><a href="#cb6-17"></a></span>
+<span id="cb6-18"><a href="#cb6-18"></a><span class="kw">class</span> Magazine <span class="kw">implements</span> Publication {</span>
+<span id="cb6-19"><a href="#cb6-19"></a>  <span class="kw">public</span> <span class="fu">Magazine</span>(<span class="bu">String</span> title) {</span>
+<span id="cb6-20"><a href="#cb6-20"></a>    <span class="kw">this</span>.<span class="fu">title</span> = title;</span>
+<span id="cb6-21"><a href="#cb6-21"></a>  }</span>
+<span id="cb6-22"><a href="#cb6-22"></a>  <span class="kw">private</span> <span class="dt">final</span> <span class="bu">String</span> title;</span>
+<span id="cb6-23"><a href="#cb6-23"></a>  <span class="kw">public</span> <span class="bu">String</span> <span class="fu">title</span>() {</span>
+<span id="cb6-24"><a href="#cb6-24"></a>    <span class="kw">return</span> title;</span>
+<span id="cb6-25"><a href="#cb6-25"></a>  }</span>
+<span id="cb6-26"><a href="#cb6-26"></a>}</span>
+<span id="cb6-27"><a href="#cb6-27"></a></span>
+<span id="cb6-28"><a href="#cb6-28"></a><span class="dt">void</span> <span class="fu">printTitles</span>(<span class="bu">Set</span>&lt;Publication&gt; collection) {</span>
+<span id="cb6-29"><a href="#cb6-29"></a>  <span class="kw">for</span> (Publication p : collection)</span>
+<span id="cb6-30"><a href="#cb6-30"></a>    <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(p.<span class="fu">title</span>());</span>
+<span id="cb6-31"><a href="#cb6-31"></a>}</span></code></pre></div>
+<p>The call <code>printTitles(books)</code> where <code>books</code> has type <code>Set&lt;Book&gt;</code> is also rejected:</p>
+<pre><code>Error: java: incompatible types: java.util.Set&lt;Book&gt; cannot be converted to java.util.Set&lt;Publication&gt;</code></pre>
+<p>One may wonder: Why is <code>Set[Book]</code> not a subtype of <code>Set[Publication]</code>? The answer lies in the <em>Liskov Substitution Principle</em>, which states that if a type <code>T</code> is a subtype of a type <code>U</code>, you can substitute a value of type <code>T</code> wherever a value of type <code>U</code> is required. In other words, a subtype has to offer <em>all</em> the services of the supertype. The issue here is that one cannot use a <code>Set[Book]</code> <em>everywhere</em> a <code>Set[Publication]</code> is expected. Consider this variant of the <code>printTitles</code> method:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">def</span> <span class="fu">printTitlesAndAddLatestMagazine</span>(collection: Set[Publication]) = {</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="kw">for</span> (p &lt;- collection) <span class="fu">println</span>(p.<span class="fu">title</span>)</span>
+<span id="cb8-3"><a href="#cb8-3"></a>  collection += <span class="fu">Magazine</span>(<span class="st">&quot;latest&quot;</span>)</span>
+<span id="cb8-4"><a href="#cb8-4"></a>}</span></code></pre></div>
+<p>If <code>Set[Book]</code> is a subtype of <code>Set[Publication]</code>, method <code>printTitlesAndAddLatestMagazine</code> can be called on a <code>Set[Book]</code>, but the last line of the method would then add a <code>Magazine</code> to a <code>Set[Book]</code>! The type <code>Set[Book]</code> is not a subtype of the type <code>Set[Publication]</code> because it does not support all the operations of <code>Set[Publication]</code>, in particular the possibility to add a <code>Magazine</code> to the set.</p>
+<h3 id="covariance">Covariance</h3>
+<p>If collections of publications are represented as lists instead of sets, the situation is different. In particular, the behaviors in Java and in Scala are not the same. In Java, the problem remains: <code>List&lt;Book&gt;</code> is not a subtype of <code>List&lt;Publication&gt;</code>. In Scala, however, <code>List[Book]</code> <em>is</em> a subtype of <code>List[Publication]</code> and everything works fine:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">def</span> <span class="fu">printTitles</span>(collection: List[Publication]) =  <span class="kw">for</span> (p &lt;- collection) <span class="fu">println</span>(p.<span class="fu">title</span>)</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="kw">val</span> bookList: List[Book] = ...</span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="fu">printTitles</span>(bookList) <span class="co">// works fine</span></span></code></pre></div>
+<p>The reason this works with lists but not with sets is that lists and sets are type-parametrized differently:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">sealed</span> <span class="kw">abstract</span> <span class="kw">class</span> List[+A] <span class="kw">extends</span> ...</span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="kw">trait</span> Set[A] <span class="kw">extends</span> ...</span></code></pre></div>
+<p>The key difference here is the type parameter <code>+A</code> instead of <code>A</code>. The <code>+</code> is called a <em>variance annotation</em> and makes the type parameter <em>covariant</em> (without the <code>+</code>, the type is said to be <em>invariant</em> or <em>nonvariant</em>). This <code>+</code> makes <code>List[T]</code> a subtype of <code>List[U]</code> when <code>T</code> is a subtype of <code>U</code>.</p>
+<p>This does not come for free, obviously. Since <code>List[T]</code> is a subtype of <code>List[U]</code>, there cannot be a method to add a <code>U</code> to a <code>List[U]</code> because if there was, <code>List[T]</code> would also need to implement it, which would add a <code>U</code> in a list of <code>T</code> and break type correctness. Indeed, there is no such adding method because lists in Scala are immutable.</p>
+<p>Classes and traits parametrized with a covariant type are checked at compile-time to make sure they do not introduce type inconsistencies. Consider for instance the simple <code>Box</code> class:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">class</span> Box[+A](contents: A) {</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">def</span> get: A = contents</span>
+<span id="cb11-3"><a href="#cb11-3"></a>}</span></code></pre></div>
+<p>This definition is acceptable and results in type <code>Box[Book]</code> being a subtype of <code>Box[Publication]</code>. However, trying to add a method <code>contains</code> defined as follows:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">def</span> <span class="fu">contains</span>(x: A): Boolean = x == contents</span></code></pre></div>
+<p>fails with the error message:</p>
+<pre><code>Error: covariant type A occurs in contravariant position in type A of value x</code></pre>
+<p>Basically, a covariant type can only used as a <em>returned value</em> but not as an <em>input value</em>. A <code>Box[Book]</code> object can have methods that return values of type <code>Book</code> because these methods can be used when a <code>Publication</code> is needed (since a <code>Book</code> <em>is</em> a <code>Publication</code>), but it cannot have methods that take in values of type <code>Book</code> because these would not handle other types of <code>Publication</code> in general. Trying to write a <em>mutable</em> box with a covariant type fails immediately:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">class</span> MutableBox[+A](<span class="kw">private</span> <span class="kw">var</span> contents: A)</span></code></pre></div>
+<p>The compiler complains that method <code>contents_=</code>—which sets field <code>contents</code>—uses type <code>A</code> in contravariant position.</p>
+<p>Although uncommon, it is possible to define a mutable field of a covariant type by restricting its visibility to <code>private[this]</code>. As an illustration, consider the class below, that implements a clearable reference:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">class</span> Ref[+A](value: A) {</span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="kw">private</span> <span class="kw">var</span> active = <span class="kw">true</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a>  <span class="kw">def</span> get: Option[A] = <span class="kw">if</span> (active) Some(value) <span class="kw">else</span> None</span>
+<span id="cb15-4"><a href="#cb15-4"></a>  <span class="kw">def</span> <span class="fu">clear</span>(): Unit = active = <span class="kw">false</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a>}</span></code></pre></div>
+<p>A (minor) drawback of this class is that, after a <code>Ref</code> instance has been cleared, it keeps a reference to <code>value</code> that prevents it from being reclaimed by the garbage collector. A variant could be written that resets the value upon clearing:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">class</span> Ref[+A](value: A) {</span>
+<span id="cb16-2"><a href="#cb16-2"></a>  <span class="kw">private</span>[<span class="kw">this</span>] <span class="kw">var</span> contents: Option[A] = Some(value)</span>
+<span id="cb16-3"><a href="#cb16-3"></a>  <span class="kw">def</span> get: Option[A] = contents</span>
+<span id="cb16-4"><a href="#cb16-4"></a>  <span class="kw">def</span> <span class="fu">clear</span>(): Unit = contents = None</span>
+<span id="cb16-5"><a href="#cb16-5"></a>}</span></code></pre></div>
+<p>This could not be compiled if <code>contents</code> was defined as <code>private</code> instead of <code>private[this]</code>.</p>
+<h3 id="designing-covariant-types">Designing covariant types</h3>
+<p>Type covariance introduces restrictions on what a class or trait can do. <em>Mutable</em> collections seldom use covariant types—recall that a mutable collection of books would need to support adding non-book publications like magazines. For instance, contrast the mutable and immutable variants of <code>Iterable</code> in the standard library:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">package</span> scala.<span class="fu">collection</span>.<span class="fu">immutable</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="kw">trait</span> Iterable[+A] <span class="kw">extends</span> ...</span>
+<span id="cb17-3"><a href="#cb17-3"></a></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="kw">package</span> scala.<span class="fu">collection</span>.<span class="fu">mutable</span></span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="kw">trait</span> Iterable[A] <span class="kw">extends</span> ...</span></code></pre></div>
+<p>Furthermore, immutable collections cannot use their covariant type in contravariant position. This is a restriction, but there are often ways to get around it. For instance, the immutable <code>Box</code> above can have a <code>contains</code> method, but since a <code>Box[Book]</code> object must support all the operations of a <code>Box[Publication]</code> object (from subtyping and the substitution principle), the <code>contains</code> method of a <code>Box[Book]</code> must be able to handle arguments of type <code>Magazine</code> (since a <code>Box[Publication]</code> object would). This can easily be achieved by allowing code to look for anything in a box of books (which is harmless):</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">def</span> <span class="fu">contains</span>(x: Any): Boolean = x == contents</span></code></pre></div>
+<p>The following definition also works and is preferable because it can result in a better informed type inference at compile-time:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">def</span> contains[B &gt;: A](x: B): Boolean = x == contents</span></code></pre></div>
+<p>This is how method <code>contains</code> is defined on the standard <code>Option[+A]</code> type, for instance. The syntax <code>B &gt;: A</code> places a <em>lower bound</em> on type <code>B</code>: it has to be <code>A</code> or a supertype of <code>A</code> (more on type bounds later).</p>
+<p>How about a <code>set</code> method? Setting the contents of an immutable box needs to produce a new box, which can be of a different type:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">def</span> set[B](x: B): Box[B] = <span class="kw">new</span> Box(x)</span></code></pre></div>
+<p>The same idea is used in class <code>List[+A]</code> to implement a method <code>:::</code>:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">def</span> :::[B &gt;: A](prefix: List[B]): List[B]</span></code></pre></div>
+<p>This enables the concatenation of a list of magazines to a list of books, but the resulting list is a list of publications:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb22-1"><a href="#cb22-1"></a><span class="kw">val</span> bookList: List[Book] = ...</span>
+<span id="cb22-2"><a href="#cb22-2"></a><span class="kw">val</span> magList: List[Magazine] = ...</span>
+<span id="cb22-3"><a href="#cb22-3"></a></span>
+<span id="cb22-4"><a href="#cb22-4"></a>magList ::: bookList <span class="co">// a list of type List[Publication] </span></span></code></pre></div>
+<p>Most Scala immutable collections have covariant types (<code>List</code>, <code>Vector</code>, <code>Seq</code>, <code>Map</code> (values, not keys), <code>Queue</code>, <code>LazyList</code>, <code>Iterable</code>, …). One major exception is <code>Set</code>: Even in its immutable incarnation, it is nonvariant. The reason is that <code>Set[A]</code> in Scala is a subtype of <code>A =&gt; Boolean</code>, which would require <code>A</code> to be <em>contravariant</em> (see below), not <em>covariant</em>. As a result <code>Set[Book]</code> is not a subtype of <code>Set[Publication]</code> even for immutable sets.</p>
+<h3 id="contravariance">Contravariance</h3>
+<p>Consider the <code>TrashCan</code> class below:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">class</span> TrashCan[-A] {</span>
+<span id="cb23-2"><a href="#cb23-2"></a>  <span class="kw">def</span> <span class="fu">trash</span>(x: A): Unit = log.<span class="fu">info</span>(s<span class="st">&quot;trashing: $x&quot;</span>)</span>
+<span id="cb23-3"><a href="#cb23-3"></a>}</span></code></pre></div>
+<p>The variance annotation <code>-</code> defines its type parameter to be <em>contravariant</em>. Contravariance means that if <code>T</code> is a subtype of <code>U</code>, then <code>TrashCan[U]</code> is a subtype of <code>TrashCan[T]</code>. In other words, <code>TrashCan[Publication]</code> is a subtype of <code>TrashCan[Book]</code>: It can do everything a <code>TrashCan[Book]</code> can, which is trashing books.</p>
+<p>One important use of contravariance is the definition of function types. In Scala, trait <code>Function1</code> is defined as follows:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">trait</span> Function1[-A, +B] {</span>
+<span id="cb24-2"><a href="#cb24-2"></a>  <span class="kw">def</span> <span class="fu">apply</span>(x: A): B</span>
+<span id="cb24-3"><a href="#cb24-3"></a>...</span></code></pre></div>
+<p><code>Function1[A,B]</code> is the type of functions from <code>A</code> to <code>B</code>, also denoted <code>A =&gt; B</code>. Note how the output type is covariant and the input type is contravariant. This means that <code>Publication =&gt; Magazine</code> is a subtype of <code>Book =&gt; Magazine</code>: Any code that expects a <code>Book =&gt; Magazine</code> function will accept a <code>Publication =&gt; Magazine</code> function. On the other hand, <code>Book =&gt; Magazine</code> is a subtype of <code>Book =&gt; Publication</code>: Any code that expects a <code>Book =&gt; Publication</code> function will accept a <code>Book =&gt; Magazine</code> function. By transitivity, <code>Publication =&gt; Magazine</code> is a subtype of <code>Book =&gt; Publication</code>.</p>
+<p>To confirm this intuitively, consider a method that expects an argument <code>f</code> of type <code>Book =&gt; Publication</code> and a function <code>g</code> of type <code>Publication =&gt; Magazine</code>:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">def</span> <span class="fu">m</span>(f: Book =&gt; Publication) = ...</span>
+<span id="cb25-2"><a href="#cb25-2"></a><span class="kw">val</span> g: Publication =&gt; Magazine = ...</span></code></pre></div>
+<p>Since <code>Publication =&gt; Magazine</code> is a subtype of <code>Book =&gt; Publication</code>, method <code>m</code> can be called on <code>g</code>. Could that lead to problems? The body of method <code>m</code> can use function <code>f</code> by applying it to a <code>Book</code> value and function <code>g</code> can do that too. Method <code>m</code> can then use the return value as a <code>Publication</code> and, since function <code>g</code> returns a <code>Magazine</code>, this also works.</p>
+<p>Contravariance introduces restrictions that mirror those of covariance: A contravariant type can be used as the input of a method, but not as its output; it can be used as a type upper bound but not as a lower bound, etc. Classes, such as mutable collections, that cannot satisfy covariant restrictions <em>or</em> contravariant restrictions end up using invariant types (no <code>+</code> or <code>-</code>).</p>
+<h3 id="type-bounds-and-wildcards">Type bounds and wildcards</h3>
+<p>The first <a href="#error">type error</a> discussed above referred to <em>wildcard types</em>. Wildcards offer an alternate way to deal with subtyping of parametrized types and are the only thing available in Java, which has no support for variance annotations. The <code>printTitles</code> method could be written:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb26-1"><a href="#cb26-1"></a><span class="kw">def</span> <span class="fu">printTitles</span>(collection: Set[_ &lt;: Publication]) =</span>
+<span id="cb26-2"><a href="#cb26-2"></a>  <span class="kw">for</span> (p &lt;- collection) <span class="fu">println</span>(p.<span class="fu">title</span>)</span></code></pre></div>
+<p>The type of argument <code>collection</code> is a set of some type that extends <code>Publication</code>. It is <em>not</em> <code>Set[Publication]</code>. Types like <code>Set[Book]</code> and <code>Set[Magazine]</code> are subtypes of <code>Set[_ &lt;: Publication]</code> and can be used as arguments to method <code>printTitle</code>.</p>
+<p>Any attempt to add a magazine to a collection of type <code>Set[_ &lt;: Publication]</code> is rejected at compile-time because the type of the set is only known to be a subtype of <code>Publication</code>; it is not known if this type is compatible with <code>Magazine</code>. A method that needs to add a magazine to a collection of publications would need a guarantee that the type of the elements in the set is a supertype of <code>Magazine</code>, which requires a lower bound instead of an upper bound:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">def</span> <span class="fu">addLatestMagazine</span>(collection: Set[_ &gt;: Magazine]) =</span>
+<span id="cb27-2"><a href="#cb27-2"></a>  collection += <span class="fu">Magazine</span>(<span class="st">&quot;latest&quot;</span>)</span></code></pre></div>
+<p>This method can be called on a <code>Set[Magazine]</code> or a <code>Set[Publication]</code> (both are subtypes of <code>Set[_ &gt;: Magazine]</code>) but not on a <code>Set[Book]</code>.</p>
+<p>Finally, method <code>printTitlesAndAddLatestMagazine</code> can use both an upper bound (so objects in the set have a title) and a lower bound (so the set can contain a magazine):</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb28-1"><a href="#cb28-1"></a><span class="kw">def</span> <span class="fu">printTitlesAndAddLatestMagazine</span>(collection: Set[_ &gt;: Magazine &lt;: Publication]) = {</span>
+<span id="cb28-2"><a href="#cb28-2"></a>  <span class="kw">for</span> (p &lt;- collection) <span class="fu">println</span>(p.<span class="fu">title</span>)</span>
+<span id="cb28-3"><a href="#cb28-3"></a>  collection += <span class="fu">Magazine</span>(<span class="st">&quot;latest&quot;</span>)</span>
+<span id="cb28-4"><a href="#cb28-4"></a>}</span></code></pre></div>
+<p>This method can then be called on a <code>Set[Publication]</code> or a <code>Set[Magazine]</code> but not on a <code>Set[Book]</code>.</p>
+<h3 id="parametrized-methods-with-type-bounds">Parametrized methods with type bounds</h3>
+<p>The main reason to use wildcards in the previous section is to set upper and lower bounds on the type of set elements. In Scala, these bounds can also be used on type parameters. The three methods above could be parametrized by the type of publication and place the necessary bound or bounds on their type parameter:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">def</span> printTitles[A &lt;: Publication](collection: Set[A]) =</span>
+<span id="cb29-2"><a href="#cb29-2"></a>  <span class="kw">for</span> (p &lt;- collection) <span class="fu">println</span>(p.<span class="fu">title</span>)</span>
+<span id="cb29-3"><a href="#cb29-3"></a></span>
+<span id="cb29-4"><a href="#cb29-4"></a><span class="kw">def</span> addLatestMagazine[A &gt;: Magazine](collection: Set[A]) =</span>
+<span id="cb29-5"><a href="#cb29-5"></a>  collection += <span class="fu">Magazine</span>(<span class="st">&quot;latest&quot;</span>)</span>
+<span id="cb29-6"><a href="#cb29-6"></a></span>
+<span id="cb29-7"><a href="#cb29-7"></a><span class="kw">def</span> printTitlesAndAddLatestMagazine[A &gt;: Magazine &lt;: Publication](collection: Set[A]) = {</span>
+<span id="cb29-8"><a href="#cb29-8"></a>  <span class="kw">for</span> (p &lt;- collection) <span class="fu">println</span>(p.<span class="fu">title</span>)</span>
+<span id="cb29-9"><a href="#cb29-9"></a>  collection += <span class="fu">Magazine</span>(<span class="st">&quot;latest&quot;</span>)</span>
+<span id="cb29-10"><a href="#cb29-10"></a>}</span></code></pre></div>
+<p>A benefit of naming the type <code>A</code> instead of using a wildcard is that it can improve type inference at compile-time. For instance, this method cannot be compiled in Scala:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">def</span> <span class="fu">m</span>(set: Set[_ &lt;: Publication]) {</span>
+<span id="cb30-2"><a href="#cb30-2"></a>  set += set.<span class="fu">head</span></span>
+<span id="cb30-3"><a href="#cb30-3"></a>}</span></code></pre></div>
+<p>The error shows that the confused compiler infers two different types (both named <code>_$1</code>) for what method <code>head</code> returns and what method <code>+=</code> requires:</p>
+<pre><code>Error: type mismatch;
+ found   : (some other)_$1(in value set)
+ required: _$1(in value set)</code></pre>
+<p>Instead, the method can use a type parameter that makes it clear that those two types are the same:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">def</span> m[A &lt;: Publication](set: Set[A]) {</span>
+<span id="cb32-2"><a href="#cb32-2"></a>  set += set.<span class="fu">head</span></span></code></pre></div>
+<p>This variant can be compiled.</p>
+<h3 id="other-types-of-bounds">Other types of bounds</h3>
+<p>Scala supports other, more complex type bounds. For instance, a method <code>printTitlesInOrder</code> can require publications to be ordered:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">def</span> printTitlesInOrder[A &lt;: Publication <span class="kw">with</span> Ordered[A]](collection: List[A]) =</span>
+<span id="cb33-2"><a href="#cb33-2"></a>  <span class="kw">for</span> (p &lt;- collection.<span class="fu">sorted</span>) <span class="fu">println</span>(p.<span class="fu">title</span>)</span></code></pre></div>
+<p>Assume books are ordered and magazines are not:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb34-1"><a href="#cb34-1"></a><span class="kw">case</span> <span class="kw">class</span> Book(title: String) <span class="kw">extends</span> Publication <span class="kw">with</span> Ordered[Book] {</span>
+<span id="cb34-2"><a href="#cb34-2"></a>  <span class="kw">def</span> <span class="fu">compare</span>(that: Book) = <span class="kw">this</span>.<span class="fu">title</span>.<span class="fu">compare</span>(that.<span class="fu">title</span>)</span>
+<span id="cb34-3"><a href="#cb34-3"></a>}</span>
+<span id="cb34-4"><a href="#cb34-4"></a></span>
+<span id="cb34-5"><a href="#cb34-5"></a><span class="kw">case</span> <span class="kw">class</span> <span class="fu">Magazine</span>(title: String) <span class="kw">extends</span> Publication</span></code></pre></div>
+<p>Method <code>printTitlesInOrder</code> can then be called on a <code>List[Book]</code> argument, but not on a <code>List[Magazine]</code> argument because, although magazines have type <code>Publication</code>, they do not have type <code>Ordered</code>.</p>
+<p>Scala uses other forms of type bounds, including some that work jointly with <em>implicit arguments</em> (e.g., <em>context bounds</em> like <code>A : Numeric</code> discussed earlier). The <code>printTitlesInOrder</code> example is more likely to be written like this in Scala:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb35-1"><a href="#cb35-1"></a><span class="kw">def</span> printTitlesInOrder[A &lt;: Publication : Ordering](collection: List[A]) =</span>
+<span id="cb35-2"><a href="#cb35-2"></a>  <span class="kw">for</span> (p &lt;- collection.<span class="fu">sorted</span>) <span class="fu">println</span>(p.<span class="fu">title</span>)</span></code></pre></div>
+<p>This requires the existence of an implicit <code>Ordering[A]</code> object. It works with <code>Book</code> because <code>Book</code> extends <code>Ordered[Book]</code>, which extends <code>Comparable[Book]</code>, and there is an implicit conversion from <code>Comparable[A]</code> to <code>Ordering[A]</code>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<h3 id="type-variance-type-bounds-and-wildcards-in-java">Type variance, type bounds and wildcards in Java</h3>
+<p>Java has no support for type annotations and all types are invariant:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> <code>List&lt;A&gt;</code> is incompatible with <code>List&lt;B&gt;</code> even if a subtype relationship exists between <code>A</code> and <code>B</code>. The only alternative is to use type bounds and wildcards. Java has support for an upper type bound (with or without wildcards) and a lower type bound (with wildcards only):</p>
+<ul>
+<li><code>A extends B</code>: a subtype of <code>B</code> named <code>A</code></li>
+<li><code>? extends B</code>: a subtype of <code>B</code></li>
+<li><code>? super B</code>: a supertype of <code>B</code></li>
+</ul>
+<p>Using those, the Scala methods above could be written in Java:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb36-1"><a href="#cb36-1"></a><span class="co">// this is Java</span></span>
+<span id="cb36-2"><a href="#cb36-2"></a><span class="dt">void</span> <span class="fu">printTitles</span>(<span class="bu">Set</span>&lt;? <span class="kw">extends</span> Publication&gt; collection) {</span>
+<span id="cb36-3"><a href="#cb36-3"></a>  <span class="kw">for</span> (Publication p : collection)</span>
+<span id="cb36-4"><a href="#cb36-4"></a>    <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(p.<span class="fu">title</span>());</span>
+<span id="cb36-5"><a href="#cb36-5"></a>}</span>
+<span id="cb36-6"><a href="#cb36-6"></a></span>
+<span id="cb36-7"><a href="#cb36-7"></a><span class="dt">void</span> <span class="fu">addLatestMagazine</span>(<span class="bu">Set</span>&lt;? <span class="kw">super</span> Magazine&gt; collection) {</span>
+<span id="cb36-8"><a href="#cb36-8"></a>  collection.<span class="fu">add</span>(<span class="kw">new</span> <span class="fu">Magazine</span>(<span class="st">&quot;latest&quot;</span>));</span>
+<span id="cb36-9"><a href="#cb36-9"></a>}</span></code></pre></div>
+<p>There is no way in Java to write method <code>printTitlesAndAddLatestMagazine</code> because types in Java cannot have both lower and upper bounds at the same time.</p>
+<p>Method <code>printTitles</code> can also use a type parameter to improve type inference:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb37-1"><a href="#cb37-1"></a><span class="co">// this is Java</span></span>
+<span id="cb37-2"><a href="#cb37-2"></a>&lt;A <span class="kw">extends</span> Publication&gt; <span class="dt">void</span> <span class="fu">printTitles</span>(<span class="bu">Set</span>&lt;A&gt; collection) {</span>
+<span id="cb37-3"><a href="#cb37-3"></a>  <span class="kw">for</span> (Publication p : collection)</span>
+<span id="cb37-4"><a href="#cb37-4"></a>    <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(p.<span class="fu">title</span>());</span>
+<span id="cb37-5"><a href="#cb37-5"></a>}</span></code></pre></div>
+<p>Method <code>addLatestMagazine</code> cannot replace the wildcard with a type parameter because of a lack of <code>A super B</code> syntax.</p>
+<p>Method <code>printTitlesInOrder</code> can be written using an <em>intersection type bound</em>:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb38-1"><a href="#cb38-1"></a><span class="co">// this is Java</span></span>
+<span id="cb38-2"><a href="#cb38-2"></a>&lt;A <span class="kw">extends</span> Publication &amp; <span class="bu">Comparable</span>&lt;A&gt;&gt; <span class="dt">void</span> <span class="fu">printTitlesInOrder</span>(<span class="bu">List</span>&lt;A&gt; collection) {</span>
+<span id="cb38-3"><a href="#cb38-3"></a>  var sortedCollection = <span class="kw">new</span> <span class="bu">ArrayList</span>&lt;A&gt;(collection);</span>
+<span id="cb38-4"><a href="#cb38-4"></a>  <span class="bu">Collections</span>.<span class="fu">sort</span>(sortedCollection);</span>
+<span id="cb38-5"><a href="#cb38-5"></a>  <span class="kw">for</span> (Publication p : sortedCollection)</span>
+<span id="cb38-6"><a href="#cb38-6"></a>    <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(p.<span class="fu">title</span>());</span>
+<span id="cb38-7"><a href="#cb38-7"></a>}</span></code></pre></div>
+<h3 id="the-case-of-arrays">The case of arrays</h3>
+<p>Although type parameters are always invariant in Java, arrays—which predate generics—are covariant: If <code>T</code> is a subtype of <code>U</code>, <code>T[]</code> is a subtype of <code>U[]</code>. Since arrays are mutable collections, this unavoidably leads to situations that are type-unsafe:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb39-1"><a href="#cb39-1"></a><span class="co">// this is Java</span></span>
+<span id="cb39-2"><a href="#cb39-2"></a><span class="dt">void</span> <span class="fu">printTitlesAndAddLatestMagazine</span>(Publication[] collection) {</span>
+<span id="cb39-3"><a href="#cb39-3"></a>  <span class="kw">for</span> (Publication p: collection)</span>
+<span id="cb39-4"><a href="#cb39-4"></a>    <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(p.<span class="fu">title</span>());</span>
+<span id="cb39-5"><a href="#cb39-5"></a>  collection[<span class="dv">0</span>] = <span class="kw">new</span> <span class="fu">Magazine</span>(<span class="st">&quot;latest&quot;</span>);</span>
+<span id="cb39-6"><a href="#cb39-6"></a>}</span></code></pre></div>
+<p>This method <em>can</em> be called with a value of type <code>Book[]</code>:</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb40-1"><a href="#cb40-1"></a><span class="co">// this is Java</span></span>
+<span id="cb40-2"><a href="#cb40-2"></a><span class="bu">Book</span>[] books = ...</span>
+<span id="cb40-3"><a href="#cb40-3"></a><span class="fu">printTitlesAndAddLatestMagazine</span>(books); <span class="co">// can be compiled but fails at runtime</span></span></code></pre></div>
+<p>In the scenario above, the last line of the method attempts to insert an object of type <code>Magazine</code> in a array of type <code>Book[]</code>. This fails at runtime with an <code>ArrayStoreException</code>.</p>
+<p>Arrays in Scala are invariant in their types: <code>Array[Book]</code> is not a subtype of <code>Array[Publication]</code>.</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>We begin this discussion with mutable sets to make it easier to compare Scala and Java; other structures (like lists and immutable sets) are discussed afterward.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>This implementation of <code>printTitlesInOrder</code> would actually work with any publication that implements Java’s <code>Comparable</code>, even if it does not implement <code>Ordered</code>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>Except arrays, discussed below.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-04-30 at 12:14:45 PM</footer>
+</body>

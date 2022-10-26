@@ -1,0 +1,552 @@
+[info] welcome to sbt 1.4.6 (AdoptOpenJDK Java 15.0.1)
+[info] loading project definition from /assigns/jjf1027/GIT/4/project
+[info] loading settings for project fireworks from build.sbt,fireworks.sbt ...
+[info] set current project to fireworks (in build file:/assigns/jjf1027/GIT/4/)
+[success] Total time: 0 s, completed Jul 22, 2021, 2:48:21 PM
+[info] compiling 10 Scala sources to /assigns/jjf1027/GIT/4/target/scala-2.13/classes ...
+[warn] /assigns/jjf1027/GIT/4/src/main/scala/cs671/fireworks/CompositeEffect.scala:75:64: Auto-application to `()` is deprecated. Supply the empty argument list `()` explicitly to invoke method mmss,
+[warn] or remove the empty argument list from its definition (Java-defined methods are exempt).
+[warn] In Scala 3, an unapplied method like this will be eta-expanded into a function.
+[warn]   def timedHistory(t: Seconds, event: String):String = (f"{${t.mmss}%7s}\n" + event)
+[warn]                                                                ^
+[warn] /assigns/jjf1027/GIT/4/src/main/scala/cs671/fireworks/EffectVisitor.scala:5:53: abstract type pattern E is unchecked since it is eliminated by erasure
+[warn]   def select: PartialFunction[Effect, E] = {case e: E => e}
+[warn]                                                     ^
+[warn] /assigns/jjf1027/GIT/4/src/main/scala/cs671/fireworks/package.scala:16:9: it is not recommended to define classes/objects inside of package objects.
+[warn] If possible, define class Decibels in package fireworks instead.
+[warn]   class Decibels(val decibels: Double) extends AnyVal {
+[warn]         ^
+[warn] /assigns/jjf1027/GIT/4/src/main/scala/cs671/fireworks/package.scala:29:9: it is not recommended to define classes/objects inside of package objects.
+[warn] If possible, define class Meters in package fireworks instead.
+[warn]   class Meters(val meters: Double = 0) extends AnyVal {
+[warn]         ^
+[warn] /assigns/jjf1027/GIT/4/src/main/scala/cs671/fireworks/package.scala:42:9: it is not recommended to define classes/objects inside of package objects.
+[warn] If possible, define class Seconds in package fireworks instead.
+[warn]   class Seconds(val seconds: Double = 0) extends AnyVal {
+[warn]         ^
+[warn] /assigns/jjf1027/GIT/4/src/main/scala/cs671/fireworks/package.scala:57:16: implicit conversion method DoubleFromSeconds should be enabled
+[warn] by making the implicit value scala.language.implicitConversions visible.
+[warn] ----
+[warn] This can be achieved by adding the import clause 'import scala.language.implicitConversions'
+[warn] or by setting the compiler option -language:implicitConversions.
+[warn] See the Scaladoc for value scala.language.implicitConversions for a discussion
+[warn] why the feature should be explicitly enabled.
+[warn]   implicit def DoubleFromSeconds(s: Seconds) = s.seconds
+[warn]                ^
+[warn] 6 warnings found
+[info] done compiling
+[info] compiling 5 Scala sources to /assigns/jjf1027/GIT/4/target/scala-2.13/test-classes ...
+[warn] /assigns/jjf1027/GIT/4/src/test/scala/grading/SampleFireworksTests.scala:6:33: Unused import
+[warn] import org.scalatest.tagobjects.Slow
+[warn]                                 ^
+[warn] /assigns/jjf1027/GIT/4/src/test/scala/grading/SampleFireworksTests.scala:10:33: Unused import
+[warn]   import cs671.fireworks.Color.{blue, green, red}
+[warn]                                 ^
+[warn] /assigns/jjf1027/GIT/4/src/test/scala/grading/SampleFireworksTests.scala:10:46: Unused import
+[warn]   import cs671.fireworks.Color.{blue, green, red}
+[warn]                                              ^
+[warn] /assigns/jjf1027/GIT/4/src/test/scala/grading/SampleFireworksTests.scala:11:34: Unused import
+[warn]   import cs671.fireworks.{Music, Peony, Ring, Salute}
+[warn]                                  ^
+[warn] four warnings found
+[info] done compiling
+[info] running (fork) grading.Grade 
+FireworksSuite:
+- Meters implicit works and Meters print nicely [1pt] (35 milliseconds)
+- Seconds implicit works with max, prints nicely [1pt] (3 milliseconds)
+- Decibels implicit works with logarithmic add, prints nicely [1pt] (2 milliseconds)
+- Render of VisualEffect @t=0 (flare) prints properly [1pt] *** FAILED *** (4 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.VisualEffect.render(VisualEffect.scala:32)
+  at cs671.fireworks.VisualEffect.render$(VisualEffect.scala:32)
+  at cs671.fireworks.Flare.render(Fireworks.scala:34)
+  at grading.SampleFireworksTests.$anonfun$new$4(SampleFireworksTests.scala:39)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of VisualEffect @t=1 (flare) prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.VisualEffect.render(VisualEffect.scala:32)
+  at cs671.fireworks.VisualEffect.render$(VisualEffect.scala:32)
+  at cs671.fireworks.Flare.render(Fireworks.scala:34)
+  at grading.SampleFireworksTests.$anonfun$new$5(SampleFireworksTests.scala:43)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of VisualEffect @t=1 (peony) prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.SoundEffect.render(SoundEffect.scala:14)
+  at cs671.fireworks.SoundEffect.render$(SoundEffect.scala:14)
+  at cs671.fireworks.Ring.render(Fireworks.scala:54)
+  at grading.SampleFireworksTests.$anonfun$new$6(SampleFireworksTests.scala:47)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of VisualEffect @t=0.6 (peony) prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.SoundEffect.render(SoundEffect.scala:14)
+  at cs671.fireworks.SoundEffect.render$(SoundEffect.scala:14)
+  at cs671.fireworks.Ring.render(Fireworks.scala:54)
+  at grading.SampleFireworksTests.$anonfun$new$7(SampleFireworksTests.scala:51)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of SoundEffect @t=0 (salute) prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.SoundEffect.render(SoundEffect.scala:14)
+  at cs671.fireworks.SoundEffect.render$(SoundEffect.scala:14)
+  at cs671.fireworks.Salute.render(Fireworks.scala:64)
+  at grading.SampleFireworksTests.$anonfun$new$8(SampleFireworksTests.scala:55)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of SoundEffect @t=0.6 (salute) prints properly [1pt] *** FAILED *** (35 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.SoundEffect.render(SoundEffect.scala:14)
+  at cs671.fireworks.SoundEffect.render$(SoundEffect.scala:14)
+  at cs671.fireworks.Salute.render(Fireworks.scala:64)
+  at grading.SampleFireworksTests.$anonfun$new$9(SampleFireworksTests.scala:59)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of Music @t=0 prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.SoundEffect.render(SoundEffect.scala:14)
+  at cs671.fireworks.SoundEffect.render$(SoundEffect.scala:14)
+  at cs671.fireworks.Music.render(BaseEffects.scala:13)
+  at grading.SampleFireworksTests.$anonfun$new$10(SampleFireworksTests.scala:63)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of Music @t=0.5 prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.SoundEffect.render(SoundEffect.scala:14)
+  at cs671.fireworks.SoundEffect.render$(SoundEffect.scala:14)
+  at cs671.fireworks.Music.render(BaseEffects.scala:13)
+  at grading.SampleFireworksTests.$anonfun$new$11(SampleFireworksTests.scala:67)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Duration of greenSequence (+) is 10.s [1pt] (1 millisecond)
+- Duration of greenCombo (!) is 5.s [1pt] (1 millisecond)
+- Duration of greenSequence || greenCombo is 10.s [1pt] (2 milliseconds)
+- Render of greenSequence prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.render(CompositeEffect.scala:67)
+  at grading.SampleFireworksTests.$anonfun$new$15(SampleFireworksTests.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- Render of greenCombo prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.render(CompositeEffect.scala:67)
+  at grading.SampleFireworksTests.$anonfun$new$16(SampleFireworksTests.scala:91)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- Render of greenSequence || greenCombo prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.render(CompositeEffect.scala:67)
+  at grading.SampleFireworksTests.$anonfun$new$17(SampleFireworksTests.scala:98)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- RenderVisitor properly folds list of strings [1pt] (4 milliseconds)
+- traverse with RenderVisitor produces same result as render [5pts] *** FAILED *** (0 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.SampleFireworksTests.$anonfun$new$20(SampleFireworksTests.scala:114)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- VolumeVisitor properly filters in SoundEffects [1pt] (6 milliseconds)
+- VolumeVisitor properly filters out non-SoundEffects [1pt] (1 millisecond)
+- VolumeVisitor properly applies to yield proper volume [1pt] (2 milliseconds)
+- VolumeVisitor properly folds list of volumes [1pt] (2 milliseconds)
+- traverse with VolumeVisitor produces correct result [3pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.SampleFireworksTests.$anonfun$new$26(SampleFireworksTests.scala:142)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- Meters * 3 yields proper result [1pt] (1 millisecond)
+- Seconds / 5 yields proper result [1pt] (1 millisecond)
+- Seconds to yields appropriate range [1pt] (4 milliseconds)
+- Decibels * 4 yields proper result [1pt] *** FAILED *** (90 milliseconds)
+  12.0 dB did not equal 127.0 dB (FireworksSuite.scala:55)
+- Render of VisualEffect @t=1.1 (flare) is empty [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.VisualEffect.render(VisualEffect.scala:32)
+  at cs671.fireworks.VisualEffect.render$(VisualEffect.scala:32)
+  at cs671.fireworks.Flare.render(Fireworks.scala:34)
+  at grading.FireworksSuite.$anonfun$new$5(FireworksSuite.scala:60)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of SoundEffect @t=1.2 (salute) is empty [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.SoundEffect.render(SoundEffect.scala:14)
+  at cs671.fireworks.SoundEffect.render$(SoundEffect.scala:14)
+  at cs671.fireworks.Salute.render(Fireworks.scala:64)
+  at grading.FireworksSuite.$anonfun$new$6(FireworksSuite.scala:64)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of Music @t=1.3 is empty [1pt] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.SoundEffect.render(SoundEffect.scala:14)
+  at cs671.fireworks.SoundEffect.render$(SoundEffect.scala:14)
+  at cs671.fireworks.Music.render(BaseEffects.scala:13)
+  at grading.FireworksSuite.$anonfun$new$7(FireworksSuite.scala:68)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of Fish @t=0 prints properly [2pt] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.VisualEffect.render(VisualEffect.scala:32)
+  at cs671.fireworks.VisualEffect.render$(VisualEffect.scala:32)
+  at grading.FireworksSuite$Fish.render(FireworksSuite.scala:27)
+  at grading.FireworksSuite.$anonfun$new$8(FireworksSuite.scala:72)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of Fish @t=0.6 prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.VisualEffect.render(VisualEffect.scala:32)
+  at cs671.fireworks.VisualEffect.render$(VisualEffect.scala:32)
+  at grading.FireworksSuite$Fish.render(FireworksSuite.scala:27)
+  at grading.FireworksSuite.$anonfun$new$9(FireworksSuite.scala:76)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Render of Fish @t=1.0 prints properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.VisualEffect.render(VisualEffect.scala:32)
+  at cs671.fireworks.VisualEffect.render$(VisualEffect.scala:32)
+  at grading.FireworksSuite$Fish.render(FireworksSuite.scala:27)
+  at grading.FireworksSuite.$anonfun$new$10(FireworksSuite.scala:80)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  ...
+- Duration of greenFlare + 3 is 8.s [2pt] *** FAILED *** (2 milliseconds)
+  5.0 s did not equal 8.0 s (FireworksSuite.scala:86)
+- Duration of greenFlare ! 3 is 5.s [2pt] (2 milliseconds)
+- Duration of greenFlare ! 8 is 8.s [2pt] *** FAILED *** (1 millisecond)
+  5.0 s did not equal 8.0 s (FireworksSuite.scala:96)
+- Duration of two added CompositeEffects is their sum [2pt] (1 millisecond)
+- Duration of CompositeEffect togetherWith another is their sum minus proper effect [2pt] (1 millisecond)
+- Duration of CompositeEffects alongside another is their max (1) [2pt] *** FAILED *** (1 millisecond)
+  15.0 s did not equal 13.0 s (FireworksSuite.scala:111)
+- Duration of CompositeEffects alongside another is their max (2) [2pt] *** FAILED *** (1 millisecond)
+  15.0 s did not equal 13.0 s (FireworksSuite.scala:116)
+- Render of two added CompositeEffects is the same as all four together [3pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.render(CompositeEffect.scala:67)
+  at grading.FireworksSuite.$anonfun$new$19(FireworksSuite.scala:123)
+  at grading.FireworksSuite.$anonfun$new$19$adapted(FireworksSuite.scala:123)
+  at scala.collection.immutable.List.foreach(List.scala:333)
+  at grading.FireworksSuite.$anonfun$new$18(FireworksSuite.scala:123)
+  at scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.scala:18)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  ...
+- Render of CompositeEffect togetherWith another overlaps properly [3pt] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.render(CompositeEffect.scala:67)
+  at grading.FireworksSuite.$anonfun$new$21(FireworksSuite.scala:130)
+  at grading.FireworksSuite.$anonfun$new$21$adapted(FireworksSuite.scala:130)
+  at scala.collection.immutable.List.foreach(List.scala:333)
+  at grading.FireworksSuite.$anonfun$new$20(FireworksSuite.scala:130)
+  at scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.scala:18)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  ...
+- Render of CompositeEffects alongside another overlaps from start [3pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.render(CompositeEffect.scala:67)
+  at grading.FireworksSuite.$anonfun$new$23(FireworksSuite.scala:138)
+  at grading.FireworksSuite.$anonfun$new$23$adapted(FireworksSuite.scala:137)
+  at scala.collection.immutable.List.foreach(List.scala:333)
+  at grading.FireworksSuite.$anonfun$new$22(FireworksSuite.scala:137)
+  at scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.scala:18)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  ...
+- CountingVisitor works on two added CompositeEffects [2pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.FireworksSuite.$anonfun$new$25(FireworksSuite.scala:152)
+  at grading.FireworksSuite.$anonfun$new$25$adapted(FireworksSuite.scala:151)
+  at scala.collection.immutable.List.foreach(List.scala:333)
+  at grading.FireworksSuite.$anonfun$new$24(FireworksSuite.scala:151)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  ...
+- CountingVisitor works on CompositeEffect togetherWith another [2pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.FireworksSuite.$anonfun$new$27(FireworksSuite.scala:168)
+  at grading.FireworksSuite.$anonfun$new$27$adapted(FireworksSuite.scala:167)
+  at scala.collection.immutable.List.foreach(List.scala:333)
+  at grading.FireworksSuite.$anonfun$new$26(FireworksSuite.scala:167)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  ...
+- CountingVisitor works on CompositeEffects alongside another [2pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.FireworksSuite.$anonfun$new$29(FireworksSuite.scala:185)
+  at grading.FireworksSuite.$anonfun$new$29$adapted(FireworksSuite.scala:184)
+  at scala.collection.immutable.List.foreach(List.scala:333)
+  at grading.FireworksSuite.$anonfun$new$28(FireworksSuite.scala:184)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  ...
+- Larger sequence analyzes to proper volume at key points [4pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.FireworksSuite.$anonfun$new$30(FireworksSuite.scala:232)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- Larger sequence analyzes to proper count at key points [4pts] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.FireworksSuite.$anonfun$new$31(FireworksSuite.scala:240)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- sequence.generateTimings() yields appropriate mapping [3pts] *** FAILED *** (34 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.generateTimingsHelper(CompositeEffect.scala:88)
+  at cs671.fireworks.CompositeEffect.generateTimings(CompositeEffect.scala:83)
+  at grading.FireworksSuite.$anonfun$new$32(FireworksSuite.scala:256)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- lots.generateTimings() yields appropriate mapping [3pts] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.generateTimingsHelper(CompositeEffect.scala:88)
+  at cs671.fireworks.CompositeEffect.generateTimings(CompositeEffect.scala:83)
+  at grading.FireworksSuite.$anonfun$new$35(FireworksSuite.scala:263)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- sequence.generateTimings(launchOffset) yields appropriate mapping [3pts] *** FAILED *** (3 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.generateTimingsHelper(CompositeEffect.scala:88)
+  at cs671.fireworks.CompositeEffect.generateTimings(CompositeEffect.scala:83)
+  at grading.FireworksSuite.$anonfun$new$38(FireworksSuite.scala:270)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- lots.generateTimings(launchOffset) yields appropriate mapping [3pts] *** FAILED *** (3 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.generateTimingsHelper(CompositeEffect.scala:88)
+  at cs671.fireworks.CompositeEffect.generateTimings(CompositeEffect.scala:83)
+  at grading.FireworksSuite.$anonfun$new$44(FireworksSuite.scala:277)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  ...
+- MortarSizeVisitor filters in properly [1pt] *** FAILED *** (2 milliseconds)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.MortarSizeVisitor.select(EffectVisitor.scala:41)
+  at grading.FireworksSuite.$anonfun$new$50(FireworksSuite.scala:286)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- MortarSizeVisitor filters out properly [1pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.MortarSizeVisitor.select(EffectVisitor.scala:41)
+  at grading.FireworksSuite.$anonfun$new$51(FireworksSuite.scala:292)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- MortarSizeVisitor yields appropriate maximum size [2pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.FireworksSuite.$anonfun$new$52(FireworksSuite.scala:299)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- MortarSizeVisitor yields appropriate counts for sizes [2pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.FireworksSuite.$anonfun$new$53(FireworksSuite.scala:305)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+- MortarSizeVisitor yields appropriate counts for sizes on large nested composite [4pt] *** FAILED *** (1 millisecond)
+  scala.NotImplementedError: an implementation is missing
+  at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+  at cs671.fireworks.CompositeEffect.traverse(CompositeEffect.scala:65)
+  at grading.FireworksSuite.$anonfun$new$58(FireworksSuite.scala:318)
+  at org.scalatest.OutcomeOf.outcomeOf(OutcomeOf.scala:85)
+  at org.scalatest.OutcomeOf.outcomeOf$(OutcomeOf.scala:83)
+  at org.scalatest.OutcomeOf$.outcomeOf(OutcomeOf.scala:104)
+  at org.scalatest.Transformer.apply(Transformer.scala:22)
+  at org.scalatest.Transformer.apply(Transformer.scala:20)
+  at org.scalatest.funsuite.AnyFunSuiteLike$$anon$1.apply(AnyFunSuiteLike.scala:190)
+  at edu.unh.cs.mc.grading.RunnerFactory$$anon$1.$anonfun$apply$1(RunnerFactory.scala:33)
+  ...
+time: 0.4 seconds
+grade: 20 / 100
+[success] Total time: 15 s, completed Jul 22, 2021, 2:48:35 PM

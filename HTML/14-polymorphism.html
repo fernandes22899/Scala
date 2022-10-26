@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!-- Generated from 703-polymorphism.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>14-polymorphism</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="polymorphism-and-dynamic-binding">Polymorphism and Dynamic Binding</h2>
+<h3 id="motivation">Motivation</h3>
+<p>Because of the subtyping relationship that exists between a class (or interface) and its subclasses, a given method can be implemented differently in several objects of a common type. This allows client code to use a type in a homogeneous way while relying on subtypes to specialize the behavior of some methods.</p>
+<p>Consider the following Java code, an example of what <em>not to do</em>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">// this is Java</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="co">// DO NOT WRITE THIS!</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="dt">void</span> <span class="fu">process</span>(<span class="bu">List</span>&lt;<span class="bu">Object</span>&gt; events) {</span>
+<span id="cb1-6"><a href="#cb1-6"></a>  <span class="kw">for</span> (<span class="bu">Object</span> e : events) {</span>
+<span id="cb1-7"><a href="#cb1-7"></a>    <span class="kw">if</span> (e <span class="kw">instanceof</span> <span class="bu">MouseEvent</span>) {</span>
+<span id="cb1-8"><a href="#cb1-8"></a>      <span class="bu">MouseEvent</span> event = (<span class="bu">MouseEvent</span>) e;</span>
+<span id="cb1-9"><a href="#cb1-9"></a>      <span class="fu">doMouseStuff</span>(event.<span class="fu">x</span>, event.<span class="fu">y</span>);</span>
+<span id="cb1-10"><a href="#cb1-10"></a>      <span class="kw">continue</span>;</span>
+<span id="cb1-11"><a href="#cb1-11"></a>    }</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    <span class="kw">if</span> (e <span class="kw">instanceof</span> KeyboardEvent) {</span>
+<span id="cb1-13"><a href="#cb1-13"></a>      KeyboardEvent event = (KeyboardEvent) e;</span>
+<span id="cb1-14"><a href="#cb1-14"></a>      <span class="fu">doKeyboardStuff</span>(event.<span class="fu">key</span>());</span>
+<span id="cb1-15"><a href="#cb1-15"></a>      <span class="kw">continue</span>;</span>
+<span id="cb1-16"><a href="#cb1-16"></a>    }</span>
+<span id="cb1-17"><a href="#cb1-17"></a>    <span class="kw">if</span> (e <span class="kw">instanceof</span> <span class="bu">WindowEvent</span>) {</span>
+<span id="cb1-18"><a href="#cb1-18"></a>      <span class="bu">WindowEvent</span> event = (<span class="bu">WindowEvent</span>) e;</span>
+<span id="cb1-19"><a href="#cb1-19"></a>      <span class="fu">doWindowStuff</span>(event.<span class="fu">show</span>());</span>
+<span id="cb1-20"><a href="#cb1-20"></a>      <span class="kw">continue</span>;</span>
+<span id="cb1-21"><a href="#cb1-21"></a>    }</span>
+<span id="cb1-22"><a href="#cb1-22"></a>    <span class="kw">throw</span> <span class="kw">new</span> <span class="bu">AssertionError</span>(<span class="st">&quot;unexpected event type&quot;</span>);</span>
+<span id="cb1-23"><a href="#cb1-23"></a>  }</span>
+<span id="cb1-24"><a href="#cb1-24"></a>}</span></code></pre></div>
+<p>This code processes a list of events. It tests each event for its type and branches into code corresponding to the type of the event. A sign that this code is poor is the presence of <code>instanceof</code>, which should be used only sparingly (e.g., when overriding method <code>equals</code>). Any Java code that relies heavily on <code>instanceof</code> should be suspicious. Equally bad is the variant that maintains a <code>type</code> field in each object and uses <code>switch (e.type) {...}</code> instead of <code>instanceof</code>.</p>
+<p>Instead, the event processing method should let events process themselves, according to their types:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a><span class="co">// this is Java</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="co">// WRITE THIS INSTEAD</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="kw">interface</span> <span class="bu">Event</span> {</span>
+<span id="cb2-6"><a href="#cb2-6"></a>  <span class="dt">void</span> <span class="fu">fire</span>();</span>
+<span id="cb2-7"><a href="#cb2-7"></a>}</span>
+<span id="cb2-8"><a href="#cb2-8"></a></span>
+<span id="cb2-9"><a href="#cb2-9"></a><span class="kw">class</span> <span class="bu">MouseEvent</span> <span class="kw">implements</span> <span class="bu">Event</span> {</span>
+<span id="cb2-10"><a href="#cb2-10"></a>  <span class="kw">public</span> <span class="dt">void</span> <span class="fu">fire</span>() {</span>
+<span id="cb2-11"><a href="#cb2-11"></a>    <span class="co">// do mouse stuff</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a>  }</span>
+<span id="cb2-13"><a href="#cb2-13"></a>  ...</span>
+<span id="cb2-14"><a href="#cb2-14"></a>  </span>
+<span id="cb2-15"><a href="#cb2-15"></a><span class="kw">class</span> KeyboardEvent <span class="kw">implements</span> <span class="bu">Event</span> {</span>
+<span id="cb2-16"><a href="#cb2-16"></a>  <span class="kw">public</span> <span class="dt">void</span> <span class="fu">fire</span>() {</span>
+<span id="cb2-17"><a href="#cb2-17"></a>    <span class="co">// do keyboard stuff</span></span>
+<span id="cb2-18"><a href="#cb2-18"></a>  }</span>
+<span id="cb2-19"><a href="#cb2-19"></a>  ...</span>
+<span id="cb2-20"><a href="#cb2-20"></a></span>
+<span id="cb2-21"><a href="#cb2-21"></a><span class="kw">class</span> <span class="bu">WindowEvent</span> <span class="kw">implements</span> <span class="bu">Event</span> {</span>
+<span id="cb2-22"><a href="#cb2-22"></a>  <span class="kw">public</span> <span class="dt">void</span> <span class="fu">fire</span>() {</span>
+<span id="cb2-23"><a href="#cb2-23"></a>    <span class="co">// do window stuff</span></span>
+<span id="cb2-24"><a href="#cb2-24"></a>  }</span>
+<span id="cb2-25"><a href="#cb2-25"></a>  ...</span>
+<span id="cb2-26"><a href="#cb2-26"></a></span>
+<span id="cb2-27"><a href="#cb2-27"></a><span class="dt">void</span> <span class="fu">process</span>(<span class="bu">List</span>&lt;<span class="bu">Event</span>&gt; events) {</span>
+<span id="cb2-28"><a href="#cb2-28"></a>  <span class="kw">for</span> (<span class="bu">Event</span> event : events)</span>
+<span id="cb2-29"><a href="#cb2-29"></a>    event.<span class="fu">fire</span>();</span>
+<span id="cb2-30"><a href="#cb2-30"></a>}</span></code></pre></div>
+<p>The key here is that the call <code>event.fire()</code> in the loop will branch to different implementations of the <code>fire</code> method based on the actual type of the object in the <code>event</code> variable at runtime. The fact that a variable of type <code>Event</code> can take different forms (“shapes”) like <code>MouseEvent</code> or <code>WindowEvent</code> is known as <em>polymorphism</em> (specifically, <em>subtype polymorphism</em>). The fact that the call <code>event.fire()</code> branches into different implementations based on the type of the event object at runtime is known as <em>dynamic binding</em>. Polymorphism and dynamic binding work hand-in-hand: Dynamic binding is the implementation technique that makes polymorphism possible.</p>
+<p>The benefit of using a polymorphism/dynamic binding approach is that it encapsulates the relevant code where it belongs. Method <code>process</code> does not need to deal with keys pressed or mouse coordinates. These are handled in the relevant class. The resulting code is cleaner and easier to maintain. For instance, a new type of event can be added by creating a new class without having to modify all the code like <code>process</code> that uses events in order to add another <code>if</code> or another <code>case</code>.</p>
+<p>Dynamic binding works in the same way when inheritance is used. Consider this (badly designed) variant, in which <code>Event</code> is a class instead of an interface:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">// this is Java</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="kw">class</span> <span class="bu">Event</span> {</span>
+<span id="cb3-4"><a href="#cb3-4"></a>  <span class="kw">public</span> <span class="dt">void</span> <span class="fu">fire</span>() {</span>
+<span id="cb3-5"><a href="#cb3-5"></a>    <span class="fu">log</span>(<span class="st">&quot;firing event: &quot;</span> + <span class="kw">this</span>);</span>
+<span id="cb3-6"><a href="#cb3-6"></a>  }</span>
+<span id="cb3-7"><a href="#cb3-7"></a>}</span>
+<span id="cb3-8"><a href="#cb3-8"></a></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="kw">class</span> <span class="bu">MouseEvent</span> <span class="kw">extends</span> <span class="bu">Event</span> {</span>
+<span id="cb3-10"><a href="#cb3-10"></a>  <span class="kw">public</span> <span class="dt">void</span> <span class="fu">fire</span>() {</span>
+<span id="cb3-11"><a href="#cb3-11"></a>    <span class="kw">super</span>.<span class="fu">fire</span>();</span>
+<span id="cb3-12"><a href="#cb3-12"></a>    <span class="co">// do mouse stuff</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a>  }</span>
+<span id="cb3-14"><a href="#cb3-14"></a>  ...</span></code></pre></div>
+<p>Even though <code>event</code> has type <code>Event</code> in the body of the <code>process</code> method, the <code>fire</code> method corresponding to the type of the object at runtime is executed. If an object is an instance of <code>MouseEvent</code>, the <code>fire</code> method from <code>MouseEvent</code> is always executed, no matter the type of the variable that contains the object:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1"></a><span class="co">// this is Java</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="bu">MouseEvent</span> m = <span class="kw">new</span> <span class="bu">MouseEvent</span>(...);</span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="bu">Event</span> e = m;</span>
+<span id="cb4-5"><a href="#cb4-5"></a>m.<span class="fu">fire</span>();</span>
+<span id="cb4-6"><a href="#cb4-6"></a>e.<span class="fu">fire</span>();</span>
+<span id="cb4-7"><a href="#cb4-7"></a>((<span class="bu">Event</span>)m).<span class="fu">fire</span>();</span></code></pre></div>
+<p>In all three cases, the same method <code>fire</code>, from class <code>MouseEvent</code>, is called.</p>
+<h3 id="implementation-of-dynamic-binding">Implementation of dynamic binding</h3>
+<figure>
+<img src="Images/dynamic_binding.png" title="Dynamic binding." class="centered" alt="" /><figcaption>dynamic_binding</figcaption>
+</figure>
+<p>Inside the Java Virtual Machine, every Java class (including those obtained from compiling Scala) is represented by a “class object” that contains information about that class—some of which can be accessed programmatically through <em>reflection</em>. Among other things, this object contains addresses which are branching points of the class methods.</p>
+<p>When a class is extended using inheritance, these addresses are copied into the new class object. When a method is overridden, the corresponding address is modified to branch into the new method code. In the picture above, class <code>B</code> extends class <code>A</code> and overrides method <code>m2</code> (it leaves method <code>m1</code> unchanged and add a new method <code>m3</code>).</p>
+<p>At runtime, every Java object keeps a reference to the class it is an instance of. When a method is called, this reference is followed and an offset corresponding to the method is applied to the table of addresses to retrieve the branching point. Instances of different classes use different tables and thus branch into different addresses for the same method, hence <em>dynamic binding</em>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a><span class="co">// this is Java</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a>A a = <span class="kw">new</span> <span class="fu">B</span>();</span>
+<span id="cb5-4"><a href="#cb5-4"></a>a.<span class="fu">m2</span>();</span></code></pre></div>
+<p>When the code above is executed, a reference is followed from object <code>a</code> to reach the information corresponding to class <code>B</code>. The offset corresponding to method <code>m2</code> is applied and the code branches to the address of <code>m2</code> <em>as defined in class <code>B</code></em>. The fact that variable <code>a</code> has type <code>A</code> is not used and is irrelevant.</p>
+<h3 id="polymorphism-and-dynamic-binding-in-scala">Polymorphism and dynamic binding in Scala</h3>
+<p>The notions of polymorphism and dynamic binding discussed here in the context of Java are exactly the same in Scala. In the same way as <code>if (x instanceof T)</code> is suspicious in Java, <code>if (x.isInstanceOf[T])</code> is suspicious in Scala. Typecast in Scala uses the syntax <code>x.asInstanceOf[T]</code> instead of <code>(T)x</code> in Java and should be avoided as well. Types can also be checked in Scala through pattern matching:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="co">// DO NOT WRITE THIS!</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a></span>
+<span id="cb6-3"><a href="#cb6-3"></a>e <span class="kw">match</span> {</span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="kw">case</span> event: MouseEvent =&gt; ...</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="kw">case</span> event: KeyboardEvent =&gt; ...</span>
+<span id="cb6-6"><a href="#cb6-6"></a>  ...</span></code></pre></div>
+<p>This should only be used when there is no valid polymorphic alternative (e.g., when catching exceptions). Otherwise, the same approach outlined above should be used. Here is the Scala code for the event handling example:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">trait</span> Event {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">def</span> <span class="fu">fire</span>(): Unit</span>
+<span id="cb7-3"><a href="#cb7-3"></a>}</span>
+<span id="cb7-4"><a href="#cb7-4"></a></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="kw">class</span> MouseEvent <span class="kw">extends</span> Event {</span>
+<span id="cb7-6"><a href="#cb7-6"></a>  <span class="kw">def</span> <span class="fu">fire</span>() = {</span>
+<span id="cb7-7"><a href="#cb7-7"></a>    <span class="co">// do mouse stuff</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a>  }</span>
+<span id="cb7-9"><a href="#cb7-9"></a>}</span>
+<span id="cb7-10"><a href="#cb7-10"></a></span>
+<span id="cb7-11"><a href="#cb7-11"></a><span class="kw">class</span> KeyboardEvent <span class="kw">extends</span> Event {</span>
+<span id="cb7-12"><a href="#cb7-12"></a>  <span class="kw">def</span> <span class="fu">fire</span>() = {</span>
+<span id="cb7-13"><a href="#cb7-13"></a>    <span class="co">// do keyboard stuff</span></span>
+<span id="cb7-14"><a href="#cb7-14"></a>  }</span>
+<span id="cb7-15"><a href="#cb7-15"></a>}</span>
+<span id="cb7-16"><a href="#cb7-16"></a></span>
+<span id="cb7-17"><a href="#cb7-17"></a><span class="kw">class</span> WindowEvent <span class="kw">extends</span> Event {</span>
+<span id="cb7-18"><a href="#cb7-18"></a>  <span class="kw">def</span> <span class="fu">fire</span>() = {</span>
+<span id="cb7-19"><a href="#cb7-19"></a>    <span class="co">// do window stuff</span></span>
+<span id="cb7-20"><a href="#cb7-20"></a>  }</span>
+<span id="cb7-21"><a href="#cb7-21"></a>}</span>
+<span id="cb7-22"><a href="#cb7-22"></a></span>
+<span id="cb7-23"><a href="#cb7-23"></a><span class="kw">def</span> <span class="fu">process</span>(events: List[Event]) {</span>
+<span id="cb7-24"><a href="#cb7-24"></a>  <span class="kw">for</span> (event &lt;- events)</span>
+<span id="cb7-25"><a href="#cb7-25"></a>    event.<span class="fu">fire</span>()</span>
+<span id="cb7-26"><a href="#cb7-26"></a>}</span></code></pre></div>
+<h3 id="dynamic-binding-vs-overloaded-methods-vs-shadowed-fields">Dynamic binding vs overloaded methods vs shadowed fields</h3>
+<p>Polymorphism and dynamic binding are concerned with <em>overridden</em> methods. This is not to be confused with <em>overloaded</em> methods. In particular, it is important to remember that the choice of an overloaded methods when multiple are available is decided <em>statically</em>, at compile time. For instance, if multiple methods (<em>not</em> multiple implementations of the same overridden method) can accept a <code>MouseEvent</code>, the decision will be based, at compile time, on the type of the variable that holds the event:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">// two methods with overloaded names</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="kw">def</span> <span class="fu">doEvent</span>(event: Event) = ... <span class="co">// method 1</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="kw">def</span> <span class="fu">doEvent</span>(event: MouseEvent) = ... <span class="co">// method 2</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="co">// a MouseEvent object in variables of different types</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="kw">val</span> e = <span class="kw">new</span> MouseEvent</span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="kw">val</span> x: Event = e</span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="kw">val</span> y: MouseEvent = e</span>
+<span id="cb8-9"><a href="#cb8-9"></a></span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="fu">doEvent</span>(x)                          <span class="co">// method 1 is called</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="fu">doEvent</span>(y)                          <span class="co">// method 2 is called</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="fu">doEvent</span>(x.<span class="fu">asInstanceOf</span>[MouseEvent]) <span class="co">// method 2 is called</span></span></code></pre></div>
+<p>The situation is exactly the same in Java:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1"></a><span class="co">// this is Java</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="dt">void</span> <span class="fu">doEvent</span>(<span class="bu">Event</span> event) { <span class="kw">... </span><span class="co">/* method 1 */</span> }</span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="dt">void</span> <span class="fu">doEvent</span>(<span class="bu">MouseEvent</span> event) { <span class="kw">... </span><span class="co">/* method 2 */</span> }</span>
+<span id="cb9-4"><a href="#cb9-4"></a></span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="bu">MouseEvent</span> e = <span class="kw">new</span> <span class="bu">MouseEvent</span>();</span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="bu">Event</span> x = e;</span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="bu">MouseEvent</span> y = e;</span>
+<span id="cb9-8"><a href="#cb9-8"></a></span>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="fu">doEvent</span>(x);             <span class="co">// method 1 is called</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a><span class="fu">doEvent</span>(y);             <span class="co">// method 2 is called</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="fu">doEvent</span>((<span class="bu">MouseEvent</span>)x); <span class="co">// method 2 is called</span></span></code></pre></div>
+<p>Another potential source of confusion is the possibility of <em>shadowing fields</em>: When a class extends another class, it may introduce a new field with the same name as an existing field, thus <em>shadowing</em> the field from the other class. Consider this variant of the <code>Event</code> class, in Java:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb10-1"><a href="#cb10-1"></a><span class="co">// this is Java</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="kw">abstract</span> <span class="kw">class</span> <span class="bu">Event</span> {</span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="kw">public</span> <span class="dt">final</span> <span class="dt">long</span> time = <span class="bu">System</span>.<span class="fu">currentTimeMillis</span>();</span>
+<span id="cb10-4"><a href="#cb10-4"></a></span>
+<span id="cb10-5"><a href="#cb10-5"></a>  <span class="kw">public</span> <span class="kw">abstract</span> <span class="dt">void</span> <span class="fu">fire</span>();</span>
+<span id="cb10-6"><a href="#cb10-6"></a>}</span>
+<span id="cb10-7"><a href="#cb10-7"></a></span>
+<span id="cb10-8"><a href="#cb10-8"></a><span class="kw">class</span> <span class="bu">MouseEvent</span> <span class="kw">extends</span> <span class="bu">Event</span> <span class="kw">implements</span> <span class="bu">Comparable</span>&lt;<span class="bu">Event</span>&gt; {</span>
+<span id="cb10-9"><a href="#cb10-9"></a>  <span class="kw">private</span> <span class="dt">long</span> time;</span>
+<span id="cb10-10"><a href="#cb10-10"></a></span>
+<span id="cb10-11"><a href="#cb10-11"></a>  <span class="kw">public</span> <span class="dt">void</span> <span class="fu">fire</span>() {</span>
+<span id="cb10-12"><a href="#cb10-12"></a>    time = <span class="bu">System</span>.<span class="fu">currentTimeMillis</span>();</span>
+<span id="cb10-13"><a href="#cb10-13"></a>    ...</span>
+<span id="cb10-14"><a href="#cb10-14"></a>  }</span>
+<span id="cb10-15"><a href="#cb10-15"></a></span>
+<span id="cb10-16"><a href="#cb10-16"></a>  <span class="kw">public</span> <span class="dt">int</span> <span class="fu">compareTo</span>(<span class="bu">Event</span> e) {</span>
+<span id="cb10-17"><a href="#cb10-17"></a>    <span class="kw">return</span> <span class="bu">Long</span>.<span class="fu">compare</span>(<span class="kw">this</span>.<span class="fu">time</span>, e.<span class="fu">time</span>);</span>
+<span id="cb10-18"><a href="#cb10-18"></a>  }</span>
+<span id="cb10-19"><a href="#cb10-19"></a>}</span></code></pre></div>
+<p>The <code>Event</code> class records the <em>creation</em> time of an event in a field <code>time</code>. The subclass <code>MouseEvent</code>, however, records the <em>firing</em> of an event in a <em>different</em> field also named <code>time</code>. It also tries to compare events based on time, but this will not work. Inside method <code>compare</code>, <code>this.time</code> refers to the <code>time</code> field of class <code>MouseEvent</code> (the firing time). On the other hand, <code>e.time</code> refers to the <code>time</code> field of class <code>Event</code> (the creation time), <em>even if <code>e</code> is an instance of <code>MouseEvent</code></em>. There is no notion of “dynamic binding of fields” (which would be too inefficient).</p>
+<!--
+### Typeclasses as an alternative to subtype polymorphism^[Typeclasses are not an object oriented concept.  If anything, this discussion belongs more to the functional programming section.  It is presented here because it relies on _implicits_, visited earlier, and because it can be contrasted with polymorphism.]
+-->
+<footer>2020-03-21 at 12:56:32 PM</footer>
+</body>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<!-- Generated from 702-inheritance.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>13-inheritance</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="sec:inheritance">Composition and Inheritance</h2>
+<h3 id="syntax">Syntax</h3>
+<p>In Java, a class <em>extends</em> exactly one other class<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> (single inheritance) and <em>implements</em> zero or more interfaces. In Scala, <em>traits</em> play the role of interfaces, and a class can implement zero or more traits.</p>
+<p>Let <code>C</code> be a Java class and <code>I1</code> and <code>I2</code> be interfaces:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">// this is Java</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">class</span> C {...}</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">interface</span> I1 {...}</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">interface</span> I2 {...}</span>
+<span id="cb1-5"><a href="#cb1-5"></a></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="kw">class</span> A1 {...}</span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="kw">class</span> A2 <span class="kw">extends</span> <span class="bu">Object</span> {...}</span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="kw">class</span> A3 <span class="kw">extends</span> C {...}</span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="kw">class</span> A4 <span class="kw">implements</span> I1 {...}</span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="kw">class</span> A5 <span class="kw">extends</span> <span class="bu">Object</span> <span class="kw">implements</span> I1 {...}</span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="kw">class</span> A6 <span class="kw">implements</span> I1, I2 {...}</span>
+<span id="cb1-12"><a href="#cb1-12"></a><span class="kw">class</span> A7 <span class="kw">extends</span> <span class="bu">Object</span> <span class="kw">implements</span> I1, I2 {...}</span>
+<span id="cb1-13"><a href="#cb1-13"></a><span class="kw">class</span> A8 <span class="kw">extends</span> C <span class="kw">implements</span> I1 {...}</span>
+<span id="cb1-14"><a href="#cb1-14"></a><span class="kw">class</span> A9 <span class="kw">extends</span> C <span class="kw">implements</span> I1, I2 {...}</span></code></pre></div>
+<p>In the Java code above, classes <code>A1</code> and <code>A2</code> are equivalent (and so are the pairs (<code>A4</code>, <code>A5</code>) and (<code>A6</code>, <code>A7</code>)). Usually, the <code>extends Object</code> part is not written.</p>
+<p>Similar classes would be defined in Scala as:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="co">// this is Scala</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">class</span> C {...}</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">trait</span> T1 {...}</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">trait</span> T2 {...}</span>
+<span id="cb2-5"><a href="#cb2-5"></a></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="kw">class</span> A1 {...}</span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="kw">class</span> A2 <span class="kw">extends</span> AnyRef {...}</span>
+<span id="cb2-8"><a href="#cb2-8"></a><span class="kw">class</span> A3 <span class="kw">extends</span> C {...}</span>
+<span id="cb2-9"><a href="#cb2-9"></a><span class="kw">class</span> A4 <span class="kw">extends</span> T1 {...}</span>
+<span id="cb2-10"><a href="#cb2-10"></a><span class="kw">class</span> A5 <span class="kw">extends</span> AnyRef <span class="kw">with</span> T1 {...}</span>
+<span id="cb2-11"><a href="#cb2-11"></a><span class="kw">class</span> A6 <span class="kw">extends</span> T1 <span class="kw">with</span> T2 {...}</span>
+<span id="cb2-12"><a href="#cb2-12"></a><span class="kw">class</span> A7 <span class="kw">extends</span> AnyRef <span class="kw">with</span> T1 <span class="kw">with</span> T2 {...}</span>
+<span id="cb2-13"><a href="#cb2-13"></a><span class="kw">class</span> A8 <span class="kw">extends</span> C <span class="kw">with</span> T1 {...}</span>
+<span id="cb2-14"><a href="#cb2-14"></a><span class="kw">class</span> A9 <span class="kw">extends</span> C <span class="kw">with</span> T1 <span class="kw">with</span> T2 {...}</span></code></pre></div>
+<p>Note that in Scala, the keyword <code>extends</code> is used for the first element, whether it is a class or a trait. Subsequent elements—which <em>have</em> to be traits—are introduced using <code>with</code>.</p>
+<p>It is also possible in Java for an interface to extend one or more interfaces:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">// this is Java</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">interface</span> I3 <span class="kw">extends</span> I1 {...}</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="kw">interface</span> I4 <span class="kw">extends</span> I1, I2 {...}</span></code></pre></div>
+<p>In Scala, a trait can extend traits in the same way:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="co">// this is Scala</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="kw">trait</span> T3 <span class="kw">extends</span> T1 {...}</span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="kw">trait</span> T4 <span class="kw">extends</span> T1 <span class="kw">with</span> T2 {...}</span></code></pre></div>
+<p>Note that in this section, we are only discussing matters of <em>syntax</em>. The actual behavior of traits in Scala differs from interfaces in Java. Also, a <em>trait</em> can extend a <em>class</em> in Scala, a case that will be discussed later.</p>
+<h3 id="extending-classes">Extending classes</h3>
+<h4 id="super-constructors">Super constructors</h4>
+<p>When a class extends another class, its constructors must first execute a constructor from the superclass. In Java, this is achieved via the keyword <code>super</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a><span class="co">// this is Java</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="kw">class</span> Person {</span>
+<span id="cb5-3"><a href="#cb5-3"></a>  <span class="kw">public</span> <span class="fu">Person</span>(<span class="bu">String</span> name) {...}</span>
+<span id="cb5-4"><a href="#cb5-4"></a>  ...</span>
+<span id="cb5-5"><a href="#cb5-5"></a></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="kw">class</span> Student <span class="kw">extends</span> Person {</span>
+<span id="cb5-7"><a href="#cb5-7"></a>  <span class="kw">public</span> <span class="fu">Student</span>(<span class="bu">String</span> name, <span class="dt">long</span> id) {</span>
+<span id="cb5-8"><a href="#cb5-8"></a>    <span class="kw">super</span>(name);</span>
+<span id="cb5-9"><a href="#cb5-9"></a>    ...</span>
+<span id="cb5-10"><a href="#cb5-10"></a>  }</span>
+<span id="cb5-11"><a href="#cb5-11"></a>  ...</span></code></pre></div>
+<p>The call to <code>super</code> has to be the first statement in the constructor. If no such code is written, the compiler implicitly introduces a call <code>super()</code>. In that case, if the class that is extended does not have a no-argument constructor (e.g., the only constructor takes a string), compilation will fail. The error message can be confusing because it refers to code (<code>super()</code>) that is not explicitly written.</p>
+<p>The Scala syntax for the person/student example would be:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">class</span> <span class="fu">Person</span>(<span class="kw">val</span> name: String) {</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  ...</span>
+<span id="cb6-3"><a href="#cb6-3"></a></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="kw">class</span> <span class="fu">Student</span>(name: String, <span class="kw">val</span> id: Long) <span class="kw">extends</span> <span class="fu">Person</span>(name) {</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  ...</span></code></pre></div>
+<p>A subclass can use any (visible) constructor of the superclass as the super constructor. In the case of Scala, this includes auxiliary constructors. Below is an example of a class with two constructors that is subclassed into a class with two constructors, first in Java, then in Scala:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1"></a><span class="co">// this is Java</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="kw">class</span> Person {</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="kw">public</span> <span class="fu">Person</span>(<span class="bu">String</span> name) {</span>
+<span id="cb7-4"><a href="#cb7-4"></a>    <span class="kw">... </span><span class="co">// block 1</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a>  }</span>
+<span id="cb7-6"><a href="#cb7-6"></a></span>
+<span id="cb7-7"><a href="#cb7-7"></a>  <span class="kw">public</span> <span class="fu">Person</span>(<span class="bu">String</span> first, <span class="bu">String</span> last) {</span>
+<span id="cb7-8"><a href="#cb7-8"></a>    <span class="kw">this</span>(last + <span class="st">&quot;, &quot;</span> + first);</span>
+<span id="cb7-9"><a href="#cb7-9"></a>  }</span>
+<span id="cb7-10"><a href="#cb7-10"></a>  ...</span>
+<span id="cb7-11"><a href="#cb7-11"></a></span>
+<span id="cb7-12"><a href="#cb7-12"></a><span class="kw">class</span> Student <span class="kw">extends</span> Person {</span>
+<span id="cb7-13"><a href="#cb7-13"></a>  <span class="kw">public</span> <span class="fu">Student</span>(<span class="bu">String</span> first, <span class="bu">String</span> last, <span class="dt">long</span> id) {</span>
+<span id="cb7-14"><a href="#cb7-14"></a>    <span class="kw">super</span>(first, last);</span>
+<span id="cb7-15"><a href="#cb7-15"></a>    <span class="kw">... </span><span class="co">// block 2</span></span>
+<span id="cb7-16"><a href="#cb7-16"></a>  }</span>
+<span id="cb7-17"><a href="#cb7-17"></a>  </span>
+<span id="cb7-18"><a href="#cb7-18"></a>  <span class="kw">public</span> <span class="fu">Student</span>(<span class="dt">long</span> id) {</span>
+<span id="cb7-19"><a href="#cb7-19"></a>    <span class="kw">this</span>(<span class="st">&quot;&lt;UNKNOWN&gt;&quot;</span>, <span class="st">&quot;&lt;UNKNOWN&gt;&quot;</span>, id);</span>
+<span id="cb7-20"><a href="#cb7-20"></a>    <span class="kw">... </span><span class="co">// block 3</span></span>
+<span id="cb7-21"><a href="#cb7-21"></a>  }</span>
+<span id="cb7-22"><a href="#cb7-22"></a>  ...</span></code></pre></div>
+<p>An object creation of the form <code>new Student(42)</code> would execute code blocks 1, 2 and 3 <em>in this order</em>.</p>
+<p>The same scenario would be written in Scala:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">class</span> <span class="fu">Person</span>(<span class="kw">val</span> name: String) {</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="kw">def</span> <span class="kw">this</span>(first: String, last: String) = <span class="kw">this</span>(last + <span class="st">&quot;, &quot;</span> + first)</span>
+<span id="cb8-3"><a href="#cb8-3"></a>  ...</span>
+<span id="cb8-4"><a href="#cb8-4"></a></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="kw">class</span> <span class="fu">Student</span>(first: String, last: String, <span class="kw">val</span> id: Long) <span class="kw">extends</span> <span class="fu">Person</span>(first, last) {</span>
+<span id="cb8-6"><a href="#cb8-6"></a>  <span class="kw">def</span> <span class="kw">this</span>(id: Long) = <span class="kw">this</span>(<span class="st">&quot;&lt;UNKNOWN&gt;&quot;</span>, <span class="st">&quot;&lt;UNKNOWN&gt;&quot;</span>, id)</span>
+<span id="cb8-7"><a href="#cb8-7"></a>  ...</span></code></pre></div>
+<p>In the Java example, the second constructor calls the first. Instead, it could have called a super constructor directly, like this:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1"></a><span class="co">// this is Java</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="kw">public</span> <span class="fu">Student</span>(<span class="dt">long</span> id) {</span>
+<span id="cb9-3"><a href="#cb9-3"></a>    <span class="kw">super</span>(<span class="st">&quot;&lt;UNKNOWN&gt;&quot;</span>);</span>
+<span id="cb9-4"><a href="#cb9-4"></a>  ...</span></code></pre></div>
+<p>This is not possible in Scala: Only the primary constructor calls a super constructor (which can be, as is the case here, an <em>auxiliary</em> constructor of the superclass).</p>
+<h4 id="overriding-methods">Overriding methods</h4>
+<p>When a class extends another class (or a trait), methods of the subclass can <em>override</em> methods of the superclass. This is a powerful mechanism by which a new type can adapt a behavior from an existing type.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">class</span> Person {</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  <span class="kw">public</span> <span class="dt">final</span> <span class="bu">String</span> name;</span>
+<span id="cb10-3"><a href="#cb10-3"></a>  </span>
+<span id="cb10-4"><a href="#cb10-4"></a>  <span class="at">@Override</span> <span class="kw">public</span> <span class="bu">String</span> <span class="fu">toString</span>() {</span>
+<span id="cb10-5"><a href="#cb10-5"></a>    <span class="kw">return</span> name;</span>
+<span id="cb10-6"><a href="#cb10-6"></a>  }</span>
+<span id="cb10-7"><a href="#cb10-7"></a>  ...</span>
+<span id="cb10-8"><a href="#cb10-8"></a></span>
+<span id="cb10-9"><a href="#cb10-9"></a><span class="kw">class</span> Student <span class="kw">extends</span> Person {</span>
+<span id="cb10-10"><a href="#cb10-10"></a>  <span class="kw">public</span> <span class="dt">final</span> <span class="dt">long</span> id;</span>
+<span id="cb10-11"><a href="#cb10-11"></a>  </span>
+<span id="cb10-12"><a href="#cb10-12"></a>  <span class="at">@Override</span> <span class="kw">public</span> <span class="bu">String</span> <span class="fu">toString</span>() {</span>
+<span id="cb10-13"><a href="#cb10-13"></a>    <span class="kw">return</span> <span class="kw">super</span>.<span class="fu">toString</span>() + <span class="bu">String</span><span class="fu">.format</span>(<span class="st">&quot; (id=</span><span class="sc">%d</span><span class="st">)&quot;</span>, id);</span>
+<span id="cb10-14"><a href="#cb10-14"></a>  }</span>
+<span id="cb10-15"><a href="#cb10-15"></a>  ...</span></code></pre></div>
+<p>The code above shows an example of overriding. Method <code>toString</code> from class <code>Object</code> is overridden in class <code>Person</code>; this new behavior is then overridden again in class <code>Student</code>. In Scala, this scenario would look like this:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">class</span> <span class="fu">Person</span>(<span class="kw">val</span> name: String) {</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">override</span> <span class="kw">def</span> toString = name</span>
+<span id="cb11-3"><a href="#cb11-3"></a>  ...</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="kw">class</span> <span class="fu">Student</span>(name: String, <span class="kw">val</span> id: Long) <span class="kw">extends</span> <span class="fu">Person</span>(name) {</span>
+<span id="cb11-6"><a href="#cb11-6"></a>  <span class="kw">override</span> <span class="kw">def</span> toString = <span class="kw">super</span>.<span class="fu">toString</span> + s<span class="st">&quot; (id=$id)&quot;</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a>  ...</span></code></pre></div>
+<p>While the <code>@Override</code> annotation is optional in Java, the <code>override</code> keyword is required in Scala. Both the annotation in Java and the keyword in Scala are useful in catching mistakes at compile-time. A typical example is misspelling:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">class</span> <span class="fu">Student</span>(name: String, <span class="kw">val</span> id: Long) <span class="kw">extends</span> <span class="fu">Person</span>(name) {</span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="kw">override</span> <span class="kw">def</span> tostring = <span class="kw">super</span>.<span class="fu">tostring</span> + s<span class="st">&quot; (id=$id)&quot;</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>  ...</span></code></pre></div>
+<p>This code will be rejected as compile-time because class <code>Person</code> does not have a <code>tostring</code> (lowercase <code>s</code>) method.</p>
+<p>When a method <code>foo</code> is overridden, its previous behavior can be used in its new behavior as <code>super.foo</code> (as in the case of method <code>toString</code> in class <code>Student</code>). It is not required to do so and the new behavior can be written from scratch (as in the case of method <code>toString</code> in class <code>Person</code>).</p>
+<p>This suggests a tight relationship between the code of the subclass and the code of the superclass. In particular, <em>the superclass must have been designed for extension and must properly document how it ought to be extended</em>. If that is not the case, it should prevent overriding. This can be done at the method level or at the class level. For instance, class <code>Object</code> in Java can be extended (obviously), but its <code>wait</code> method—which can be used for thread synchronization—cannot be redefined:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb13-1"><a href="#cb13-1"></a><span class="co">// this is Java</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="kw">class</span> <span class="bu">Object</span> {</span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="kw">public</span> <span class="dt">final</span> <span class="dt">void</span> <span class="fu">wait</span>() <span class="kw">throws</span> <span class="bu">InterruptedException</span> {...}</span>
+<span id="cb13-4"><a href="#cb13-4"></a>  ...</span></code></pre></div>
+<p>The <code>final</code> keyword prevents the method from being overridden. Alternatively, the same keyword <code>final</code> can be applied to a class, in which case the class cannot be extended. An example is <code>java.lang.String</code>. The mechanism is the same in Scala (final methods or final classes):</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">class</span> A {</span>
+<span id="cb14-2"><a href="#cb14-2"></a>  <span class="kw">def</span> m = <span class="st">&quot;this is A&quot;</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a>  <span class="kw">final</span> <span class="kw">def</span> f = <span class="st">&quot;this is f&quot;</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a>}</span>
+<span id="cb14-5"><a href="#cb14-5"></a></span>
+<span id="cb14-6"><a href="#cb14-6"></a><span class="kw">final</span> <span class="kw">class</span> B <span class="kw">extends</span> A {</span>
+<span id="cb14-7"><a href="#cb14-7"></a>  <span class="kw">override</span> <span class="kw">def</span> m = <span class="st">&quot;this is B&quot;</span></span>
+<span id="cb14-8"><a href="#cb14-8"></a>}</span></code></pre></div>
+<p>Method <code>f</code> cannot be overridden in class <code>B</code>. Furthermore, class <code>B</code> cannot be extended into a class <code>C</code>.</p>
+<p>Scala also has a mechanism of <em>sealed</em> classes by which a class can be extended by classes defined in the same file but not otherwise. This can be used to extend a class within the implementation of a library while preventing client code from extending it further. This is particularly handy with <em>case classes</em> as a way to freeze the number of “cases” that extend a type.</p>
+<p>Java has no such mechanism but can sometimes use the following trick (also possible in Scala): Define a class with only <em>package-private</em> constructors. Since subclasses must call a super constructor, users won’t be able to define subclasses outside the original package.</p>
+<p>Finally, both Java and Scala allow an overridden method to return a <em>subtype</em> of the type of the method it overrides (something known as <em>return type covariance</em>):</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">class</span> SomeClass {</span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="kw">def</span> <span class="fu">m</span>(t: Seq[Int]): Seq[Int] = ...</span>
+<span id="cb15-3"><a href="#cb15-3"></a></span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="kw">class</span> SomeExtension <span class="kw">extends</span> SomeClass {</span>
+<span id="cb15-5"><a href="#cb15-5"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">m</span>(t: Seq[Int]): List[Int] = ...</span></code></pre></div>
+<p>The idea is that method <code>m</code> in <code>SomeExtension</code> satisfies the contract specified in class <code>SomeClass</code> (i.e., it returns a value of type <code>Seq[Int]</code>), but chooses to be more specific: Users of <code>SomeExtension</code> can rely on the fact that the sequence being returned is actually a list. Note that the type of parameter of <code>t</code> cannot be changed: This would change the signature of the method and introduce a case of <em>overloading</em> instead of <em>overriding</em>.</p>
+<p>Java introduced return type covariance in Java 5. For instance, method <code>clone</code> from interface <code>Cloneable</code> returns an <code>Object</code>. But cloneable classes can (and should) be more specific in the type they return:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">// this is Java</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="kw">class</span> <span class="bu">Data</span> <span class="kw">implements</span> <span class="bu">Cloneable</span> {</span>
+<span id="cb16-3"><a href="#cb16-3"></a>  <span class="kw">public</span> <span class="bu">Data</span> <span class="fu">clone</span>() {...}</span></code></pre></div>
+<p>Prior to Java 5, the <code>clone</code> method in <code>Data</code> would have had to return <code>Object</code>, forcing its users into a type cast at runtime.</p>
+<h4 id="overridden-methods-called-in-constructors">Overridden methods called in constructors</h4>
+<p>It is important to keep in mind that the constructor of the superclass runs first, before any code in the constructor of the subclass. This can lead to unexpected behavior if this code uses data that is initialized in the subclass. Consider the following example, in Java:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1"></a><span class="co">// this is Java</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="kw">class</span> Person {</span>
+<span id="cb17-3"><a href="#cb17-3"></a></span>
+<span id="cb17-4"><a href="#cb17-4"></a>  <span class="kw">public</span> <span class="dt">final</span> <span class="bu">String</span> name;</span>
+<span id="cb17-5"><a href="#cb17-5"></a></span>
+<span id="cb17-6"><a href="#cb17-6"></a>  <span class="kw">public</span> <span class="fu">Person</span>(<span class="bu">String</span> name) {</span>
+<span id="cb17-7"><a href="#cb17-7"></a>    <span class="kw">this</span>.<span class="fu">name</span> = name;</span>
+<span id="cb17-8"><a href="#cb17-8"></a>    <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;creating person: &quot;</span> + <span class="kw">this</span>);</span>
+<span id="cb17-9"><a href="#cb17-9"></a>  }</span>
+<span id="cb17-10"><a href="#cb17-10"></a></span>
+<span id="cb17-11"><a href="#cb17-11"></a>  <span class="at">@Override</span> <span class="kw">public</span> <span class="bu">String</span> <span class="fu">toString</span>() {</span>
+<span id="cb17-12"><a href="#cb17-12"></a>    <span class="kw">return</span> name;</span>
+<span id="cb17-13"><a href="#cb17-13"></a>  }</span>
+<span id="cb17-14"><a href="#cb17-14"></a>  ...</span>
+<span id="cb17-15"><a href="#cb17-15"></a></span>
+<span id="cb17-16"><a href="#cb17-16"></a><span class="kw">class</span> Student <span class="kw">extends</span> Person {</span>
+<span id="cb17-17"><a href="#cb17-17"></a></span>
+<span id="cb17-18"><a href="#cb17-18"></a>  <span class="kw">public</span> <span class="dt">final</span> <span class="dt">long</span> id;</span>
+<span id="cb17-19"><a href="#cb17-19"></a></span>
+<span id="cb17-20"><a href="#cb17-20"></a>  <span class="kw">public</span> <span class="fu">Student</span>(<span class="bu">String</span> name, <span class="dt">long</span> id) {</span>
+<span id="cb17-21"><a href="#cb17-21"></a>    <span class="kw">super</span>(name);</span>
+<span id="cb17-22"><a href="#cb17-22"></a>    <span class="kw">this</span>.<span class="fu">id</span> = id;</span>
+<span id="cb17-23"><a href="#cb17-23"></a>  }</span>
+<span id="cb17-24"><a href="#cb17-24"></a></span>
+<span id="cb17-25"><a href="#cb17-25"></a>  <span class="at">@Override</span> <span class="kw">public</span> <span class="bu">String</span> <span class="fu">toString</span>() {</span>
+<span id="cb17-26"><a href="#cb17-26"></a>    <span class="kw">return</span> <span class="kw">super</span>.<span class="fu">toString</span>() + <span class="bu">String</span><span class="fu">.format</span>(<span class="st">&quot; (id=</span><span class="sc">%d</span><span class="st">)&quot;</span>, id);</span>
+<span id="cb17-27"><a href="#cb17-27"></a>  }</span>
+<span id="cb17-28"><a href="#cb17-28"></a>  ...</span></code></pre></div>
+<p>The code <code>new Student("John Doe", 54321)</code> produces the output <code>creating person: John Doe (id=0)</code>! This is because the super constructor uses the overridden version of <code>toString</code> (<code>this</code> is a student) <em>before</em> field <code>id</code> is written. Note that the fact that field <code>id</code> is final is irrelevant (it does not solve the problem).</p>
+<p>This classic bug usually manifests itself as a <code>NullPointerException</code> (when the field to be written is an object instead of a number). A good principle to follow is to <em>never call from a constructor a method that might be overridden</em>.</p>
+<h3 id="abstract-classes-and-methods">Abstract classes and methods</h3>
+<p><em>Abstract</em> methods have no implementation and therefore <em>must</em> be overridden before a class can be instantiated. In Scala, <em>traits</em> and <em>abstract classes</em> can contain abstract methods. In Java, <em>interfaces</em> and <em>abstract classes</em> can contain abstract methods. One idea behind abstract classes is to provide users with a partial implementation from which pieces may still be missing. Another is to provide users with default implementations in which some pieces may be rewritten for efficiency.</p>
+<p>As an example of the first case, consider the problem, in Java, of applying a transformation to the elements produced by an iterator. This pattern can be implemented in an abstract class without knowing what the transformation is:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">// this is Java</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="kw">abstract</span> <span class="kw">class</span> <span class="bu">Transformer</span>&lt;A, B&gt; <span class="kw">implements</span> <span class="bu">Iterator</span>&lt;B&gt; {</span>
+<span id="cb18-3"><a href="#cb18-3"></a>  <span class="kw">private</span> <span class="dt">final</span> <span class="bu">Iterator</span>&lt;A&gt; source;</span>
+<span id="cb18-4"><a href="#cb18-4"></a></span>
+<span id="cb18-5"><a href="#cb18-5"></a>  <span class="kw">protected</span> <span class="bu">Transformer</span>(<span class="bu">Iterator</span>&lt;A&gt; source) {</span>
+<span id="cb18-6"><a href="#cb18-6"></a>    <span class="kw">this</span>.<span class="fu">source</span> = source;</span>
+<span id="cb18-7"><a href="#cb18-7"></a>  }</span>
+<span id="cb18-8"><a href="#cb18-8"></a></span>
+<span id="cb18-9"><a href="#cb18-9"></a>  <span class="kw">protected</span> <span class="kw">abstract</span> B <span class="fu">transform</span>(A input);</span>
+<span id="cb18-10"><a href="#cb18-10"></a></span>
+<span id="cb18-11"><a href="#cb18-11"></a>  <span class="kw">public</span> B <span class="fu">next</span>() {</span>
+<span id="cb18-12"><a href="#cb18-12"></a>    <span class="kw">return</span> <span class="fu">transform</span>(source.<span class="fu">next</span>());</span>
+<span id="cb18-13"><a href="#cb18-13"></a>  }</span>
+<span id="cb18-14"><a href="#cb18-14"></a></span>
+<span id="cb18-15"><a href="#cb18-15"></a>  <span class="kw">public</span> <span class="dt">boolean</span> <span class="fu">hasNext</span>() {</span>
+<span id="cb18-16"><a href="#cb18-16"></a>    <span class="kw">return</span> source.<span class="fu">hasNext</span>();</span>
+<span id="cb18-17"><a href="#cb18-17"></a>  }</span>
+<span id="cb18-18"><a href="#cb18-18"></a></span>
+<span id="cb18-19"><a href="#cb18-19"></a>  <span class="kw">public</span> <span class="dt">void</span> <span class="fu">remove</span>() {</span>
+<span id="cb18-20"><a href="#cb18-20"></a>    source.<span class="fu">remove</span>();</span>
+<span id="cb18-21"><a href="#cb18-21"></a>  }</span>
+<span id="cb18-22"><a href="#cb18-22"></a>}</span></code></pre></div>
+<p>Method <code>transform</code> is <em>abstract</em> and has no implementation. It is used in the implementation of method <code>next</code> (a regular method can call an abstract method in its body).</p>
+<p>To use this class, one needs to extend it into a <em>concrete</em> class by providing an implementation for method <code>transform</code>:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1"></a><span class="co">// this is Java</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a><span class="kw">class</span> FileContents <span class="kw">extends</span> <span class="bu">Transformer</span>&lt;Path, <span class="bu">String</span>&gt; {</span>
+<span id="cb19-3"><a href="#cb19-3"></a>  <span class="kw">public</span> <span class="fu">FileContents</span>(<span class="bu">List</span>&lt;Path&gt; files) {</span>
+<span id="cb19-4"><a href="#cb19-4"></a>    <span class="kw">super</span>(files.<span class="fu">iterator</span>());</span>
+<span id="cb19-5"><a href="#cb19-5"></a>  }</span>
+<span id="cb19-6"><a href="#cb19-6"></a></span>
+<span id="cb19-7"><a href="#cb19-7"></a>  <span class="kw">protected</span> <span class="bu">String</span> <span class="fu">transform</span>(Path file) {</span>
+<span id="cb19-8"><a href="#cb19-8"></a>    <span class="kw">try</span> {</span>
+<span id="cb19-9"><a href="#cb19-9"></a>      <span class="kw">return</span> Files.<span class="fu">readString</span>(file);</span>
+<span id="cb19-10"><a href="#cb19-10"></a>    } <span class="kw">catch</span> (<span class="bu">IOException</span> ioe) {</span>
+<span id="cb19-11"><a href="#cb19-11"></a>      <span class="kw">return</span> <span class="bu">String</span><span class="fu">.format</span>(<span class="st">&quot;unable to open &#39;</span><span class="sc">%s</span><span class="st">&#39;&quot;</span>, file.<span class="fu">getFileName</span>());</span>
+<span id="cb19-12"><a href="#cb19-12"></a>    }</span>
+<span id="cb19-13"><a href="#cb19-13"></a>  }</span>
+<span id="cb19-14"><a href="#cb19-14"></a>}</span></code></pre></div>
+<p>This example could be written in Scala:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">abstract</span> <span class="kw">class</span> Transformer[A, B] <span class="kw">protected</span> (source: Iterator[A]) <span class="kw">extends</span> Iterator[B] {</span>
+<span id="cb20-2"><a href="#cb20-2"></a>  <span class="kw">protected</span> <span class="kw">def</span> <span class="fu">transform</span>(input: A): B</span>
+<span id="cb20-3"><a href="#cb20-3"></a></span>
+<span id="cb20-4"><a href="#cb20-4"></a>  <span class="kw">def</span> hasNext: Boolean = source.<span class="fu">nonEmpty</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a></span>
+<span id="cb20-6"><a href="#cb20-6"></a>  <span class="kw">def</span> <span class="fu">next</span>(): B = <span class="fu">transform</span>(source.<span class="fu">next</span>())</span>
+<span id="cb20-7"><a href="#cb20-7"></a>}</span>
+<span id="cb20-8"><a href="#cb20-8"></a></span>
+<span id="cb20-9"><a href="#cb20-9"></a><span class="kw">class</span> <span class="fu">FileContents</span>(files: List[Path]) <span class="kw">extends</span> Transformer[Path, String](files.<span class="fu">iterator</span>) {</span>
+<span id="cb20-10"><a href="#cb20-10"></a>  <span class="kw">protected</span> <span class="kw">def</span> <span class="fu">transform</span>(file: Path): String = <span class="kw">try</span> Files.<span class="fu">readString</span>(file)</span>
+<span id="cb20-11"><a href="#cb20-11"></a>  <span class="kw">catch</span> {</span>
+<span id="cb20-12"><a href="#cb20-12"></a>    <span class="kw">case</span> _: IOException =&gt; s<span class="st">&quot;unable to open &#39;${file.getFileName}&#39;&quot;</span></span>
+<span id="cb20-13"><a href="#cb20-13"></a>  }</span>
+<span id="cb20-14"><a href="#cb20-14"></a>}</span></code></pre></div>
+<p>One difference with Java is that abstract methods in Scala do not use the keyword <code>abstract</code>: They are just declared without an implementation.</p>
+<p>Of course, there is no need to write such a class in Scala since Scala’s iterators have a <code>map</code> method for just this kind of transformations:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1"></a>files.<span class="fu">iterator</span>.<span class="fu">map</span>(Files.<span class="fu">readString</span>)</span></code></pre></div>
+<p>An abstract class can be extended into another abstract class by implementing some but not all of its abstract methods. Also, a class can be abstract even if no method is abstract (e.g., all methods have a default implementation but some rewriting is expected).</p>
+<p>A common Java pattern is to define an abstract class with static factory methods that produce instances of (unknown) subclasses of the class. For instance, class <code>java.util.Calendar</code> is abstract and cannot be directly instantiated. Instead, it offers several public <code>getInstance</code> methods. Using this approach, static methods can do some caching or return instances of specializations of the class.</p>
+<h3 id="composition-vs-inheritance">Composition vs inheritance</h3>
+<p>Inheritance is a mechanism that enables code reuse while establishing a subtype relationship. When class <code>S</code> inherits from class <code>T</code>:</p>
+<ul>
+<li>all the code of <code>T</code> (fields and methods) is present in <code>S</code> (though <code>private</code> fields and methods may not be directly usable);</li>
+<li>type <code>S</code> is a subtype of type <code>T</code>.</li>
+</ul>
+<p>It is important to only use inheritance when both elements are required. A common mistake is to rely on inheritance to reuse code in situations where the subtype relationship is undesirable. Unless, conceptually, a <code>S</code> object <em>is</em> a <code>T</code> object, inheritance should not be used. Instead, one can use <em>composition</em>, a mechanism in which an <code>S</code> object <em>uses</em> a <code>T</code> object.</p>
+<p>As an illustration, consider the following example, used to keep track of grade averages:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb22-1"><a href="#cb22-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">mutable</span>.{ ListBuffer, HashMap =&gt; MutableMap }</span>
+<span id="cb22-2"><a href="#cb22-2"></a></span>
+<span id="cb22-3"><a href="#cb22-3"></a><span class="kw">class</span> Grades <span class="kw">extends</span> MutableMap[Student, ListBuffer[Int]] {</span>
+<span id="cb22-4"><a href="#cb22-4"></a></span>
+<span id="cb22-5"><a href="#cb22-5"></a>  <span class="kw">def</span> <span class="fu">average</span>(student: Student): Double = <span class="fu">get</span>(student) <span class="kw">match</span> {</span>
+<span id="cb22-6"><a href="#cb22-6"></a>    <span class="kw">case</span> None =&gt; <span class="kw">throw</span> <span class="kw">new</span> IllegalArgumentException(<span class="st">&quot;unknown student&quot;</span>)</span>
+<span id="cb22-7"><a href="#cb22-7"></a>    <span class="kw">case</span> Some(grades) =&gt; grades.<span class="fu">sum</span>.<span class="fu">toDouble</span> / grades.<span class="fu">length</span></span>
+<span id="cb22-8"><a href="#cb22-8"></a>  }</span>
+<span id="cb22-9"><a href="#cb22-9"></a></span>
+<span id="cb22-10"><a href="#cb22-10"></a>  <span class="kw">def</span> average: Double = {</span>
+<span id="cb22-11"><a href="#cb22-11"></a>    <span class="kw">var</span> sum = <span class="fl">0.0</span></span>
+<span id="cb22-12"><a href="#cb22-12"></a>    <span class="kw">for</span> (grades &lt;- valuesIterator)</span>
+<span id="cb22-13"><a href="#cb22-13"></a>      sum += grades.<span class="fu">sum</span>.<span class="fu">toDouble</span> / grades.<span class="fu">length</span></span>
+<span id="cb22-14"><a href="#cb22-14"></a>    sum / size</span>
+<span id="cb22-15"><a href="#cb22-15"></a>  }</span>
+<span id="cb22-16"><a href="#cb22-16"></a>}</span></code></pre></div>
+<p>Grades are represented as a mapping from students to mutable lists on numbers. Grades can be added and averages can be computed:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">val</span> cs101 = <span class="kw">new</span> Grades</span>
+<span id="cb23-2"><a href="#cb23-2"></a></span>
+<span id="cb23-3"><a href="#cb23-3"></a><span class="fu">cs101</span>(john) = ListBuffer.<span class="fu">empty</span></span>
+<span id="cb23-4"><a href="#cb23-4"></a><span class="fu">cs101</span>(jake) = ListBuffer.<span class="fu">empty</span></span>
+<span id="cb23-5"><a href="#cb23-5"></a></span>
+<span id="cb23-6"><a href="#cb23-6"></a><span class="fu">cs101</span>(john) += <span class="dv">95</span></span>
+<span id="cb23-7"><a href="#cb23-7"></a><span class="fu">cs101</span>(john) += <span class="dv">98</span></span>
+<span id="cb23-8"><a href="#cb23-8"></a><span class="fu">cs101</span>(jake) += <span class="dv">80</span></span>
+<span id="cb23-9"><a href="#cb23-9"></a></span>
+<span id="cb23-10"><a href="#cb23-10"></a>cs101.<span class="fu">average</span>(john)  <span class="co">// 96.5</span></span>
+<span id="cb23-11"><a href="#cb23-11"></a>cs101.<span class="fu">average</span>        <span class="co">// 88.25</span></span></code></pre></div>
+<p>A problem with this design is that grades <em>are not</em> a mapping from students to lists of numbers. They are something much more specific. The <code>MutableMap</code> type supports many operations that may or may not make sense for grades in a class:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb24-1"><a href="#cb24-1"></a><span class="fu">cs101</span>(john).<span class="fu">clear</span>()</span>
+<span id="cb24-2"><a href="#cb24-2"></a><span class="fu">cs101</span>(john)(<span class="dv">1</span>) -= <span class="dv">10</span></span>
+<span id="cb24-3"><a href="#cb24-3"></a><span class="fu">cs101</span>(john) += <span class="dv">110</span></span>
+<span id="cb24-4"><a href="#cb24-4"></a>cs101 -= john</span>
+<span id="cb24-5"><a href="#cb24-5"></a>cs101.<span class="fu">clear</span>()</span>
+<span id="cb24-6"><a href="#cb24-6"></a>cs101.<span class="fu">mapValuesInPlace</span> {</span>
+<span id="cb24-7"><a href="#cb24-7"></a>  <span class="kw">case</span> (student, grades) <span class="kw">if</span> student.<span class="fu">name</span> startsWith <span class="st">&quot;J&quot;</span> =&gt; grades.<span class="fu">map</span>(_ + <span class="dv">1</span>)</span>
+<span id="cb24-8"><a href="#cb24-8"></a>  <span class="kw">case</span> (_, grades) =&gt; grades.<span class="fu">map</span>(_ - <span class="dv">1</span>)</span>
+<span id="cb24-9"><a href="#cb24-9"></a>}</span></code></pre></div>
+<p>Because these operations are possible on a <code>MutableMap[Student, ListBuffer[Int]]</code>, grades can be modified or removed; students can be added or removed; negative grades or grades over 100 can be entered, and grades can be transformed in arbitrary ways. Either these operations are acceptable, or grades <em>are not</em> a mapping from students to mutable lists of numbers, i.e., the “<em>is a</em>” relationship does not hold and inheritance should not be used.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<p>Instead of inheritance, composition can be used in a way that restrict grades to meaningful operations and preserves encapsulation:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">class</span> Grades {</span>
+<span id="cb25-2"><a href="#cb25-2"></a></span>
+<span id="cb25-3"><a href="#cb25-3"></a>  <span class="kw">private</span> <span class="kw">val</span> data = MutableMap.<span class="fu">empty</span>[Student, ListBuffer[Int]]</span>
+<span id="cb25-4"><a href="#cb25-4"></a></span>
+<span id="cb25-5"><a href="#cb25-5"></a>  <span class="kw">def</span> <span class="fu">average</span>(student: Student): Double = data.<span class="fu">get</span>(student) <span class="kw">match</span> {</span>
+<span id="cb25-6"><a href="#cb25-6"></a>    <span class="kw">case</span> None =&gt; <span class="kw">throw</span> <span class="kw">new</span> IllegalArgumentException(<span class="st">&quot;unknown student&quot;</span>)</span>
+<span id="cb25-7"><a href="#cb25-7"></a>    <span class="kw">case</span> Some(grades) =&gt; grades.<span class="fu">sum</span>.<span class="fu">toDouble</span> / grades.<span class="fu">length</span></span>
+<span id="cb25-8"><a href="#cb25-8"></a>  }</span>
+<span id="cb25-9"><a href="#cb25-9"></a></span>
+<span id="cb25-10"><a href="#cb25-10"></a>  <span class="kw">def</span> average: Double = {</span>
+<span id="cb25-11"><a href="#cb25-11"></a>    <span class="kw">var</span> sum = <span class="fl">0.0</span></span>
+<span id="cb25-12"><a href="#cb25-12"></a>    <span class="kw">for</span> (grades &lt;- data.<span class="fu">valuesIterator</span>)</span>
+<span id="cb25-13"><a href="#cb25-13"></a>      sum += grades.<span class="fu">sum</span>.<span class="fu">toDouble</span> / grades.<span class="fu">length</span></span>
+<span id="cb25-14"><a href="#cb25-14"></a>    sum / data.<span class="fu">size</span></span>
+<span id="cb25-15"><a href="#cb25-15"></a>  }</span>
+<span id="cb25-16"><a href="#cb25-16"></a></span>
+<span id="cb25-17"><a href="#cb25-17"></a>  <span class="kw">def</span> +=(student: Student): Boolean = {</span>
+<span id="cb25-18"><a href="#cb25-18"></a>    <span class="kw">val</span> empty = ListBuffer.<span class="fu">empty</span>[Int]</span>
+<span id="cb25-19"><a href="#cb25-19"></a>    data.<span class="fu">getOrElseUpdate</span>(student, empty) eq empty</span>
+<span id="cb25-20"><a href="#cb25-20"></a>  }</span>
+<span id="cb25-21"><a href="#cb25-21"></a></span>
+<span id="cb25-22"><a href="#cb25-22"></a>  <span class="kw">def</span> +=(studentGrade: (Student, Int)) {</span>
+<span id="cb25-23"><a href="#cb25-23"></a>    <span class="kw">val</span> (student, grade) = studentGrade</span>
+<span id="cb25-24"><a href="#cb25-24"></a>    <span class="fu">require</span>(grade &gt;= <span class="dv">0</span> &amp;&amp; grade &lt;= <span class="dv">100</span>)</span>
+<span id="cb25-25"><a href="#cb25-25"></a>    data.<span class="fu">getOrElseUpdate</span>(student, ListBuffer.<span class="fu">empty</span>) += grade</span>
+<span id="cb25-26"><a href="#cb25-26"></a>  }</span>
+<span id="cb25-27"><a href="#cb25-27"></a>}</span></code></pre></div>
+<p>In this implementation, grades are <em>not</em> a mapping from students to mutable lists of numbers but instead <em>contain</em> such a mapping in field <code>data</code>. Code reuse is achieved by forwarding calls to the underlying <code>MutableMap[Student, ListBuffer[Int]]</code>. Designers have full control over which calls to forward (adding students? removing students? adding grades? removing grades? modifying grades?) and can also perform checks and transform inputs before they are forwarded (e.g., <span class="math inline">0 ≤ <em>g</em><em>r</em><em>a</em><em>d</em><em>e</em> ≤ 100</span>).</p>
+<p>Using the structure is not worse than before:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb26-1"><a href="#cb26-1"></a>cs101 += john</span>
+<span id="cb26-2"><a href="#cb26-2"></a>cs101 += jake</span>
+<span id="cb26-3"><a href="#cb26-3"></a></span>
+<span id="cb26-4"><a href="#cb26-4"></a>cs101 += john -&gt; <span class="dv">95</span></span>
+<span id="cb26-5"><a href="#cb26-5"></a>cs101 += john -&gt; <span class="dv">98</span></span>
+<span id="cb26-6"><a href="#cb26-6"></a>cs101 += jake -&gt; <span class="dv">80</span></span>
+<span id="cb26-7"><a href="#cb26-7"></a></span>
+<span id="cb26-8"><a href="#cb26-8"></a>cs101.<span class="fu">average</span>(john)  <span class="co">// 96.5</span></span>
+<span id="cb26-9"><a href="#cb26-9"></a>cs101.<span class="fu">average</span>        <span class="co">// 88.25</span></span></code></pre></div>
+<p>For an excellent discussion of the perils of inheritance, see <em>Effective Java</em>, items 18 and 19.</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Except class <code>Object</code>, which sits on top.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>Here, both <code>name</code> and <code>id</code> are kept as <code>val</code> fields, but they don’t have to.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>This bad example will stop being compilable at some point. Inheritance from class <code>mutable.HashMap</code> has been deprecated and the class will be made final in a future release of the language.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-03-21 at 12:22:50 PM</footer>
+</body>

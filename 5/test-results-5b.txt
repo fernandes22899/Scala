@@ -1,0 +1,187 @@
+[info] welcome to sbt 1.4.6 (AdoptOpenJDK Java 15.0.1)
+[info] loading project definition from /assigns/jjf1027/GIT/5/project
+[info] loading settings for project root-5 from build.sbt ...
+[info] set current project to root-5 (in build file:/assigns/jjf1027/GIT/5/)
+[success] Total time: 0 s, completed Aug 5, 2021, 5:56:13 PM
+[info] compiling 7 Scala sources to /assigns/jjf1027/GIT/5/target/scala-2.13/classes ...
+[warn] /assigns/jjf1027/GIT/5/src/main/scala/parallel/Dispatcher.scala:31:40: Auto-application to `()` is deprecated. Supply the empty argument list `()` explicitly to invoke method apply,
+[warn] or remove the empty argument list from its definition (Java-defined methods are exempt).
+[warn] In Scala 3, an unapplied method like this will be eta-expanded into a function.
+[warn]   val prom : Promise[List[B]] = Promise[List[B]]
+[warn]                                        ^
+[warn] /assigns/jjf1027/GIT/5/src/main/scala/parallel/Dispatcher.scala:74:11: local var cif in method report is never updated: consider using immutable val
+[warn]       var cif : Boolean = {resSize == dis}
+[warn]           ^
+[warn] /assigns/jjf1027/GIT/5/src/main/scala/parallel/GrepApp.scala:6:52: Unused import
+[warn] import scala.concurrent.ExecutionContext.Implicits.global
+[warn]                                                    ^
+[warn] /assigns/jjf1027/GIT/5/src/main/scala/parallel/Dispatcher.scala:33:7: side-effecting nullary methods are discouraged: suggest defining as `def disSync()` instead
+[warn]   def disSync: Unit = dis.synchronized {dis += 1}
+[warn]       ^
+[warn] four warnings found
+[info] done compiling
+[info] compiling 10 Scala sources to /assigns/jjf1027/GIT/5/target/scala-2.13/test-classes ...
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:19:5: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]     println(s"worker gets $x")
+[warn]     ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:19:12: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]     println(s"worker gets $x")
+[warn]            ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:28:3: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]   println("dispatcher created")
+[warn]   ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:28:10: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]   println("dispatcher created")
+[warn]          ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:32:3: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]   println("workers started")
+[warn]   ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:32:10: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]   println("workers started")
+[warn]          ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:34:3: method timeFuture in package threads is deprecated (since 1.5.3): use timeIt instead
+[warn]   timeFuture(dispatcher.future).map {
+[warn]   ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:36:7: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]       println(values.mkString("[", ", ", "]"))
+[warn]       ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:36:14: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]       println(values.mkString("[", ", ", "]"))
+[warn]              ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:37:7: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]       println(f"time: $duration%.3f secs")
+[warn]       ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/Demo.scala:37:14: object Printing in package utils is deprecated (since 1.6.0): use TinyScalaUtils instead
+[warn]       println(f"time: $duration%.3f secs")
+[warn]              ^
+[warn] /assigns/jjf1027/GIT/5/src/test/scala/grading/TimingTests.scala:67:7: method timeFuture in package threads is deprecated (since 1.5.3): use timeIt instead
+[warn]       timeFuture {
+[warn]       ^
+[warn] 12 warnings found
+[info] done compiling
+[warn] multiple main classes detected: run 'show discoveredMainClasses' to see the list
+[info] running (fork) grading.Grade 
+SampleTestsSuite:
+- single thread, no semaphore (49 milliseconds)
+- single thread, semaphore (37 milliseconds)
+- handout, threads (5 seconds, 25 milliseconds)
+- handout, pool (5 seconds, 23 milliseconds)
+- 64 threads, slow, semaphore *** FAILED *** (1 second, 38 milliseconds)
+  11 was not less than or equal to 10 (SampleTests.scala:105)
+- 64 threads, fast, no semaphore (34 milliseconds)
+- timing 1 (3 seconds, 21 milliseconds)
+- timing 2 (3 seconds, 7 milliseconds)
+- timing 3 *** FAILED *** (5 seconds, 8 milliseconds)
+  5.0 did not equal 6 (TimingTests.scala:93)
+- timing 4 (6 seconds, 5 milliseconds)
+- 1 file, no match (23 milliseconds)
+- 2 files *** FAILED *** (42 milliseconds)
+  2500 did not equal 1734 (SampleTests.scala:208)
+DispatcherSuite:
+- 1000 tasks with 1 thread (101 milliseconds)
+- 1000 tasks with 1 thread and 1 permits (65 milliseconds)
+- 1000 tasks with 1 thread and 10 permits (24 milliseconds)
+- 1000 tasks with 1 thread and 2000 permits (36 milliseconds)
+- 100000 tasks with 1 thread *** FAILED *** (3 seconds, 9 milliseconds)
+  The test did not complete within the specified 3 seconds time limit. (DispatcherSuite.scala:53)
+- 100000 tasks with 1 thread and 1 permits *** FAILED *** (3 seconds, 3 milliseconds)
+  The test did not complete within the specified 3 seconds time limit. (DispatcherSuite.scala:53)
+Aug 05, 2021 5:57:02 PM edu.unh.cs.mc.utils.threads.WaitAndStop $anonfun$kill$1
+INFO: stopping StoppableThread-17
+- 100000 tasks with 1 thread and 10 permits *** FAILED *** (3 seconds, 3 milliseconds)
+  The test did not complete within the specified 3 seconds time limit. (DispatcherSuite.scala:53)
+- 10 slow tasks with 10 threads (1 second, 34 milliseconds)
+Aug 05, 2021 5:57:05 PM edu.unh.cs.mc.utils.threads.WaitAndStop $anonfun$kill$1
+INFO: stopping StoppableThread-18
+- 10 slow tasks with 32 threads (1 second, 43 milliseconds)
+- 64 slow tasks with 64 threads (1 second, 28 milliseconds)
+Aug 05, 2021 5:57:08 PM edu.unh.cs.mc.utils.threads.WaitAndStop $anonfun$kill$1
+INFO: stopping StoppableThread-19
+- 64 slow tasks with 32 threads (2 seconds, 18 milliseconds)
+- 64 slow tasks with 16 threads (4 seconds, 13 milliseconds)
+- 1024 slow tasks with 128 threads (8 seconds, 123 milliseconds)
+- 1024 slow tasks with 100 threads (11 seconds, 34 milliseconds)
+- 131 slow tasks with 11 threads (12 seconds, 7 milliseconds)
+- 25 slow tasks with 32 threads and 10 permits *** FAILED *** (1 second, 12 milliseconds)
+  11 was not less than or equal to 10 (DispatcherSuite.scala:71)
+- 25 slow tasks with 5 threads and 10 permits (5 seconds, 5 milliseconds)
+- 64 slow tasks with 64 threads and 64 permits (1 second, 19 milliseconds)
+- 64 slow tasks with 64 threads and 32 permits *** FAILED *** (1 second, 14 milliseconds)
+  33 was not less than or equal to 32 (DispatcherSuite.scala:71)
+- 64 slow tasks with 64 threads and 10 permits *** FAILED *** (1 second, 16 milliseconds)
+  11 was not less than or equal to 10 (DispatcherSuite.scala:71)
+- 1000 slow tasks with 128 threads and 100 permits *** FAILED *** (1 second, 30 milliseconds)
+  101 was not less than or equal to 100 (DispatcherSuite.scala:71)
+- 10 fast tasks with 64 threads (18 milliseconds)
+- 64 fast tasks with 64 threads (14 milliseconds)
+- 1024 fast tasks with 64 threads (63 milliseconds)
+- 1024 fast tasks with 32 threads (105 milliseconds)
+- 1024 fast tasks with 16 threads (101 milliseconds)
+- 100000 fast tasks with 16 threads *** FAILED *** (3 seconds, 2 milliseconds)
+  The test did not complete within the specified 3 seconds time limit. (DispatcherSuite.scala:164)
+- 10 fast tasks with 64 threads and 5 permits (8 milliseconds)
+- 64 fast tasks with 64 threads and 30 permits (8 milliseconds)
+- 1024 fast tasks with 64 threads and 30 permits (83 milliseconds)
+- 1024 fast tasks with 64 threads and 2 permits (88 milliseconds)
+- 100000 fast tasks with 64 threads and 50 permits *** FAILED *** (3 seconds, 2 milliseconds)
+  The test did not complete within the specified 3 seconds time limit. (DispatcherSuite.scala:164)
+- 32 tasks with 32 extra threads (26 milliseconds)
+- 1 tasks with 63 extra threads (73 milliseconds)
+- 64 tasks with 64 extra threads (95 milliseconds)
+- 1 tasks with 127 extra threads (32 milliseconds)
+- 10 tasks with 90 extra threads (195 milliseconds)
+- 99 tasks with 1 extra threads (18 milliseconds)
+- 1 tasks with 99 extra threads (53 milliseconds)
+- 32 tasks with 32 extra threads and 50 permits (17 milliseconds)
+- 32 tasks with 32 extra threads and 100 permits (14 milliseconds)
+- 1 tasks with 63 extra threads and 50 permits (10 milliseconds)
+- 1 tasks with 63 extra threads and 100 permits (59 milliseconds)
+- 99 tasks with 1 extra threads and 50 permits (23 milliseconds)
+- 99 tasks with 1 extra threads and 99 permits (65 milliseconds)
+- 99 tasks with 1 extra threads and 100 permits (25 milliseconds)
+- 99 tasks with 1 extra threads and 200 permits (19 milliseconds)
+- exception 1 *** FAILED *** (3 milliseconds)
+  Expected exception java.lang.IllegalStateException to be thrown, but java.lang.IllegalArgumentException was thrown (DispatcherSuite.scala:226)
+- exception 2 *** FAILED *** (2 milliseconds)
+  Expected exception java.lang.IllegalStateException to be thrown, but java.lang.IllegalArgumentException was thrown (DispatcherSuite.scala:233)
+- empty 1 *** FAILED *** (41 milliseconds)
+  Expected exception java.lang.IllegalStateException to be thrown, but java.lang.IllegalArgumentException was thrown (DispatcherSuite.scala:238)
+- empty 2 *** FAILED *** (4 milliseconds)
+  disp.future.isCompleted was false (DispatcherSuite.scala:243)
+- empty next 1 (3 milliseconds)
+- empty next 2 (2 milliseconds)
+TimingTestSuite:
+- [1.0, 2.0, 3.0, 2.1, 1.0, 2.0] with a thread pool with 3 permits *** FAILED *** (3 seconds, 5 milliseconds)
+  3.0 did not equal 5 (TimingTests.scala:93)
+- [1.0, 2.0, 3.0, 2.1, 1.0, 2.0] with 3 worker threads (5 seconds, 4 milliseconds)
+- [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1... with a thread pool with 91 permits (10 seconds, 17 milliseconds)
+- [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1... with 91 worker threads (10 seconds, 18 milliseconds)
+- [5.0, 1.0, 2.0, 3.0] with a thread pool with 3 permits (5 seconds, 4 milliseconds)
+- [5.0, 1.0, 2.0, 3.0] with 3 worker threads (5 seconds, 4 milliseconds)
+- [5.0, 1.0, 2.0, 3.0] with 4 worker threads with 2 permits *** FAILED *** (5 seconds, 4 milliseconds)
+  5.0 did not equal 6 (TimingTests.scala:93)
+- [5.0, 1.0, 2.0, 3.0] with 2 worker threads with 4 permits (6 seconds, 5 milliseconds)
+- [1.0, 5.0, 1.0, 5.0, 4.0, 1.0, 1.0] with a thread pool with 3 permits *** FAILED *** (5 seconds, 4 milliseconds)
+  5.0 did not equal 6 (TimingTests.scala:93)
+- [1.0, 5.0, 1.0, 5.0, 4.0, 1.0, 1.0] with 3 worker threads (6 seconds, 5 milliseconds)
+- [1.0, 5.0, 1.0, 5.0, 4.0, 1.0, 1.0] with 7 worker threads with 3 permits *** FAILED *** (5 seconds, 5 milliseconds)
+  5.0 did not equal 6 (TimingTests.scala:93)
+- [1.0, 5.0, 1.0, 5.0, 4.0, 1.0, 1.0] with 3 worker threads with 7 permits (6 seconds, 5 milliseconds)
+- [1.0, 1.0, 1.0, 5.0, 1.0, 1.0, 1.0, 1.0] with a thread pool with 2 permits *** FAILED *** (5 seconds, 4 milliseconds)
+  5.0 did not equal 6 (TimingTests.scala:93)
+- [1.0, 1.0, 1.0, 5.0, 1.0, 1.0, 1.0, 1.0] with 2 worker threads (6 seconds, 6 milliseconds)
+- [1.0, 1.0, 1.0, 5.0, 1.0, 1.0, 1.0, 1.0] with 8 worker threads with 2 permits *** FAILED *** (5 seconds, 5 milliseconds)
+  5.0 did not equal 6 (TimingTests.scala:93)
+- [1.0, 1.0, 1.0, 5.0, 1.0, 1.0, 1.0, 1.0] with 2 worker threads with 8 permits (6 seconds, 5 milliseconds)
+GrepAppSuite:
+- 1 file, 1 match (23 milliseconds)
+- 1 file, no match (5 milliseconds)
+- 1 file, multiple matches (17 milliseconds)
+- 2 files *** FAILED *** (13 milliseconds)
+  2092 did not equal 1734 (GrepAppSuite.scala:63)
+- 100 files *** FAILED *** (170 milliseconds)
+  6 did not equal 50 (GrepAppSuite.scala:76)
+- 100_000 files (382 milliseconds)
+time: 189.2 seconds
+grade: 70 / 100
+[success] Total time: 202 s (03:22), completed Aug 5, 2021, 5:59:35 PM

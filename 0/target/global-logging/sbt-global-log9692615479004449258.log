@@ -1,0 +1,12 @@
+[debug] > Exec(testOnly SampleTests, None, None)
+[debug] Evaluating tasks: Test / testOnly
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[info] SampleTests:
+[info] - sample
+[info] Run completed in 928 milliseconds.
+[info] Total number of tests run: 1
+[info] Suites: completed 1, aborted 0
+[info] Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
+[info] All tests passed.
+[success] Total time: 1 s, completed May 25, 2021, 9:28:35 PM
+[debug] > Exec(idea-shell, None, None)

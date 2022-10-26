@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<!-- Generated from 903-futures.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>21-futures</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="futures-and-promises">Futures and Promises</h2>
+<h3 id="futures">Futures</h3>
+<p>It is often the case that tasks submitted to a thread pool cannot simply be left to run and otherwise forgotten (the <em>fire-and-forget</em> model of the <code>execute</code> method). For instance, an application may need to use the output produced by a task or simply assert that a task has been completed. In general, this requires thread-safe objects to be shared among tasks, and the use of synchronizers like the latch used earlier.</p>
+<p>Instead of applications coming up with their own mechanisms for this purpose, thread pools implement a form of handler that is given to a caller when a task is submitted for asynchronous execution. These handlers are often called <em>futures</em> and are available in both Java and Scala (albeit in different forms).</p>
+<p>In Scala, futures are created from any code (not just runnables) using the <code>Future</code> companion object:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">val</span> f1 = Future(r1.<span class="fu">run</span>())(exec)</span></code></pre></div>
+<p>This schedules the execution of <code>r1.run()</code> on the thread pool <code>exec</code> and returns a <code>Future</code> object. A common pattern in Scala is to create futures on an implicit thread pool. Assuming <code>exec</code> has been made implicitly available, the previous example can be written as:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">val</span> f1 = Future {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>  r1.<span class="fu">run</span>()</span>
+<span id="cb2-3"><a href="#cb2-3"></a>}</span></code></pre></div>
+<p>The default thread pool can be made available implicitly by importing <code>scala.concurrent.ExecutionContext.Implicits.global</code>. (A different pool is used in these notes to ensure that threads are started in non-daemon mode.)</p>
+<p>If <code>r1</code> is a runnable, future <code>f1</code> in the example above has type <code>Future[Unit]</code> because task <code>r1</code> does not produce usable output. However, the full power of futures comes from using value-returning tasks.</p>
+<p>There are different ways to use the value produced by a future. The simplest method is <code>value</code>, which returns the output value of a task as an option: <code>None</code> if the task is still running and <code>Some</code> if the task is completed:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">// in Future[T]</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">def</span> value: Option[Try[T]] = ...</span></code></pre></div>
+<p>The reason the return type is <code>Option[Try[T]]</code> and not <code>Option[T]</code> is that tasks may fail and throw exceptions. Type <code>Try</code> is used as a mechanism to carry exceptions from one thread (the pool worker that executes the task) to another (the thread that submitted the task). Without it, unhandled exceptions would simply terminate the worker thread with no notification to the thread that created the task.</p>
+<p>Propagation of failures from thread to thread is an important problem of concurrent programming. Another critical difficulty is for a thread to know that the result of an asynchronous task is available. We have already discussed the undesirability of sleeping and busy-waiting. Futures offer a mechanism by which a thread can efficiently wait until a task finishes:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">import</span> scala.<span class="fu">concurrent</span>.<span class="fu">duration</span>._</span>
+<span id="cb4-2"><a href="#cb4-2"></a></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="fu">println</span>(<span class="st">&quot;START&quot;</span>)</span>
+<span id="cb4-4"><a href="#cb4-4"></a></span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="kw">val</span> f1: Future[Int] = Future {</span>
+<span id="cb4-6"><a href="#cb4-6"></a>  <span class="kw">val</span> url = ...</span>
+<span id="cb4-7"><a href="#cb4-7"></a>  <span class="fu">println</span>(<span class="st">&quot;starting to read...&quot;</span>)</span>
+<span id="cb4-8"><a href="#cb4-8"></a>  Using.<span class="fu">resource</span>(Source.<span class="fu">fromURL</span>(url))(_.<span class="fu">length</span>)  <span class="co">// number of characters in the source</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a>}</span>
+<span id="cb4-10"><a href="#cb4-10"></a></span>
+<span id="cb4-11"><a href="#cb4-11"></a><span class="fu">println</span>(<span class="st">&quot;future created&quot;</span>)</span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="kw">val</span> count = Await.<span class="fu">result</span>(f1, <span class="fl">1.</span>minute)</span>
+<span id="cb4-13"><a href="#cb4-13"></a><span class="fu">println</span>(count)</span>
+<span id="cb4-14"><a href="#cb4-14"></a></span>
+<span id="cb4-15"><a href="#cb4-15"></a><span class="fu">println</span>(<span class="st">&quot;END&quot;</span>)</span></code></pre></div>
+<pre><code>main at XX:XX:16.789: START
+main at XX:XX:16.922: future created
+ExecutionContext-thread-1 at XX:XX:16.923: starting to read...
+main at XX:XX:18.807: 3292067
+main at XX:XX:18.807: END</code></pre>
+<p>Note how the main thread is blocked on <code>Await</code> for about 2 seconds, which is the duration of the task, no more, no less. The <code>1.minute</code> specified in the call to <code>Await</code> is used for <em>timeouts</em>. It does not mean that the thread will wait for one minute (it won’t if the task finishes before that), but only that a <code>Timeout</code> exception will be thrown after one minute if the task still has not completed. (Real applications would need to handle this exception somehow.)</p>
+<p>The <code>Future</code> trait has a <code>result</code> method (with a timeout argument). This method should <em>not</em> be called directly and code should instead rely on <code>Await</code> (which calls it internally). Using <code>Await</code> allows thread pools to be notified that a thread is starting a blocking operation. This information is used by some thread pools (most notably pools built on top of Java’s <em>fork/join</em>) to create additional threads to avoid deadlocks and maintain a desired level of concurrency.</p>
+<h3 id="using-callbacks">Using callbacks</h3>
+<p>Creating, suspending and resuming threads is not cost-free and advanced concurrent programming techniques have been designed to minimize the use of blocking operations in concurrent programs. Scala’s futures offer a <em>callback registration</em> mechanism: Instead of waiting for a task to finish so its output can be used, one can specify as a callback what should be done with this output when the task finishes:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">println</span>(<span class="st">&quot;START&quot;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2"></a></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="kw">val</span> f1: Future[Int] = Future {</span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="kw">val</span> url = ...</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="fu">println</span>(<span class="st">&quot;starting to read...&quot;</span>)</span>
+<span id="cb6-6"><a href="#cb6-6"></a>  Using.<span class="fu">resource</span>(Source.<span class="fu">fromURL</span>(url))(_.<span class="fu">length</span>)</span>
+<span id="cb6-7"><a href="#cb6-7"></a>}</span>
+<span id="cb6-8"><a href="#cb6-8"></a></span>
+<span id="cb6-9"><a href="#cb6-9"></a><span class="fu">println</span>(<span class="st">&quot;future created&quot;</span>)</span>
+<span id="cb6-10"><a href="#cb6-10"></a></span>
+<span id="cb6-11"><a href="#cb6-11"></a>f1 onComplete {</span>
+<span id="cb6-12"><a href="#cb6-12"></a>  <span class="kw">case</span> <span class="fu">Success</span>(count) =&gt; <span class="fu">println</span>(count)</span>
+<span id="cb6-13"><a href="#cb6-13"></a>  <span class="kw">case</span> <span class="fu">Failure</span>(e) =&gt; <span class="fu">println</span>(e.<span class="fu">getMessage</span>)</span>
+<span id="cb6-14"><a href="#cb6-14"></a>}</span>
+<span id="cb6-15"><a href="#cb6-15"></a></span>
+<span id="cb6-16"><a href="#cb6-16"></a><span class="fu">println</span>(<span class="st">&quot;END&quot;</span>)</span></code></pre></div>
+<pre><code>main at XX:XX:38.226: START
+main at XX:XX:38.354: future created
+ExecutionContext-thread-1 at XX:XX:38.355: starting to read...
+main at XX:XX:38.355: END
+ExecutionContext-thread-2 at XX:XX:40.322: 3292067</code></pre>
+<p>The call to <code>onComplete</code> on <code>f1</code> registers a <em>callback</em> as a function to execute on the output of the task when it finishes. This is a non-blocking operation (the main thread continues and quickly terminates). When the task finishes, the callback is executed (and prints the number of characters in this example). Note how the callback is run here on a thread from the thread pool. Which thread runs a callback is not specified. It could be the thread that ran the task or (like in this case) another thread. If multiple callbacks are registered, they may run in any order or even concurrently. When a callback is registered on a task that is already completed, the callback might even run in the registering thread (the thread that calls <code>onComplete</code>).</p>
+<h3 id="using-monadic-operators">Using monadic operators</h3>
+<p>Callbacks are one way to specify how to use the result of a task without first waiting for the task to finish. However, <code>onComplete</code> does not produce a value and relies instead on side effects. A more functional approach can use the fact that futures in Scala form a <em>monad</em>: Futures implement the monadic methods <code>map</code>, <code>flatMat</code>, <code>withFilter</code> and <code>foreach</code> and thus can be the target of <em>for-comprehensions</em>. For instance, the number of characters in the remote file of the previous example can be displayed like this:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">println</span>(<span class="st">&quot;START&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="kw">val</span> f1: Future[Int] = Future {</span>
+<span id="cb8-4"><a href="#cb8-4"></a>  <span class="kw">val</span> url = ...</span>
+<span id="cb8-5"><a href="#cb8-5"></a>  <span class="fu">println</span>(<span class="st">&quot;starting to read...&quot;</span>)</span>
+<span id="cb8-6"><a href="#cb8-6"></a>  Using.<span class="fu">resource</span>(Source.<span class="fu">fromURL</span>(url))(_.<span class="fu">length</span>)</span>
+<span id="cb8-7"><a href="#cb8-7"></a>}</span>
+<span id="cb8-8"><a href="#cb8-8"></a></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="fu">println</span>(<span class="st">&quot;future created&quot;</span>)</span>
+<span id="cb8-10"><a href="#cb8-10"></a></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="kw">for</span> (count &lt;- f1) <span class="fu">println</span>(count)</span>
+<span id="cb8-12"><a href="#cb8-12"></a></span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="fu">println</span>(<span class="st">&quot;END&quot;</span>)</span></code></pre></div>
+<pre><code>main at XX:XX:37.916: START
+main at XX:XX:38.037: future created
+ExecutionContext-thread-1 at XX:XX:38.038: starting to read...
+main at XX:XX:38.039: END
+ExecutionContext-thread-2 at XX:XX:40.031: 3292067</code></pre>
+<p>The output is similar to that of the previous implementation (in particular, the <code>END</code> message comes first, as the <code>for</code> operation does not wait for the task to finish). Of course, <code>for (count &lt;- f1) println(count)</code> could also be written <code>f1 foreach println</code>. A key difference between <code>for/foreach</code> and <code>onComplete</code> is that no callback would occur here if the task had failed. To achieve the full behavior of the <code>onComplete</code> example, one would need to add:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">for</span> (e &lt;- f1.<span class="fu">failed</span>) <span class="fu">println</span>(e.<span class="fu">getMessage</span>)</span></code></pre></div>
+<p><code>f1.failed</code> is a future that succeeds if <code>f1</code> fails and fails if <code>f1</code> succeeds.</p>
+<p>Methods <code>map</code> (and <code>flatMap</code>) can be used to chain computations. For instance, the size of the largest of two remote files could be obtained this way:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">val</span> f1: Future[Int] = Future {</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">val</span> url = ... <span class="co">// some URL</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a>  Using.<span class="fu">resource</span>(Source.<span class="fu">fromURL</span>(url))(_.<span class="fu">length</span>)</span>
+<span id="cb11-4"><a href="#cb11-4"></a>}</span>
+<span id="cb11-5"><a href="#cb11-5"></a></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="kw">val</span> f2: Future[Int] = Future {</span>
+<span id="cb11-7"><a href="#cb11-7"></a>  <span class="kw">val</span> url = ... <span class="co">// some other URL</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a>  Using.<span class="fu">resource</span>(Source.<span class="fu">fromURL</span>(url))(_.<span class="fu">length</span>)</span>
+<span id="cb11-9"><a href="#cb11-9"></a>}</span>
+<span id="cb11-10"><a href="#cb11-10"></a></span>
+<span id="cb11-11"><a href="#cb11-11"></a><span class="kw">val</span> f: Future[Int] = f1 flatMap { c1 =&gt;</span>
+<span id="cb11-12"><a href="#cb11-12"></a>  f2 map { c2 =&gt;</span>
+<span id="cb11-13"><a href="#cb11-13"></a>    c1 max c2</span>
+<span id="cb11-14"><a href="#cb11-14"></a>  }</span>
+<span id="cb11-15"><a href="#cb11-15"></a>}</span>
+<span id="cb11-16"><a href="#cb11-16"></a></span>
+<span id="cb11-17"><a href="#cb11-17"></a><span class="kw">for</span> (count &lt;- f) <span class="fu">println</span>(count)</span></code></pre></div>
+<p>This processes both URLs in parallel in futures <code>f1</code> and <code>f2</code>. Future <code>f</code> is a computation of the size of the largest of both sources. Note how this is achieved without any blocking (the main thread may terminate before either URL is finished processing).</p>
+<p>Future <code>f</code> can be defined more naturally using a for-comprehension:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">val</span> f = <span class="kw">for</span> (c1 &lt;- f1; c2 &lt;- f2) <span class="kw">yield</span> c1 max c2</span></code></pre></div>
+<p>Two final remarks on the use of <code>for</code> or <code>for/yield</code> on futures:</p>
+<ul>
+<li><p>It has nothing to do with loops. The name <em>for</em> can be misleading, but what is used here is <code>map</code>, <code>flatMap</code> and <code>foreach</code>.</p></li>
+<li><p>Some structures can be “opened” instead of using a monadic operator. For instance, if <code>o</code> is an option, <code>o.map(f)</code> could be written <code>o match { case Some(v) =&gt; Some(f(v)); case None =&gt; None }</code> instead. There is no way<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> to “open” a future to transform its value since the computation of this value might still be ongoing.</p></li>
+</ul>
+<h3 id="promises">Promises</h3>
+<p><em>Promises</em> are the internal mechanism by which futures are created in Scala (and other languages). A promise represents the future result of a computation. When the computation terminates, the promise is fulfilled, with either a value or an error:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">val</span> p = Promise[Int]</span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="kw">val</span> f = p.<span class="fu">future</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a>f.<span class="fu">isCompleted</span> <span class="co">// false</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>f.<span class="fu">value</span>       <span class="co">// None</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a>p.<span class="fu">success</span>(<span class="dv">42</span>)</span>
+<span id="cb13-6"><a href="#cb13-6"></a>f.<span class="fu">value</span>       <span class="co">// Some(Success(42))</span></span></code></pre></div>
+<p>In case of failure, a promise can be completed by a call to its method <code>failure</code>. A promise can also be completed by calling its method <code>complete</code>, which takes a <code>Try</code> as its argument (representing a success or a failure). Calls to <code>success</code>, <code>failure</code> or <code>complete</code> typically happen in a different thread (e.g., from a thread pool). For instance, the calls to <code>Future { ... }</code> used above are actually calls to an <code>apply</code> method from the companion object <code>Future</code>; this method could be implemented this way:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">def</span> apply[A](code: =&gt; A)(<span class="kw">implicit</span> exec: ExecutionContext): Future[A] = {</span>
+<span id="cb14-2"><a href="#cb14-2"></a>  <span class="kw">val</span> p = Promise[A]</span>
+<span id="cb14-3"><a href="#cb14-3"></a>  exec.<span class="fu">execute</span>(() =&gt; p.<span class="fu">complete</span>(<span class="fu">Try</span>(code)))</span>
+<span id="cb14-4"><a href="#cb14-4"></a>  p.<span class="fu">future</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a>}</span></code></pre></div>
+<p>The code to compute is passed by name, unevaluated. A task is created to run the code and to use its output to complete a promise. This task is then scheduled on the given thread pool.</p>
+<p>A frequent pattern is to complete promises by using callbacks on other futures. For instance, a <code>map</code> function that transforms a <code>Future[A]</code> into a <code>Future[B]</code> could be written as follows:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">def</span> map[A, B](future: Future[A], f: A =&gt; B): Future[B] = {</span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="kw">val</span> p = Promise[B]</span>
+<span id="cb15-3"><a href="#cb15-3"></a>  </span>
+<span id="cb15-4"><a href="#cb15-4"></a>  future onComplete {</span>
+<span id="cb15-5"><a href="#cb15-5"></a>    <span class="kw">case</span> <span class="fu">Failure</span>(e) =&gt; p.<span class="fu">failure</span>(e)</span>
+<span id="cb15-6"><a href="#cb15-6"></a>    <span class="kw">case</span> <span class="fu">Success</span>(v) =&gt; p.<span class="fu">complete</span>(<span class="fu">Try</span>(<span class="fu">f</span>(v)))</span>
+<span id="cb15-7"><a href="#cb15-7"></a>  }</span>
+<span id="cb15-8"><a href="#cb15-8"></a>  </span>
+<span id="cb15-9"><a href="#cb15-9"></a>  p.<span class="fu">future</span></span>
+<span id="cb15-10"><a href="#cb15-10"></a>}</span></code></pre></div>
+<p>This method is non-blocking and quickly returns a <code>Future[B]</code> out of promise <code>p</code>. When the <code>future</code> argument completes, a callback is used to fulfill the promise. If the initial computation fails, there is no value to which function <code>f</code> can be applied, and the promise fails. Otherwise, function <code>f</code> is applied to the output of the initial future. If this succeeds, the promise succeeds; otherwise, it fails with the exception thrown by <code>f</code>. Note how possible failures (of the task that produces the input to <code>f</code> or of function <code>f</code> itself) typically happen in a worker thread and need to be propagated to the thread that called <code>map</code>.</p>
+<h3 id="futures-and-promises-in-java">Futures and promises in Java</h3>
+<h4 id="futures-in-java-geq-5">Futures in Java <span class="math inline">≥</span> 5</h4>
+<p>Java 5 introduced a <code>java.util.concurrent</code> library for concurrent programming. It is now the primary tool for concurrent programming in Java and more generally on the JVM (other JVM frameworks, like Scala’s futures, Akka’s actors and RxJava’s streams, are built on top of <code>java.util.concurrent</code>). The URL retrieval example could be written like this in Java:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">// this is Java</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a></span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="fu">println</span>(<span class="st">&quot;START&quot;</span>);</span>
+<span id="cb16-4"><a href="#cb16-4"></a></span>
+<span id="cb16-5"><a href="#cb16-5"></a><span class="bu">Future</span>&lt;<span class="bu">Integer</span>&gt; f1 = exec.<span class="fu">submit</span>(() -&gt; {</span>
+<span id="cb16-6"><a href="#cb16-6"></a>  <span class="bu">URL</span> url = <span class="kw">new</span> <span class="bu">URL</span>(...);</span>
+<span id="cb16-7"><a href="#cb16-7"></a>  <span class="kw">try</span> (<span class="bu">Reader</span> reader = <span class="kw">new</span> <span class="bu">InputStreamReader</span>(url.<span class="fu">openStream</span>())) {</span>
+<span id="cb16-8"><a href="#cb16-8"></a>    <span class="kw">return</span> (<span class="dt">int</span>) reader.<span class="fu">skip</span>(<span class="bu">Long</span>.<span class="fu">MAX_VALUE</span>);</span>
+<span id="cb16-9"><a href="#cb16-9"></a>  }</span>
+<span id="cb16-10"><a href="#cb16-10"></a>});</span>
+<span id="cb16-11"><a href="#cb16-11"></a></span>
+<span id="cb16-12"><a href="#cb16-12"></a><span class="bu">Future</span>&lt;<span class="bu">Integer</span>&gt; f2 = exec.<span class="fu">submit</span>(() -&gt; {</span>
+<span id="cb16-13"><a href="#cb16-13"></a>  <span class="bu">URL</span> url = <span class="kw">new</span> <span class="bu">URL</span>(...);</span>
+<span id="cb16-14"><a href="#cb16-14"></a>  <span class="kw">try</span> (<span class="bu">Reader</span> reader = <span class="kw">new</span> <span class="bu">InputStreamReader</span>(url.<span class="fu">openStream</span>())) {</span>
+<span id="cb16-15"><a href="#cb16-15"></a>    <span class="kw">return</span> (<span class="dt">int</span>) reader.<span class="fu">skip</span>(<span class="bu">Long</span>.<span class="fu">MAX_VALUE</span>);</span>
+<span id="cb16-16"><a href="#cb16-16"></a>  }</span>
+<span id="cb16-17"><a href="#cb16-17"></a>});</span>
+<span id="cb16-18"><a href="#cb16-18"></a></span>
+<span id="cb16-19"><a href="#cb16-19"></a><span class="bu">Future</span>&lt;<span class="bu">Integer</span>&gt; f = exec.<span class="fu">submit</span>(() -&gt; {</span>
+<span id="cb16-20"><a href="#cb16-20"></a>  <span class="dt">int</span> c1 = f1.<span class="fu">get</span>();</span>
+<span id="cb16-21"><a href="#cb16-21"></a>  <span class="dt">int</span> c2 = f2.<span class="fu">get</span>();</span>
+<span id="cb16-22"><a href="#cb16-22"></a>  <span class="kw">return</span> (c1 &gt; c2) ? c1 : c2;</span>
+<span id="cb16-23"><a href="#cb16-23"></a>});</span>
+<span id="cb16-24"><a href="#cb16-24"></a></span>
+<span id="cb16-25"><a href="#cb16-25"></a>exec.<span class="fu">execute</span>(() -&gt; {</span>
+<span id="cb16-26"><a href="#cb16-26"></a>  <span class="kw">try</span> {</span>
+<span id="cb16-27"><a href="#cb16-27"></a>    <span class="fu">println</span>(f.<span class="fu">get</span>());</span>
+<span id="cb16-28"><a href="#cb16-28"></a>  } <span class="kw">catch</span> (<span class="bu">Exception</span> e) {</span>
+<span id="cb16-29"><a href="#cb16-29"></a>    e.<span class="fu">printStackTrace</span>();</span>
+<span id="cb16-30"><a href="#cb16-30"></a>  }</span>
+<span id="cb16-31"><a href="#cb16-31"></a>});</span>
+<span id="cb16-32"><a href="#cb16-32"></a></span>
+<span id="cb16-33"><a href="#cb16-33"></a><span class="fu">println</span>(<span class="st">&quot;END&quot;</span>);</span></code></pre></div>
+<p>Java’s <code>Future</code> is different from Scala’s <code>Future</code>. It does not support callbacks or the monadic operators (but has a <code>cancel</code> method to cancel running tasks that Scala does not have). There is no <code>flatMap/map</code> to combine the results of <code>f1</code> and <code>f2</code>, which forces the use of an extra task (and possibly an extra thread) to block on <code>f1.get()</code> and <code>f2.get()</code>. Similarly, the final printing callback of Scala is achieved via another additional task blocked on <code>f.get()</code>.</p>
+<h4 id="futures-in-java-geq-8">Futures in Java <span class="math inline">≥</span> 8</h4>
+<p>Java 8 introduced a richer form of future called <code>CompletionStage</code>, which supports callbacks and monadic operators. Using it, the URL retrieval example could be written in the style of Scala, without blocking or additional threads:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1"></a><span class="co">// this is Java</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a></span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="kw">class</span> URLLength <span class="kw">implements</span> Supplier&lt;<span class="bu">Integer</span>&gt; {</span>
+<span id="cb17-4"><a href="#cb17-4"></a>  <span class="kw">private</span> <span class="dt">final</span> <span class="bu">URL</span> url;</span>
+<span id="cb17-5"><a href="#cb17-5"></a></span>
+<span id="cb17-6"><a href="#cb17-6"></a>  <span class="kw">public</span> <span class="fu">URLLength</span>(<span class="bu">String</span> name) {</span>
+<span id="cb17-7"><a href="#cb17-7"></a>    <span class="kw">try</span> {</span>
+<span id="cb17-8"><a href="#cb17-8"></a>      url = <span class="kw">new</span> <span class="bu">URL</span>(name);</span>
+<span id="cb17-9"><a href="#cb17-9"></a>    } <span class="kw">catch</span> (<span class="bu">MalformedURLException</span> e) {</span>
+<span id="cb17-10"><a href="#cb17-10"></a>      <span class="kw">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span>(e);</span>
+<span id="cb17-11"><a href="#cb17-11"></a>    }</span>
+<span id="cb17-12"><a href="#cb17-12"></a>  }</span>
+<span id="cb17-13"><a href="#cb17-13"></a></span>
+<span id="cb17-14"><a href="#cb17-14"></a>  <span class="kw">public</span> <span class="bu">Integer</span> <span class="fu">get</span>() {</span>
+<span id="cb17-15"><a href="#cb17-15"></a>    <span class="kw">try</span> (<span class="bu">Reader</span> reader = <span class="kw">new</span> <span class="bu">InputStreamReader</span>(url.<span class="fu">openStream</span>())) {</span>
+<span id="cb17-16"><a href="#cb17-16"></a>      <span class="kw">return</span> (<span class="dt">int</span>) reader.<span class="fu">skip</span>(<span class="bu">Long</span>.<span class="fu">MAX_VALUE</span>);</span>
+<span id="cb17-17"><a href="#cb17-17"></a>    } <span class="kw">catch</span> (<span class="bu">IOException</span> e) {</span>
+<span id="cb17-18"><a href="#cb17-18"></a>      <span class="kw">throw</span> <span class="kw">new</span> <span class="fu">UncheckedIOException</span>(e);</span>
+<span id="cb17-19"><a href="#cb17-19"></a>    }</span>
+<span id="cb17-20"><a href="#cb17-20"></a>  }</span>
+<span id="cb17-21"><a href="#cb17-21"></a>}</span>
+<span id="cb17-22"><a href="#cb17-22"></a></span>
+<span id="cb17-23"><a href="#cb17-23"></a><span class="fu">println</span>(<span class="st">&quot;START&quot;</span>);</span>
+<span id="cb17-24"><a href="#cb17-24"></a></span>
+<span id="cb17-25"><a href="#cb17-25"></a>CompletionStage&lt;<span class="bu">Integer</span>&gt; f1 = CompletableFuture.<span class="fu">supplyAsync</span>(<span class="kw">new</span> <span class="fu">URLLength</span>(...));</span>
+<span id="cb17-26"><a href="#cb17-26"></a>CompletionStage&lt;<span class="bu">Integer</span>&gt; f2 = CompletableFuture.<span class="fu">supplyAsync</span>(<span class="kw">new</span> <span class="fu">URLLength</span>(...));</span>
+<span id="cb17-27"><a href="#cb17-27"></a></span>
+<span id="cb17-28"><a href="#cb17-28"></a>CompletionStage&lt;<span class="bu">Integer</span>&gt; f = f1.<span class="fu">thenCompose</span>(c1 -&gt;</span>
+<span id="cb17-29"><a href="#cb17-29"></a>    f2.<span class="fu">thenApply</span>(c2 -&gt;</span>
+<span id="cb17-30"><a href="#cb17-30"></a>        (c1 &gt; c2) ? c1 : c2</span>
+<span id="cb17-31"><a href="#cb17-31"></a>    )</span>
+<span id="cb17-32"><a href="#cb17-32"></a>);</span>
+<span id="cb17-33"><a href="#cb17-33"></a></span>
+<span id="cb17-34"><a href="#cb17-34"></a>f.<span class="fu">thenAccept</span>(count -&gt; <span class="fu">println</span>(count));</span>
+<span id="cb17-35"><a href="#cb17-35"></a></span>
+<span id="cb17-36"><a href="#cb17-36"></a><span class="fu">println</span>(<span class="st">&quot;END&quot;</span>);</span></code></pre></div>
+<p>Method <code>thenCompose</code> is Java’s name for <code>flatmap</code>, making this approach equivalent to using <code>for/yield</code> in Scala. Alternatively, <code>f</code> could be created as <code>f = f1.thenCombine(f2, (c1, c2) -&gt; (c1 &gt; c2) ? c1 : c2)</code>, which is also possible in Scala as <code>(f1 zip f2) map { case (c1, c2) =&gt; c1 max c2 }</code>.</p>
+<h4 id="promises-1">Promises</h4>
+<p>In Java, regular futures tend to be created using <code>FutureTask</code>. Fancier <code>CompletionStage</code> futures are created using <code>CompletableFuture</code>, which acts as a promise. For instance, <code>f</code> above could also be created from a <code>CompletableFuture</code>:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">// this is Java</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a></span>
+<span id="cb18-3"><a href="#cb18-3"></a>CompletableFuture&lt;<span class="bu">Integer</span>&gt; f = <span class="kw">new</span> CompletableFuture&lt;&gt;();</span>
+<span id="cb18-4"><a href="#cb18-4"></a>f1.<span class="fu">thenAccept</span>(c1 -&gt;</span>
+<span id="cb18-5"><a href="#cb18-5"></a>    f2.<span class="fu">thenAccept</span>(c2 -&gt;</span>
+<span id="cb18-6"><a href="#cb18-6"></a>        f.<span class="fu">complete</span>((c1 &gt; c2) ? c1 : c2)));</span></code></pre></div>
+<p>The code above does not handle failures. If <code>f1</code> or <code>f2</code> fails, future <code>f</code> is never completed. (Code could be added to complete <code>f</code> exceptionally if either <code>f1</code> or <code>f2</code> fails.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>)</p>
+<h3 id="java.util.concurrent"><code>java.util.concurrent</code></h3>
+<p>In Scala, futures are <em>monads</em> and computations tend to be arranged functionally. In Java 5, futures are <em>synchronizers</em>, which are used for a more explicit thread coordination. Java 8 offers both flavors of futures. Other synchronizers in <code>java.util.concurrent</code> include locks, latches, barriers, semaphores, etc. In addition to synchronizers, the library implements various thread pools and a large collection of thread-safe data structures based on efficient <em>lock-free</em> algorithms. The Java thread pools are used in Scala to implement execution contexts. The Java thread-safe data structures can be used directly in Scala. Scala also has a few of its own (e.g., <code>scala.collection.concurrent.TrieMap</code>).</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Short of using another task in a separate thread.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>Java’s <code>Supplier</code> type cannot throw checked exceptions, which unnecessarily complicates the example.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>There is no need to; using <code>thenCombine</code> or <code>thenCompose</code> is simpler.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p>For instance:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1"></a><span class="co">// this is Java</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a></span>
+<span id="cb19-3"><a href="#cb19-3"></a>f1.<span class="fu">whenComplete</span>((c1, e1) -&gt; {</span>
+<span id="cb19-4"><a href="#cb19-4"></a>  <span class="kw">if</span> (c1 == <span class="kw">null</span>)</span>
+<span id="cb19-5"><a href="#cb19-5"></a>    f.<span class="fu">completeExceptionally</span>(e1);</span>
+<span id="cb19-6"><a href="#cb19-6"></a>  <span class="kw">else</span></span>
+<span id="cb19-7"><a href="#cb19-7"></a>    f2.<span class="fu">whenComplete</span>((c2, e2) -&gt; {</span>
+<span id="cb19-8"><a href="#cb19-8"></a>      <span class="kw">if</span> (c2 == <span class="kw">null</span>)</span>
+<span id="cb19-9"><a href="#cb19-9"></a>        f.<span class="fu">completeExceptionally</span>(e2);</span>
+<span id="cb19-10"><a href="#cb19-10"></a>      <span class="kw">else</span></span>
+<span id="cb19-11"><a href="#cb19-11"></a>        f.<span class="fu">complete</span>((c1 &gt; c2) ? c1 : c2);</span>
+<span id="cb19-12"><a href="#cb19-12"></a>    });</span>
+<span id="cb19-13"><a href="#cb19-13"></a>});</span></code></pre></div>
+<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></li>
+</ol>
+</section>
+<footer>2020-04-17 at 04:09:31 PM</footer>
+</body>

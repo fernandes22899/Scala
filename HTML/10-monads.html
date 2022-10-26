@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!-- Generated from 509-monads.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>10-monads</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="monads">Monads</h2>
+<h3 id="foryield-revisited"><code>for/yield</code> revisited</h3>
+<p>Recall how, in Scala, the <code>for</code> construct can be used to apply an operation to all the elements of a collection:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">val</span> col = ... <span class="co">// some iterable collection</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">for</span> (x &lt;- col) <span class="fu">println</span>(x)</span></code></pre></div>
+<p>This loop does not use an iterator, like in Java. Instead, it is compiled into the following expression:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a>col.<span class="fu">foreach</span>(x =&gt; <span class="fu">println</span>(x))</span></code></pre></div>
+<p>The body of the loop is turned into a function, which is passed to the higher-order <code>foreach</code> method to perform the iteration.</p>
+<p>In some cases, a partial function is used to allow for pattern-matching:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">for</span> ((key, value) &lt;- someMap) <span class="fu">doSomething</span>(key, value)</span></code></pre></div>
+<p>is compiled into:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a>someMap.<span class="fu">foreach</span> { <span class="kw">case</span> (key, value) =&gt; <span class="fu">doSomething</span>(key, value) }</span></code></pre></div>
+<p>Similarly, the various forms of the <code>for/yield</code> construct (for-comprehensions) are compiled into calls to suitable higher-order methods:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">for</span> (x &lt;- col) <span class="kw">yield</span> x.<span class="fu">toString</span>.<span class="fu">toUpperCase</span></span></code></pre></div>
+<p>is compiled into:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a>col.<span class="fu">map</span>(x =&gt; x.<span class="fu">toString</span>.<span class="fu">toUpperCase</span>)</span></code></pre></div>
+<p>This is the reason for-comprehensions tend to produce collections of the same kind as the collections they iterate over (i.e., <code>for/yield</code> on a list is a list but <code>for/yield</code> on a vector is a vector): They are actually calls to higher-order methods of the collection.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>When <code>if</code> is used within a for-comprehension, it is translated into a call to <code>withFilter</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">for</span> (x &lt;- col <span class="kw">if</span> x.<span class="fu">length</span> &lt; <span class="dv">3</span>) <span class="fu">println</span>(x)</span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="kw">for</span> (x &lt;- col <span class="kw">if</span> x &gt;= <span class="dv">0</span>) <span class="kw">yield</span> Math.<span class="fu">sqrt</span>(x)</span></code></pre></div>
+<p>These expressions are compiled into:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a>col.<span class="fu">withFilter</span>(x =&gt; x.<span class="fu">length</span> &lt; <span class="dv">3</span>).<span class="fu">foreach</span>(x =&gt; <span class="fu">println</span>(x))</span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a>col.<span class="fu">withFilter</span>(x =&gt; x &gt;= <span class="dv">0</span>).<span class="fu">map</span>(x =&gt; Math.<span class="fu">sqrt</span>(x))</span></code></pre></div>
+<p>Method <code>withFilter</code> resembles <code>filter</code> but does not allocate an intermediate collection. Instead, it creates a wrapper that “remembers” that the collection is filtered and <code>map/foreach</code> is called on this wrapper.</p>
+<p>Finally, for-comprehensions that use multiple generators result in calls to <code>flatMap</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">for</span> (str &lt;- col; <span class="dt">char</span> &lt;- str) <span class="kw">yield</span> <span class="dt">char</span>.<span class="fu">toInt</span></span></code></pre></div>
+<p>This is compiled into:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a>col.<span class="fu">flatMap</span>(str =&gt; str.<span class="fu">map</span>(<span class="dt">char</span> =&gt; <span class="dt">char</span>.<span class="fu">toInt</span>))</span></code></pre></div>
+<p>Jointly, the methods <code>map</code>, <code>flatMap</code>, <code>foreach</code> and <code>withFilter</code> form what is known as a <em>monad</em>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> The basic idea behind a monad is that it is a “container” and that one can act on its “contents” without first getting them out of the container. For instance, <code>for (x &lt;- col) yield (x * x).toString</code> transforms a collection of numbers into a collection of strings without explicitly extracting the numbers from the collection. The methods <code>map</code>, <code>flatMap</code>, <code>foreach</code> and <code>withFilter</code> are sometimes called <em>monadic</em> operators.</p>
+<h3 id="monads-in-scala">Monads in Scala</h3>
+<p>It is important to keep in mind that <code>for</code> and <code>for/yield</code> in Scala are a mechanism to act on a monad (i.e., to apply computation to its contents) and are not tied to <em>iterations</em> per se. In particular, some non-collection Scala types implement the monadic methods and can be used in <code>for</code> and <code>for/yield</code> code that does not involve iterations. For instance, <em>options</em> form a monad in Scala:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">def</span> <span class="fu">display</span>(msg: String, prompt: Option[String] = None) = {</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">for</span> (p &lt;- prompt) <span class="fu">print</span>(p)</span>
+<span id="cb11-3"><a href="#cb11-3"></a>  <span class="fu">println</span>(msg)</span>
+<span id="cb11-4"><a href="#cb11-4"></a>}</span></code></pre></div>
+<p>This method prints the optional prompt, if present, followed by the message. If there is no prompt (<code>None</code>), the <code>for</code> statement does nothing. If one prefers, the method could also be written as:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">def</span> <span class="fu">display</span>(msg: String, prompt: Option[String] = None) = {</span>
+<span id="cb12-2"><a href="#cb12-2"></a>  prompt foreach print</span>
+<span id="cb12-3"><a href="#cb12-3"></a>  <span class="fu">println</span>(msg)</span>
+<span id="cb12-4"><a href="#cb12-4"></a>}</span></code></pre></div>
+<p>The names <code>for</code> and <code>foreach</code> can be misleading; no “loops” are involved in method <code>display</code>.</p>
+<p>Of course, instead of using monadic operations, an option <em>could</em> be “opened” and its contents, if any, processed directly:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">def</span> <span class="fu">display</span>(msg: String, prompt: Option[String] = None) = {</span>
+<span id="cb13-2"><a href="#cb13-2"></a>  prompt <span class="kw">match</span> {</span>
+<span id="cb13-3"><a href="#cb13-3"></a>    <span class="kw">case</span> None =&gt; ()</span>
+<span id="cb13-4"><a href="#cb13-4"></a>    <span class="kw">case</span> Some(str) =&gt; <span class="fu">print</span>(str)</span>
+<span id="cb13-5"><a href="#cb13-5"></a>  }</span>
+<span id="cb13-6"><a href="#cb13-6"></a>  <span class="fu">println</span>(msg)</span>
+<span id="cb13-7"><a href="#cb13-7"></a>}</span></code></pre></div>
+<p>The code is less elegant but it still works.</p>
+<p><em>Futures</em>, which will be discussed later as part of multi-threading, are also a monad in Scala. A future can represent an ongoing computation and monadic operations can be used to transform the result of this computation. In this case, there is no alternative, since the computation is ongoing and cannot be “opened” to process its contents:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">val</span> f: Future[Int] = ...  <span class="co">// an integer producing computation</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="kw">val</span> g: Future[String] = <span class="kw">for</span> (x &lt;- f) <span class="kw">yield</span> (x * x).<span class="fu">toString</span></span></code></pre></div>
+<p>The result of the <code>for/yield</code> is a computation that will square the result of computation <code>f</code> and convert the resulting number into a string. Short of using a <em>promise</em> (or creating an additional thread), there is no non-monadic equivalent in this case because the value to square does not exist yet (it is still being computed). Threads, futures and promises will be revisited later.</p>
+<h3 id="user-defined-monads">User-defined monads</h3>
+<p>In Scala, code that uses <code>for</code> or <code>for/yield</code> is converted into calls to corresponding monadic methods at compile-time. This translation is completed independently from types. In other words, there is no type-checking performed to make sure that structures have the necessary operators. If they don’t, further compilation fails with an error message that mentions the missing method:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">object</span> X</span>
+<span id="cb15-2"><a href="#cb15-2"></a></span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="kw">for</span> (x &lt;- X) <span class="fu">println</span>(x)</span></code></pre></div>
+<p>This produces a compile-time error: <code>Error: value foreach is not a member of object X</code>.</p>
+<p>The code can be made valid by adding a suitable <code>foreach</code> method:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">object</span> X {</span>
+<span id="cb16-2"><a href="#cb16-2"></a>  <span class="kw">def</span> <span class="fu">foreach</span>(f: String =&gt; Unit): Unit = {</span>
+<span id="cb16-3"><a href="#cb16-3"></a>    <span class="fu">f</span>(<span class="st">&quot;one&quot;</span>); <span class="fu">f</span>(<span class="st">&quot;two&quot;</span>); <span class="fu">f</span>(<span class="st">&quot;three&quot;</span>)</span>
+<span id="cb16-4"><a href="#cb16-4"></a>  }</span>
+<span id="cb16-5"><a href="#cb16-5"></a></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="kw">for</span> (x &lt;- c) <span class="fu">println</span>(x)</span></code></pre></div>
+<p>This now prints <code>one</code>, <code>two</code> and <code>three</code>. Adding a <code>map</code> function would enable <code>for/yield</code> constructs:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">object</span> X {</span>
+<span id="cb17-2"><a href="#cb17-2"></a>  <span class="kw">def</span> <span class="fu">foreach</span>(f: String =&gt; Unit): Unit = {</span>
+<span id="cb17-3"><a href="#cb17-3"></a>    <span class="fu">f</span>(<span class="st">&quot;one&quot;</span>); <span class="fu">f</span>(<span class="st">&quot;two&quot;</span>); <span class="fu">f</span>(<span class="st">&quot;three&quot;</span>)</span>
+<span id="cb17-4"><a href="#cb17-4"></a>  }</span>
+<span id="cb17-5"><a href="#cb17-5"></a>  <span class="kw">def</span> map[A](f: String =&gt; A): List[A] = List(<span class="fu">f</span>(<span class="st">&quot;one&quot;</span>), <span class="fu">f</span>(<span class="st">&quot;two&quot;</span>), <span class="fu">f</span>(<span class="st">&quot;three&quot;</span>))</span>
+<span id="cb17-6"><a href="#cb17-6"></a>}</span>
+<span id="cb17-7"><a href="#cb17-7"></a></span>
+<span id="cb17-8"><a href="#cb17-8"></a><span class="kw">for</span> (x &lt;- X) <span class="kw">yield</span> x.<span class="fu">toUpperCase</span>  <span class="co">// the list ONE, TWO, THREE</span></span></code></pre></div>
+<p>To get the full power of <code>for</code> and <code>for/yield</code>, a user-defined type can implement <code>forach</code>, <code>map</code>, <code>flatMap</code> and <code>withFilter</code>. For instance, the code below defines a notion of set based on a complement: A set is defined as the difference between a base set and a specific set of values:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">object</span> ExceptSet {</span>
+<span id="cb18-2"><a href="#cb18-2"></a>  <span class="kw">def</span> apply[A](base: Set[A]): ExceptSet[A] = <span class="kw">new</span> ExceptSet[A](base, Set.<span class="fu">empty</span>)</span>
+<span id="cb18-3"><a href="#cb18-3"></a>  <span class="kw">def</span> apply[A](value: A, more: A*): ExceptSet[A] = <span class="fu">apply</span>(more.<span class="fu">toSet</span> + value)</span>
+<span id="cb18-4"><a href="#cb18-4"></a>}</span>
+<span id="cb18-5"><a href="#cb18-5"></a></span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="kw">class</span> ExceptSet[A] <span class="kw">private</span> (base: Set[A], except: Set[A]) {</span>
+<span id="cb18-7"><a href="#cb18-7"></a></span>
+<span id="cb18-8"><a href="#cb18-8"></a>  <span class="fu">assert</span>(except subsetOf base)</span>
+<span id="cb18-9"><a href="#cb18-9"></a></span>
+<span id="cb18-10"><a href="#cb18-10"></a>  <span class="kw">override</span> <span class="kw">def</span> toString: String = (base diff except).<span class="fu">toString</span></span>
+<span id="cb18-11"><a href="#cb18-11"></a></span>
+<span id="cb18-12"><a href="#cb18-12"></a>  <span class="kw">def</span> <span class="fu">contains</span>(x: A): Boolean = <span class="fu">base</span>(x) &amp;&amp; !<span class="fu">except</span>(x)</span>
+<span id="cb18-13"><a href="#cb18-13"></a></span>
+<span id="cb18-14"><a href="#cb18-14"></a>  <span class="kw">def</span> +(x: A): ExceptSet[A] = <span class="kw">if</span> (<span class="fu">base</span>(x) &amp;&amp; <span class="fu">except</span>(x)) <span class="kw">new</span> <span class="fu">ExceptSet</span>(base, except - x) <span class="kw">else</span> <span class="kw">this</span></span>
+<span id="cb18-15"><a href="#cb18-15"></a>  <span class="kw">def</span> -(x: A): ExceptSet[A] = <span class="kw">if</span> (<span class="fu">contains</span>(x)) <span class="kw">new</span> <span class="fu">ExceptSet</span>(base, except + x) <span class="kw">else</span> <span class="kw">this</span></span>
+<span id="cb18-16"><a href="#cb18-16"></a></span>
+<span id="cb18-17"><a href="#cb18-17"></a>  <span class="kw">def</span> size: Int = base.<span class="fu">size</span> - except.<span class="fu">size</span></span>
+<span id="cb18-18"><a href="#cb18-18"></a>  <span class="kw">def</span> isEmpty: Boolean = base subsetOf except</span>
+<span id="cb18-19"><a href="#cb18-19"></a></span>
+<span id="cb18-20"><a href="#cb18-20"></a>  <span class="kw">def</span> foreach[B](f: A =&gt; B): Unit = <span class="kw">for</span> (x &lt;- base <span class="kw">if</span> !<span class="fu">except</span>(x)) <span class="fu">f</span>(x)</span>
+<span id="cb18-21"><a href="#cb18-21"></a></span>
+<span id="cb18-22"><a href="#cb18-22"></a>  <span class="kw">def</span> map[B](f: A =&gt; B): ExceptSet[B] = <span class="kw">new</span> ExceptSet[B](base.<span class="fu">map</span>(f), except.<span class="fu">map</span>(f))</span>
+<span id="cb18-23"><a href="#cb18-23"></a></span>
+<span id="cb18-24"><a href="#cb18-24"></a>  <span class="kw">def</span> flatMap[B](f: A =&gt; Set[B]): ExceptSet[B] = <span class="kw">new</span> <span class="fu">ExceptSet</span>(base.<span class="fu">flatMap</span>(f), except.<span class="fu">flatMap</span>(f))</span>
+<span id="cb18-25"><a href="#cb18-25"></a></span>
+<span id="cb18-26"><a href="#cb18-26"></a>  <span class="kw">def</span> <span class="fu">filter</span>(p: A =&gt; Boolean): ExceptSet[A] = <span class="kw">new</span> <span class="fu">ExceptSet</span>(base.<span class="fu">filter</span>(p), except.<span class="fu">filter</span>(p))</span>
+<span id="cb18-27"><a href="#cb18-27"></a>  </span>
+<span id="cb18-28"><a href="#cb18-28"></a>  ...</span>
+<span id="cb18-29"><a href="#cb18-29"></a>}</span></code></pre></div>
+<p>Method <code>filter</code> creates a new <code>ExceptSet</code> that only contains the filtered values. By contrast, <code>withFilter</code> only builds a wrapper on the set that stores the filtering function:<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">class</span> ExceptSet[A] <span class="kw">private</span> (base: Set[A], except: Set[A]) {</span>
+<span id="cb19-2"><a href="#cb19-2"></a>  ...</span>
+<span id="cb19-3"><a href="#cb19-3"></a></span>
+<span id="cb19-4"><a href="#cb19-4"></a>  <span class="kw">class</span> <span class="fu">WithFilter</span>(p: A =&gt; Boolean) {</span>
+<span id="cb19-5"><a href="#cb19-5"></a>    <span class="kw">def</span> map[B](f: A =&gt; B): ExceptSet[B] =</span>
+<span id="cb19-6"><a href="#cb19-6"></a>      <span class="kw">new</span> <span class="fu">ExceptSet</span>(base.<span class="fu">withFilter</span>(p).<span class="fu">map</span>(f), except.<span class="fu">withFilter</span>(p).<span class="fu">map</span>(f))</span>
+<span id="cb19-7"><a href="#cb19-7"></a></span>
+<span id="cb19-8"><a href="#cb19-8"></a>    <span class="kw">def</span> flatMap[B](f: A =&gt; Set[B]): ExceptSet[B] =</span>
+<span id="cb19-9"><a href="#cb19-9"></a>      <span class="kw">new</span> <span class="fu">ExceptSet</span>(base.<span class="fu">withFilter</span>(p).<span class="fu">flatMap</span>(f), except.<span class="fu">withFilter</span>(p).<span class="fu">flatMap</span>(f))</span>
+<span id="cb19-10"><a href="#cb19-10"></a></span>
+<span id="cb19-11"><a href="#cb19-11"></a>    <span class="kw">def</span> foreach[B](f: A =&gt; B): Unit = <span class="kw">for</span> (x &lt;- ExceptSet.<span class="fu">this</span>) <span class="kw">if</span> (<span class="fu">p</span>(x)) <span class="fu">f</span>(x)</span>
+<span id="cb19-12"><a href="#cb19-12"></a></span>
+<span id="cb19-13"><a href="#cb19-13"></a>    <span class="kw">def</span> <span class="fu">withFilter</span>(q: A =&gt; Boolean): WithFilter = <span class="kw">new</span> <span class="fu">WithFilter</span>(x =&gt; <span class="fu">p</span>(x) &amp;&amp; <span class="fu">q</span>(x))</span>
+<span id="cb19-14"><a href="#cb19-14"></a>  }</span>
+<span id="cb19-15"><a href="#cb19-15"></a></span>
+<span id="cb19-16"><a href="#cb19-16"></a>  <span class="kw">def</span> <span class="fu">withFilter</span>(p: A =&gt; Boolean): WithFilter = <span class="kw">new</span> <span class="fu">WithFilter</span>(p)</span>
+<span id="cb19-17"><a href="#cb19-17"></a>}</span></code></pre></div>
+<p>Instances of <code>ExceptSet</code> can be used in <code>for</code> and <code>for/yield</code> loops, including loops with guards and with multiple generators:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">val</span> consonants = <span class="fu">ExceptSet</span>((<span class="ch">&#39;A&#39;</span> to <span class="ch">&#39;Z&#39;</span>).<span class="fu">toSet</span>) - <span class="ch">&#39;A&#39;</span> - <span class="ch">&#39;E&#39;</span> - <span class="ch">&#39;I&#39;</span> - <span class="ch">&#39;O&#39;</span> - <span class="ch">&#39;U&#39;</span> - <span class="ch">&#39;Y&#39;</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="kw">for</span> (c &lt;- consonants) <span class="fu">println</span>(c)  <span class="co">// prints all consonants</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a></span>
+<span id="cb20-5"><a href="#cb20-5"></a><span class="kw">for</span> (c &lt;- consonants) <span class="kw">yield</span> c.<span class="fu">toLower</span>  <span class="co">// the set &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;f&#39;, ...</span></span>
+<span id="cb20-6"><a href="#cb20-6"></a></span>
+<span id="cb20-7"><a href="#cb20-7"></a><span class="kw">for</span> (c &lt;- consonants <span class="kw">if</span> c &lt; <span class="ch">&#39;F&#39;</span>) <span class="kw">yield</span> c.<span class="fu">toString</span>  <span class="co">// the set &quot;B&quot;, &quot;C&quot;, &quot;D&quot;</span></span>
+<span id="cb20-8"><a href="#cb20-8"></a></span>
+<span id="cb20-9"><a href="#cb20-9"></a><span class="co">// the set &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;</span></span>
+<span id="cb20-10"><a href="#cb20-10"></a><span class="kw">for</span> {</span>
+<span id="cb20-11"><a href="#cb20-11"></a>  c &lt;- consonants <span class="kw">if</span> c &lt; <span class="ch">&#39;F&#39;</span></span>
+<span id="cb20-12"><a href="#cb20-12"></a>  x &lt;- Set(c, c.<span class="fu">toLower</span>)</span>
+<span id="cb20-13"><a href="#cb20-13"></a>} <span class="kw">yield</span> x.<span class="fu">toString</span></span></code></pre></div>
+<p>The last expression is actually compiled into:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1"></a>consonants</span>
+<span id="cb21-2"><a href="#cb21-2"></a>  .<span class="fu">withFilter</span>(c =&gt; c &lt; <span class="ch">&#39;F&#39;</span>)</span>
+<span id="cb21-3"><a href="#cb21-3"></a>  .<span class="fu">flatMap</span>(c =&gt;</span>
+<span id="cb21-4"><a href="#cb21-4"></a>    Set(c, c.<span class="fu">toLower</span>)</span>
+<span id="cb21-5"><a href="#cb21-5"></a>      .<span class="fu">map</span>(x =&gt; x.<span class="fu">toString</span>)</span>
+<span id="cb21-6"><a href="#cb21-6"></a>  )</span></code></pre></div>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><p>In Scala, <code>for</code> and <code>for/yield</code> are <em>syntactic sugar</em> for calls to <code>foreach</code>, <code>map</code>, <code>withFilter</code> and <code>flatMap</code>.</p></li>
+<li><p>These operators constitute what is known in functional programming as a <em>monad</em>. The idea of a monad is to be a container that allows its contents to be modified without taking them out. The <code>flatMap</code> operation is essential to allow transformations of contents into containers (e.g., an event from a stream triggers a whole stream of events; a value from a future is processed asynchronously into another future, etc.).</p></li>
+<li><p>Many types in Scala implement these <em>monadic operators</em>, including types that are not collections (e.g., options, futures).</p></li>
+<li><p><em>User-defined types</em> that implement <code>foreach</code>, <code>map</code>, <code>flatMap</code> and <code>withFilter</code> can be used in <code>for</code> and <code>for/yield</code> constructs.</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Interestingly, the code for the <code>map</code> method <em>is</em> shared among collection kinds, but it is carefully designed to produce the same kind as the collection it is applied on, when possible.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>In the functional programming world, monads tend to be <code>map</code>, <code>flatMap</code> and <code>withFilter</code>, which form the basis of <code>for/yield</code>. As a hybrid language, Scala adds <code>foreach</code>, the basis of side-effect computations that use <code>for</code> without <code>yield</code>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>Method <code>flatMap</code> takes an argument of type <code>A =&gt; Set[B]</code> for simplicity. A fully implemented structure would most likely use <code>A =&gt; ExceptSet[A]</code>, possibly with implicit conversions between <code>Set</code> and <code>ExceptSet</code>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p>Instead of <code>ExceptSet.this</code>, it would be more idiomatic to use a <em>self type</em> in Scala. Self types are discussed later.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-03-12 at 12:50:31 PM</footer>
+</body>

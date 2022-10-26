@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!-- Generated from 508-standard_higher_order.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>9-standard_higher_order</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="higher-order-methods-on-collections">Higher-Order Methods on Collections</h2>
+<h3 id="iterable-trait"><code>Iterable</code> trait</h3>
+<p>Scala’s trait <code>Iterable</code> is the root of all immutable collections, including <code>List</code>, <code>Vector</code>, <code>Set</code>, <code>Map</code>, etc. It implements multiple higher-order methods, available on all immutable collections. The main ones are:</p>
+<ul>
+<li><p><code>foreach(code)</code>: executes <code>code</code> all all the elements in the collection for the purpose of side effects (nothing is returned).</p></li>
+<li><p><code>count(test)</code>: counts how many elements in the collection satisfy the test.</p></li>
+<li><p><code>dropWhile(test)</code>: removes from the collection the longest prefix of elements that satisfy the test.</p></li>
+<li><p><code>takeWhile(test)</code>: returns the longest prefix of elements from the collection that satisfy the test.</p></li>
+<li><p><code>span(test)</code>: builds a pair of collections equivalent to <code>(takeWhile(test), dropWhile(test))</code> but does it more efficiently by only traversing the prefix once.</p></li>
+<li><p><code>filter(test)</code>: removes from the collection all the elements that do not satisfy the test.</p></li>
+<li><p><code>filterNot(test)</code>: removes from the collection all the elements that satisfy the test (the opposite of <code>filter</code>).</p></li>
+<li><p><code>partition(test)</code>: builds a pair of collections <code>(T,F)</code>: <code>T</code> contains all the elements from the original collection that satisfy the test and <code>F</code> contains the elements that do not satisfy the test. It is equivalent to <code>(filter(test), filterNot(test))</code> but is more efficient (it traverses the collection only once).</p></li>
+<li><p><code>exists(test)</code>: true if at least one element in the collection satisfies the test.</p></li>
+<li><p><code>forall(test)</code>: true if all the elements of the collection satisfy the test.</p></li>
+<li><p><code>find(test)</code>: finds an element in the collection that satisfies the test, if any (returned as an <code>Option</code>).</p></li>
+<li><p><code>map(f)</code>: builds a collection of all the <code>f(x)</code> for all the elements <code>x</code> in the collection.</p></li>
+<li><p><code>flatMap(f)</code>: builds a collection of all the elements <em>inside</em> <code>f(x)</code> for all the elements <code>x</code> in the collection.</p></li>
+<li><p><code>foldLeft(start)(f)</code>: builds the value <code>f(...f(f(f(start,x1),x2),x3)...)</code> where <code>x1</code>, <code>x2</code>, <code>x3</code>, … are all the elements of the collection.</p></li>
+<li><p><code>foldRight(start)(f)</code>: same as <code>foldLeft</code> but in opposite order (assuming the collection is ordered).</p></li>
+<li><p><code>fold(start)(f)</code>: similar to <code>foldLeft</code> and <code>foldRight</code> but processes the collection in arbitrary order.</p></li>
+<li><p><code>groupBy(f)</code>: build a map of pairs <code>(k,x)</code> for all elements <code>x</code> in the collection, in which <code>k=f(x)</code>.</p></li>
+<li><p><code>groupMapReduce</code>: you don’t want to know.</p></li>
+<li><p><code>maxBy(f)</code>: the value <code>x</code> in the collection for which <code>f(x)</code> is largest.</p></li>
+<li><p><code>minBy(f)</code>: the value <code>x</code> in the collection for which <code>f(x)</code> is smallest.</p></li>
+</ul>
+<p>The difference between <code>map</code> and <code>flatMap</code> can be illustrated with the following example:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">val</span> l = List(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">def</span> <span class="fu">f</span>(i: Int) = <span class="dv">1</span> to i</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a>l map f     <span class="co">// List([1], [1, 2], [1, 2, 3])</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>l flatMap f <span class="co">// List(1, 1, 2, 1, 2, 3)</span></span></code></pre></div>
+<p><code>map</code> and <code>flatMap</code> play an important role in how the <code>for/yield</code> construct is implemented in Scala. This topic will be revisited when discussing <em>monads</em>.</p>
+<p>Two of the higher-order methods are powerful but not straightforward and deserve more explanations.</p>
+<h3 id="fold"><code>fold</code></h3>
+<p><code>col.foldLeft(start)(f)</code> produces the same result as this computation:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">var</span> result = start</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">for</span> (x &lt;- col)</span>
+<span id="cb2-3"><a href="#cb2-3"></a>  result = <span class="fu">f</span>(result, x)</span>
+<span id="cb2-4"><a href="#cb2-4"></a>result</span></code></pre></div>
+<p><code>foldLeft</code> (and its variants <code>foldRight</code>, <code>fold</code>, <code>reduceLeft</code>, <code>reduceRight</code> and <code>reduce</code>) represent an iteration over a collection in which an initial value is successively transformed by being combined with elements from the collection using the given operator. If the collection is ordered (e.g., <code>List</code> or <code>BitSet</code>), <code>foldLeft</code> proceeds in one direction and <code>foldRight</code> in the other. If the collection is not ordered, <code>foldLeft</code> and <code>foldRight</code> should usually be used with operators that are <em>symmetric</em> and <em>associative</em> to ensure that the result is predictable. <code>fold</code> never specifies its order (even for ordered collections) and should only be used with symmetric, associative operators. <code>reduce</code> differs from <code>fold</code> in that it uses the first element of the collection as the starting value (and is undefined if the collection is empty).</p>
+<p>These folding functions can often be used to reduce collections without the need to allocate intermediate storage. Consider for instance:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a>stringCollection.<span class="fu">filter</span>(_.<span class="fu">length</span> == <span class="dv">1</span>).<span class="fu">map</span>(_.<span class="fu">head</span>.<span class="fu">toInt</span>).<span class="fu">sum</span></span></code></pre></div>
+<p>This code has a nice pipeline structure, but it can be inefficient because it creates an intermediate collection of strings (after filtering) and an intermediate collection of integers (after mapping). The same computation can be achieved without these intermediate collections using <code>foldLeft</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a>stringCollection.<span class="fu">foldLeft</span>(<span class="dv">0</span>)((a, s) =&gt; <span class="kw">if</span> (s.<span class="fu">length</span> == <span class="dv">1</span>) a + s.<span class="fu">head</span> <span class="kw">else</span> a)</span></code></pre></div>
+<h3 id="groupby"><code>groupBy</code></h3>
+<p>This method groups together the elements of a collection that map to the same function output. For instance,</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">val</span> names = List(<span class="st">&quot;Mary&quot;</span>, <span class="st">&quot;Bob&quot;</span>, <span class="st">&quot;Allan&quot;</span>, <span class="st">&quot;Mark&quot;</span>, <span class="st">&quot;Betty&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2"></a>names.<span class="fu">groupBy</span>(_.<span class="fu">head</span>)</span></code></pre></div>
+<p>produces a value of type <code>Map[Char,String]</code> equal to <code>Map(M -&gt; List(Mary, Mark), A -&gt; List(Allan), B -&gt; List(Bob, Betty))</code>: Strings that start with the same letter (same <code>head</code>) are grouped together.</p>
+<p>Method <code>groupBy</code> can be combined with other methods in powerful ways. For instance, let <code>enrollment</code> be a mapping from students to the list of courses they take:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">val</span> enrollment = Map(</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="st">&quot;Joe&quot;</span> -&gt; List(<span class="dv">671</span>, <span class="dv">712</span>, <span class="dv">735</span>),</span>
+<span id="cb6-3"><a href="#cb6-3"></a>  <span class="st">&quot;Jane&quot;</span> -&gt; List(<span class="dv">515</span>, <span class="dv">520</span>),</span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="st">&quot;Bob&quot;</span> -&gt; List(<span class="dv">725</span>, <span class="dv">735</span>, <span class="dv">791</span>),</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="st">&quot;Bill&quot;</span> -&gt; List(<span class="dv">520</span>)</span>
+<span id="cb6-6"><a href="#cb6-6"></a>)</span></code></pre></div>
+<p>The following can be used to build a roster map, from courses to lists of students:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">val</span> roster = (<span class="kw">for</span> ((name, courses) &lt;- enrollment.<span class="fu">toSet</span>; course &lt;- courses)</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">yield</span> name -&gt; course).<span class="fu">groupBy</span>(_._<span class="dv">2</span>).<span class="fu">map</span> { <span class="kw">case</span> (c, s) =&gt; (c, s.<span class="fu">map</span>(_._<span class="dv">1</span>)) }</span></code></pre></div>
+<p>This produces the roster map:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a>Map(</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="dv">725</span> -&gt; Set(Bob),</span>
+<span id="cb8-3"><a href="#cb8-3"></a>  <span class="dv">515</span> -&gt; Set(Jane),</span>
+<span id="cb8-4"><a href="#cb8-4"></a>  <span class="dv">520</span> -&gt; Set(Jane, Bill),</span>
+<span id="cb8-5"><a href="#cb8-5"></a>  <span class="dv">712</span> -&gt; Set(Joe),</span>
+<span id="cb8-6"><a href="#cb8-6"></a>  <span class="dv">791</span> -&gt; Set(Bob),</span>
+<span id="cb8-7"><a href="#cb8-7"></a>  <span class="dv">671</span> -&gt; Set(Joe),</span>
+<span id="cb8-8"><a href="#cb8-8"></a>  <span class="dv">735</span> -&gt; Set(Joe, Bob)</span>
+<span id="cb8-9"><a href="#cb8-9"></a>)</span></code></pre></div>
+<p>Another (admittedly more readable) example is to count how many times elements appear in a collection:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">val</span> col = ... <span class="co">// some collection</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="kw">val</span> count = l.<span class="fu">groupBy</span>(identity).<span class="fu">map</span> { <span class="kw">case</span> (k,v) =&gt; (k, v.<span class="fu">length</span>) } withDefaultValue <span class="dv">0</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="fu">count</span>(x) <span class="co">// the number of times x appears in col</span></span></code></pre></div>
+<p>This groups elements according to the identity function <code>x =&gt; x</code>, thus grouping together elements that are equal. The lists of identical elements are then reduced to their lengths to get a count of elements. The part <code>withDefaultValue 0</code> is added so <code>count(x)</code> is zero for values that were not in the collection.</p>
+<footer>2020-03-05 at 07:58:40 AM</footer>
+</body>

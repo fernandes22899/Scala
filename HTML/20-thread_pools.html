@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<!-- Generated from 902-thread_pools.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>20-thread_pools</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="using-thread-pools">Using Thread Pools</h2>
+<h3 id="fire-and-forget-asynchronous-execution">Fire-and-forget asynchronous execution</h3>
+<p>In Scala (and in Java 5 and above), it is not common practice to create threads to run specific tasks. Instead, one tends to rely on <em>thread pools</em>, which are collections of worker threads available to run user-defined tasks. The advantages of thread pools include the fact that threads can be reused from task to task (instead of letting a thread terminate and creating a new one) and the possibility to limit the number of running threads with an upper bound (when no thread is available, tasks are placed in a queue). The creation and customization of thread pools is beyond the scope of these notes. Scala implements a default thread pool in <code>scala.concurrent.ExecutionContext.global</code> which tries to keep as many threads running as there are processors on the machine:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">println</span>(<span class="st">&quot;START&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">val</span> r1 = <span class="kw">new</span> <span class="fu">Printer</span>(<span class="ch">&#39;+&#39;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">val</span> r2 = <span class="kw">new</span> <span class="fu">Printer</span>(<span class="ch">&#39;*&#39;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5"></a></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="kw">val</span> exec = scala.<span class="fu">concurrent</span>.<span class="fu">ExecutionContext</span>.<span class="fu">global</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a></span>
+<span id="cb1-8"><a href="#cb1-8"></a>exec.<span class="fu">execute</span>(r1)</span>
+<span id="cb1-9"><a href="#cb1-9"></a>exec.<span class="fu">execute</span>(r2)</span>
+<span id="cb1-10"><a href="#cb1-10"></a></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="fu">println</span>(<span class="st">&quot;END&quot;</span>)</span></code></pre></div>
+<p>As written, the program often displays the <code>START</code> and <code>END</code> messages and no <code>*</code> and <code>+</code> (on most runs). The reason is that the default Scala thread pool runs threads in daemon mode: After the main thread terminates, the JVM shuts down immediately without waiting for tasks <code>r1</code> and <code>r2</code> to complete.</p>
+<p>In real applications, this is rarely an issue: One just needs to make sure at least one non-daemon thread remains alive, for instance the main thread.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> For the demo programs in these notes, we will assume a non-daemon thread pool has been created:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">println</span>(<span class="st">&quot;START&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2"></a></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">val</span> r1 = <span class="kw">new</span> <span class="fu">Printer</span>(<span class="ch">&#39;+&#39;</span>)</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">val</span> r2 = <span class="kw">new</span> <span class="fu">Printer</span>(<span class="ch">&#39;*&#39;</span>)</span>
+<span id="cb2-5"><a href="#cb2-5"></a></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="kw">val</span> exec: ExecutionContext = ... <span class="co">// a non-daemon thread pool</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a></span>
+<span id="cb2-8"><a href="#cb2-8"></a>exec.<span class="fu">execute</span>(r1)</span>
+<span id="cb2-9"><a href="#cb2-9"></a>exec.<span class="fu">execute</span>(r2)</span>
+<span id="cb2-10"><a href="#cb2-10"></a></span>
+<span id="cb2-11"><a href="#cb2-11"></a><span class="fu">println</span>(<span class="st">&quot;END&quot;</span>)</span></code></pre></div>
+<p>This program produces an output similar to what was seen earlier using newly created threads, except for the names of the threads:</p>
+<pre><code>main at XX:XX:17.379: START
+main at XX:XX:17.461: END
+ExecutionContext-thread-1 at XX:XX:17.465: +
+ExecutionContext-thread-2 at XX:XX:17.465: *
+ExecutionContext-thread-2 at XX:XX:17.466: *
+ExecutionContext-thread-1 at XX:XX:17.466: +
+ExecutionContext-thread-1 at XX:XX:17.466: +
+ExecutionContext-thread-2 at XX:XX:17.466: *
+ExecutionContext-thread-1 at XX:XX:17.466: +
+ExecutionContext-thread-2 at XX:XX:17.466: *
+ExecutionContext-thread-1 at XX:XX:17.466: +
+ExecutionContext-thread-2 at XX:XX:17.467: *</code></pre>
+<p>The <code>execute</code> method returns immediately and the submitted task will run asynchronously in a thread from the pool. Java offers a type similar to <code>ExecutionContext</code> named <code>java.util.concurrent.Executor</code>, which also has an <code>execute</code> method.</p>
+<h3 id="sleeping-and-busy-waiting">Sleeping and busy-waiting</h3>
+<p>A common situation in concurrent programming is for a master thread to start tasks on a separate thread pool and then wait for these tasks to complete, a pattern sometimes known as <em>fork/join</em> or <em>scatter/gather</em>. For instance, consider tasks that add numbers into an accumulator:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">object</span> accumulator {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="kw">private</span> <span class="kw">var</span> sumValue = 0L</span>
+<span id="cb4-3"><a href="#cb4-3"></a>  <span class="kw">private</span> <span class="kw">var</span> doneCount = <span class="dv">0</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a></span>
+<span id="cb4-5"><a href="#cb4-5"></a>  <span class="kw">def</span> <span class="fu">add</span>(x: Int): Unit = synchronized {</span>
+<span id="cb4-6"><a href="#cb4-6"></a>    sumValue += x</span>
+<span id="cb4-7"><a href="#cb4-7"></a>  }</span>
+<span id="cb4-8"><a href="#cb4-8"></a></span>
+<span id="cb4-9"><a href="#cb4-9"></a>  <span class="kw">def</span> <span class="fu">finish</span>(): Unit = synchronized {</span>
+<span id="cb4-10"><a href="#cb4-10"></a>    doneCount += <span class="dv">1</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a>  }</span>
+<span id="cb4-12"><a href="#cb4-12"></a></span>
+<span id="cb4-13"><a href="#cb4-13"></a>  <span class="kw">def</span> done: Int = <span class="fu">synchronized</span>(doneCount)</span>
+<span id="cb4-14"><a href="#cb4-14"></a></span>
+<span id="cb4-15"><a href="#cb4-15"></a>  <span class="kw">def</span> sum: Long = <span class="fu">synchronized</span>(sumValue)</span>
+<span id="cb4-16"><a href="#cb4-16"></a>}</span></code></pre></div>
+<p>The tasks repeatedly call <code>add</code> on the accumulator, followed by a call to <code>finish</code> to indicate that they are done. A master thread starts 10 tasks:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">val</span> exec = ...</span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="kw">for</span> (i &lt;- <span class="dv">1</span> to <span class="dv">10</span>)</span>
+<span id="cb5-4"><a href="#cb5-4"></a>  exec.<span class="fu">execute</span>(<span class="co">/* some task that adds to the accumulator */</span>)</span></code></pre></div>
+<p>Before the master then can use the value returned by method <code>sum</code>, it needs to wait for the 10 tasks to finish. There are two ways for the main thread to wait for the task to complete <em>that must be avoided at all costs</em>:</p>
+<ul>
+<li><p><strong>busy-waiting:</strong></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">while</span> (accumulator.<span class="fu">done</span> &lt; <span class="dv">10</span>) { <span class="co">/* do nothing */</span> }</span>
+<span id="cb6-2"><a href="#cb6-2"></a></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="fu">println</span>(accumulator.<span class="fu">sum</span>)</span></code></pre></div>
+<p>Even though this code produces the desired output, it is wasteful and should be avoided. The problem is that, while waiting for the tasks to complete, the master thread is wasting CPU cycles computing nothing (this is called <em>spinning</em> or <em>busy-waiting</em>). In a system with many threads and long-running tasks, this will quickly exhaust computational resources. What is worse, the master thread keeps interfering with the working tasks by grabbing and releasing the lock on the accumulator every time it calls method <code>done</code>. Consider this variant, which keeps track of how many times the lock is acquired:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">for</span> (i &lt;- <span class="dv">1</span> to <span class="dv">10</span>)</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  exec.<span class="fu">execute</span>(<span class="co">/* some task that adds to the accumulator */</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="kw">val</span> time = System.<span class="fu">nanoTime</span>()</span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="kw">var</span> locking = <span class="dv">0</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="kw">while</span> (accumulator.<span class="fu">done</span> &lt; <span class="dv">10</span>) locking += <span class="dv">1</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="fu">println</span>(f<span class="st">&quot;time: ${(System.nanoTime() - time) / 1e9}%.1f seconds&quot;</span>)</span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="fu">println</span>(s<span class="st">&quot;lock acquired $locking times&quot;</span>)</span></code></pre></div>
+<p>On a particular run, the reported computation time was 11.5 seconds, with 744,456,701 locking/unlocking, each one of them getting in the way of the threads trying to call <code>add</code> or <code>finish</code>. This is clearly not suitable as a general mechanism (imagine the GUI thread that waits for the next mouse click from a user who decided to take a coffee break…).</p></li>
+<li><p><strong>sleeping:</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">import</span> scala.<span class="fu">concurrent</span>.<span class="fu">duration</span>.<span class="fu">SECONDS</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a>SECONDS.<span class="fu">sleep</span>(<span class="dv">15</span>)</span>
+<span id="cb8-4"><a href="#cb8-4"></a></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="fu">println</span>(accumulator.<span class="fu">sum</span>)</span></code></pre></div>
+<p>In this code, the master thread sleeps for 15 seconds before calling method <code>sum</code>. A sleeping thread does not run and uses no resources. This avoids spinning and unnecessary locking. The problem is that sleep time is arbitrary. How can it be chosen without knowing beforehand how long the running tasks will take (think again of the clicker on a coffee break)? If it is too small, the tasks may not be finished by the time method <code>sum</code> is called; if it is too large, the overall application is artificially slowed down and becomes less responsive. This is especially true of tasks for which durations follow a <em>heavy-tailed</em> distribution: Tasks are short most of the time but can sometimes be very long. The sleeping value must be large enough to accommodate the longest runs and will result in a lot of wasted time when runs are shorter.</p></li>
+</ul>
+<p>These two approaches, <em>sleeping</em> and <em>busy waiting</em> (or a combination thereof, in which a busy waiting loop is slowed down by sleeping) are a major source of tricky bugs and/or poor performance in concurrent systems and should be avoided. Instead, one should rely on constructs that can efficiently suspend a thread until a desired condition is established, known as <em>synchronizers</em>. For instance, the scenario above could use a <code>CountDownLatch</code> from <code>java.util.concurrent</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">val</span> latch = <span class="kw">new</span> CountDownLatch(<span class="dv">10</span>)</span>
+<span id="cb9-2"><a href="#cb9-2"></a></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="kw">object</span> accumulator {</span>
+<span id="cb9-4"><a href="#cb9-4"></a>  <span class="kw">private</span> <span class="kw">var</span> sumValue = 0L</span>
+<span id="cb9-5"><a href="#cb9-5"></a></span>
+<span id="cb9-6"><a href="#cb9-6"></a>  <span class="kw">def</span> <span class="fu">add</span>(x: Int): Unit = synchronized {</span>
+<span id="cb9-7"><a href="#cb9-7"></a>    sumValue += x</span>
+<span id="cb9-8"><a href="#cb9-8"></a>  }</span>
+<span id="cb9-9"><a href="#cb9-9"></a></span>
+<span id="cb9-10"><a href="#cb9-10"></a>  <span class="kw">def</span> <span class="fu">finish</span>(): Unit = latch.<span class="fu">countDown</span>()</span>
+<span id="cb9-11"><a href="#cb9-11"></a></span>
+<span id="cb9-12"><a href="#cb9-12"></a>  <span class="kw">def</span> sum: Long = <span class="fu">synchronized</span>(sumValue)</span>
+<span id="cb9-13"><a href="#cb9-13"></a>}</span>
+<span id="cb9-14"><a href="#cb9-14"></a></span>
+<span id="cb9-15"><a href="#cb9-15"></a><span class="kw">for</span> (i &lt;- <span class="dv">1</span> to <span class="dv">10</span>)</span>
+<span id="cb9-16"><a href="#cb9-16"></a>  exec.<span class="fu">execute</span>(<span class="co">/* some task that adds to the accumulator */</span>)</span>
+<span id="cb9-17"><a href="#cb9-17"></a></span>
+<span id="cb9-18"><a href="#cb9-18"></a>latch.<span class="fu">await</span>()  <span class="co">// wait for the 10 tasks to finish</span></span></code></pre></div>
+<p>As long as the latch’s count is positive, method <code>await</code> blocks the master thread. When the last call to <code>countDown</code> takes place, the latch opens and the master thread can continue. The waiting is done efficiently (no spinning, no wasted resources) and exactly for the necessary duration.</p>
+<p>In later notes, we cover the use of synchronizers called <em>futures</em>, which are often used in conjunction with thread pools.</p>
+<h3 id="parallel-collections">Parallel collections</h3>
+<p>Over the years, there have been many attempts at providing programmers with concurrency frameworks easier to use than threads and synchronizers. It is difficult to do in general but there is one case where this can be achieved reasonably well: <em>data parallelism</em>. The idea is to process large data by applying in parallel transformations that are independent from one another (and thus are naturally parallelizable). The Scala library implements a variety of <em>parallel collections</em>, which offer the typical monadic operators found on collections put implement them using thread pools so the operations can execute concurrently. For instance, the following code:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">parallel</span>.<span class="fu">immutable</span>.<span class="fu">ParSeq</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="kw">val</span> s = <span class="fu">ParSeq</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>, <span class="dv">9</span>, <span class="dv">10</span>)</span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="kw">for</span> (x &lt;- s) <span class="fu">println</span>(x)</span></code></pre></div>
+<p>might produce output of the form:</p>
+<pre><code>scala-execution-context-global-10 at XX:XX:18.728: 1 
+scala-execution-context-global-11 at XX:XX:18.728: 6 
+scala-execution-context-global-12 at XX:XX:18.728: 3 
+scala-execution-context-global-13 at XX:XX:18.728: 8 
+scala-execution-context-global-11 at XX:XX:18.729: 7 
+scala-execution-context-global-12 at XX:XX:18.729: 4 
+scala-execution-context-global-10 at XX:XX:18.729: 2 
+scala-execution-context-global-13 at XX:XX:18.729: 9 
+scala-execution-context-global-12 at XX:XX:18.729: 5 
+scala-execution-context-global-13 at XX:XX:18.729: 10</code></pre>
+<p>Of course, the idea is not to execute in parallel side-effect operations like <code>println</code>. Instead, the goal to to apply pure functions to many elements more rapidly. For instance, consider the task of searching the contents from 10 URLs and assume that searching each URL takes one second:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">val</span> urls = ... <span class="co">// 10 urls</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="kw">def</span> <span class="fu">search</span>(url: String): Int = ... <span class="co">// a searching method that takes 1 second</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="fu">println</span>(<span class="st">&quot;START&quot;</span>)</span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="kw">val</span> results = urls.<span class="fu">map</span>(search)</span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="fu">println</span>(<span class="st">&quot;END&quot;</span>)</span></code></pre></div>
+<pre><code>main at XX:XX:03.209: START
+main at XX:XX:13.316: END</code></pre>
+<p>The computation of all the search results takes 10 seconds if processed sequentially on the main thread. By contrast:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">import</span> scala.<span class="fu">collection</span>.<span class="fu">parallel</span>.<span class="fu">CollectionConverters</span>._</span>
+<span id="cb14-2"><a href="#cb14-2"></a></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="kw">val</span> results = urls.<span class="fu">par</span>.<span class="fu">map</span>(search)</span></code></pre></div>
+<p>takes a little over 3 seconds:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<pre><code>main at XX:XX:21.165: START
+main at XX:XX:24.749: END</code></pre>
+<p>Method <code>par</code> creates a parallel collection from the elements of list <code>urls</code> (similar to the <code>ParSeq</code> from the previous example), on which method <code>map</code> processes the elements in parallel (using the thread pool <code>scala.concurrent.ExecutionContext.global</code>). Although the calculations happen in parallel, the resulting sequence is the same as <code>urls.map(search)</code> (i.e., the search results are in the same order as the URLs).</p>
+<p>Note that the resulting sequence is itself a parallel sequence, since it is the result of calling <code>map</code> on a parallel collection. Further computations on this sequence would also happen in parallel:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">val</span> results = urls.<span class="fu">par</span>.<span class="fu">map</span>(search)</span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="fu">println</span>(results.<span class="fu">sum</span>)</span></code></pre></div>
+<pre><code>main at XX:XX:20.558: START
+main at XX:XX:24.113: 1840
+main at XX:XX:24.114: END</code></pre>
+<p>In this scenario, the sources are loaded in parallel into a sequence of results, then these results are added together, again in parallel.</p>
+<p>The sum could be calculated without the intermediate sequence:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">val</span> accumulator = ... <span class="co">// an accumulator</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a></span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="kw">for</span> (url &lt;- urls.<span class="fu">par</span>)</span>
+<span id="cb18-4"><a href="#cb18-4"></a>  accumulator.<span class="fu">add</span>(<span class="fu">search</span>(url))</span></code></pre></div>
+<p>Again, it would take about 3 seconds to complete the task because method <code>foreach</code> (used by <code>for</code>) is executed on a thread pool. Note, however, that the accumulator needs to be <em>thread-safe</em>: Its method <code>add</code> is called concurrently by multiple threads. Alternatively, one could use <code>aggregate</code>, which does not require the operators to be thread-safe:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">val</span> sum = urls.<span class="fu">par</span>.<span class="fu">aggregate</span>(<span class="dv">0</span>)(_ + <span class="fu">search</span>(_), _ + _)</span></code></pre></div>
+<p>Note that <code>foldLeft</code>, which is simpler than <code>aggregate</code>, cannot be used because it processes the sequence sequentially, even on a parallel sequence.</p>
+<p>If a parallel collection needs to be processed sequentially, method <code>seq</code> can be used to go back to a non-parallel collection:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">val</span> results = urls.<span class="fu">par</span>.<span class="fu">map</span>(search)</span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="kw">var</span> sum = <span class="dv">0</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="kw">for</span> (x &lt;- results.<span class="fu">seq</span>) sum += x</span></code></pre></div>
+<p>Here, the call to <code>seq</code> is necessary in order to guarantee that <code>sum</code> is not updated by multiple threads at the same time.</p>
+<p>Java 8 also introduced parallel collections through its interface <code>Stream</code>. All the <code>java.util</code> collections implement a method <code>parallelStream</code> similar to Scala’s method <code>par</code>. This method returns a <code>Stream</code>, on which operations like <code>map</code> and <code>forEach</code> can be executed in parallel:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb21-1"><a href="#cb21-1"></a><span class="bu">List</span>&lt;<span class="bu">String</span>&gt; urls = ...</span>
+<span id="cb21-2"><a href="#cb21-2"></a>IntStream results = urls.<span class="fu">parallelStream</span>().<span class="fu">mapToInt</span>(<span class="kw">this</span>::search);</span></code></pre></div>
+<h3 id="alternatives-to-threads">Alternatives to threads</h3>
+<p><em>Actors</em> are entities that communicate by sending and receiving messages (as opposed to calling methods on shared objects). Actors are run by thread pools in such a way that different actors can process their messages in parallel but the processing of a message within an actor is always single-threaded. Actors only block when waiting for a message and this is implemented efficiently by <em>not</em> blocking a thread, which remains available to run other actors.</p>
+<p>Actors have been implemented in various forms, most notably through the <em>Erlang</em> programming language. Actors used to be a standard component of the Scala library. They have been deprecated in favor of a generic actor implementation, <em>Akka</em>, which is available in both Scala and Java.</p>
+<h3 id="testing-and-debugging-multi-threaded-programs">Testing and debugging multi-threaded programs</h3>
+<p>Testing and debugging of multi-threaded programs is notoriously difficult. This difficulty stems from the non-deterministic behavior of these programs. We have seen above examples of programs that break or produce incorrect output in the presence of concurrency. In these examples, failures can be observed fairly easily because the threads are hammering the shared, unsafe structure (they don’t do anything else). In a more realistic application, threads would perform useful work, independently, and only occasionally hit a shared data structure at the same time. In other words, in real applications, these behaviors can be rare (but still devastating). This creates a double headache for software engineers:</p>
+<ul>
+<li><p><em>Testing:</em> A program can be tested successfully a million times, and then fail in production because of an unfortunate timing in the executions of threads.</p></li>
+<li><p><em>Debugging:</em> When a failure is observed (in testing or in production), it can be difficult to reproduce, which complicates debugging tremendously. Even when a failure can be reproduced, it is often the case that the faulty scenario involves high levels of concurrency (e.g., hundreds of threads), which makes it very difficult to track bugs. Even worse, the steps applied in the debugging process (breakpoints, logging, …) impact the memory model and the timing of threads and can make the bug disappear, as was shown when printing variable <code>done</code> in the non-terminating example.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p></li>
+</ul>
+<p>While there is no silver bullet to testing and debugging multi-threaded programs, here is some advice:</p>
+<ul>
+<li><p><em>Don’t optimize!</em> It is always the case that correctness comes first, even for single-threaded programs. But for multi-threaded programs, it is wise to start with safe, straightforward strategies that are easy to understand, to reason about and to maintain when code is modified. The danger of breaking something through over-optimization is multiplied by the fact that it will be so hard to find and resolve the problem after it is introduced.</p></li>
+<li><p><em>Maximize concurrency</em> when testing. It is not enough to try the reasonable scenarios one has in mind when writing an application. Instead, one should hammer the critical part of the system with many threads. It is also very important that these threads generate as much concurrency as possible. A common mistake is to introduce an artificial bottleneck (e.g., a logging data structure, a pseudo-random generator) that serializes operations and prevents threads from running with as much concurrency as they should.</p></li>
+<li><p><em>Name threads and use thread dumps.</em> In its default setting, the HotSpot JVM replies to a <code>SIGQUIT</code><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> signal by displaying a <em>thread dump</em>. This dump contains information about all the threads in the JVM, including where they are in the source code. It can be used effectively to investigate deadlocks or orphan threads that prevent a system from terminating properly.</p></li>
+</ul>
+<p>As an example of thread dump, let’s go back to the non-terminating program example from before. When the system fails to terminate, a thread dump can be obtained. The dump includes information about all threads in the JVM (<em>finalizer</em> thread, threads used by the <em>just-in-time</em> compiler, threads used for <em>garbage collection</em>, etc.). Two threads are of particular interest: <code>main</code> and <code>Runner</code> (the rest of the dump is omitted):</p>
+<pre><code>Full thread dump Java HotSpot(TM) 64-Bit Server VM (25.152-b02 mixed mode):
+
+&quot;Runner&quot; #10 prio=5 os_prio=31 tid=0x00007fa80da18800 nid=0x4f03 runnable [0x00007000066a8000]
+   java.lang.Thread.State: RUNNABLE
+    at NonTerminating$Runner.run(NonTerminating.scala:13)
+    at java.lang.Thread.run(Thread.java:745)
+
+&quot;main&quot; #1 prio=5 os_prio=31 tid=0x00007fa80d009800 nid=0x1c03 in Object.wait() [0x000070000577b000]
+   java.lang.Thread.State: WAITING (on object monitor)
+    at java.lang.Object.wait(Native Method)
+    - waiting on &lt;0x000000076c0e37d0&gt; (a java.lang.Thread)
+    at java.lang.Thread.join(Thread.java:1249)
+    - locked &lt;0x000000076c0e37d0&gt; (a java.lang.Thread)
+    at java.lang.Thread.join(Thread.java:1323)
+    at NonTerminating$.delayedEndpoint$NonTerminating$1(NonTerminating.scala:26)
+    at NonTerminating$delayedInit$body.apply(NonTerminating.scala:3)
+    at scala.Function0.apply$mcV$sp(Function0.scala:34)
+    at scala.Function0.apply$mcV$sp$(Function0.scala:34)
+    at scala.runtime.AbstractFunction0.apply$mcV$sp(AbstractFunction0.scala:12)
+    at scala.App.$anonfun$main$1$adapted(App.scala:76)
+    at scala.App$$Lambda$5/123961122.apply(Unknown Source)
+    at scala.collection.immutable.List.foreach(List.scala:378)
+    at scala.App.main(App.scala:76)
+    at scala.App.main$(App.scala:74)
+    at NonTerminating$.main(NonTerminating.scala:3)
+    at NonTerminating.main(NonTerminating.scala)
+
+...</code></pre>
+<p>We can see that <code>main</code> is blocked on a call to <code>Thread.join</code> on line 26 of the Scala source. Thread <code>Runner</code> is running on line 13.</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>C programs using PThreads have a similar issue: The main thread must be kept alive for the duration of the computation.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>The default thread pool uses as many threads as there are computing cores on the hardware, which is 4 on my laptop. It takes about 3 seconds for 4 threads to process 10 1-second tasks in parallel.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>Bugs that disappear when observed are sometimes facetiously called <em>Heisenbugs</em>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p>Ctrl-\ can be used to send this signal from the terminal on most unix systems.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-04-11 at 02:18:05 PM</footer>
+</body>

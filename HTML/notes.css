@@ -1,0 +1,327 @@
+html {
+    margin: 0 auto;
+    max-width: 900px;
+}
+
+body {
+    background-color: #E7E7E7;
+    font-family: "Open Sans", Optima, Candara, Arial, sans-serif;
+}
+
+pre {
+    background-color: #F5F5F5;
+    border-style: inset;
+    padding: 10px;
+    overflow: scroll;
+}
+
+span.smallcaps {
+    font-variant: small-caps;
+}
+
+div.line-block {
+    white-space: pre-line;
+}
+
+div.column {
+    display: inline-block;
+    vertical-align: top;
+    width: 50%;
+}
+
+q {
+    quotes: "“" "”" "‘" "’";
+}
+
+figure {
+    display: block;
+    margin: 1ex 1em;
+}
+
+footer {
+    color: gray;
+    text-align: right;
+    font-style: italic;
+    font-size: x-small;
+}
+
+blockquote {
+    font-size: 100%;
+    border-left: 5px solid #333;
+    padding-left: 1em;
+    font-style: italic;
+}
+
+figcaption {
+    font-size: 80%;
+    font-style: italic;
+    text-align: center;
+}
+
+figure {
+    padding: 5px;
+    border: 1px solid gray;
+}
+
+img.centered {
+    display: block;
+    margin: 1ex auto;
+}
+
+img.float-left {
+    float: left;
+    margin: 1ex 1em 1ex 0;
+}
+
+img.float-right {
+    float: right;
+    margin: 1ex 0 1ex 1em;
+}
+
+/* Code */
+code {
+    font-family: Menlo, Monaco, "Courier New", monospace;
+    background: inherit;
+    white-space: pre;
+}
+
+:not(pre) > code {
+    color: #336699;
+    white-space: pre-wrap;
+}
+
+a.sourceLine {
+    display: inline-block;
+    line-height: 1.25;
+}
+
+a.sourceLine {
+    pointer-events: none;
+    color: inherit;
+    text-decoration: inherit;
+}
+
+a.sourceLine:empty {
+    height: 1.2em;
+    position: absolute;
+}
+
+pre.numberSource {
+}
+
+code.sourceCode {
+    white-space: pre;
+    position: relative;
+}
+
+div.sourceCode {
+    margin: 1em 0;
+}
+
+pre.sourceCode {
+    margin: 0;
+}
+
+@media screen {
+    div.sourceCode {
+        overflow: auto;
+    }
+}
+
+@media print {
+    code.sourceCode {
+        white-space: pre-wrap;
+    }
+
+    a.sourceLine {
+        text-indent: -1em;
+        padding-left: 1em;
+    }
+}
+
+pre.numberSource code {
+    counter-reset: source-line 0;
+}
+
+pre.numberSource code > span {
+    position: relative;
+    left: -1em;
+    counter-increment: source-line;
+}
+
+pre.numberSource code > span > a:first-child::before {
+    content: counter(source-line);
+    position: relative;
+    left: -1em;
+    text-align: right;
+    vertical-align: baseline;
+    border: none;
+    display: inline-block;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    width: 4em;
+    color: #aaaaaa;
+}
+
+div.sourceCode {
+}
+
+/* Keyword */
+code span.kw {
+    color: #007020;
+    font-weight: bold;
+}
+
+/* DataType */
+code span.dt {
+    color: #902000;
+}
+
+/* DecVal */
+code span.dv {
+    color: #40a070;
+}
+
+/* BaseN */
+code span.bn {
+    color: #40a070;
+}
+
+/* Float */
+code span.fl {
+    color: #40a070;
+}
+
+/* Char */
+code span.ch {
+    color: #4070a0;
+}
+
+/* String */
+code span.st {
+    color: #4070a0;
+}
+
+/* Comment */
+code span.co {
+    color: #60a0b0;
+    font-style: italic;
+}
+
+/* Other */
+code span.ot {
+    color: #007020;
+}
+
+/* Alert */
+code span.al {
+    color: #ff0000;
+    font-weight: bold;
+}
+
+/* Function */
+code span.fu {
+    color: #06287e;
+}
+
+/* Error */
+code span.er {
+    color: #ff0000;
+    font-weight: bold;
+}
+
+/* Warning */
+code span.wa {
+    color: #60a0b0;
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* Constant */
+code span.cn {
+    color: #880000;
+}
+
+/* SpecialChar */
+code span.sc {
+    color: #4070a0;
+}
+
+/* VerbatimString */
+code span.vs {
+    color: #4070a0;
+}
+
+/* SpecialString */
+code span.ss {
+    color: #bb6688;
+}
+
+/* Import */
+code span.im {
+}
+
+/* Variable */
+code span.va {
+    color: #19177c;
+}
+
+/* ControlFlow */
+code span.cf {
+    color: #007020;
+    font-weight: bold;
+}
+
+/* Operator */
+code span.op {
+    color: #666666;
+}
+
+/* BuiltIn */
+code span.bu {
+}
+
+/* Extension */
+code span.ex {
+}
+
+/* Preprocessor */
+code span.pp {
+    color: #bc7a00;
+}
+
+/* Attribute */
+code span.at {
+    color: #7d9029;
+}
+
+/* Documentation */
+code span.do {
+    color: #ba2121;
+    font-style: italic;
+}
+
+/* Annotation */
+code span.an {
+    color: #60a0b0;
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* CommentVar */
+code span.cv {
+    color: #60a0b0;
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* Information */
+code span.in {
+    color: #60a0b0;
+    font-weight: bold;
+    font-style: italic;
+}

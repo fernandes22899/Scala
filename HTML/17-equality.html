@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<!-- Generated from 704-equality.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>17-equality</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="object-equality">Object Equality</h2>
+<h3 id="comparing-references-eq-and-ne">Comparing references: <code>eq</code> and <code>ne</code></h3>
+<p>In Scala, like in Java, variables contain <em>references</em> to objects, never <em>objects</em> (this is not the case in other languages like C++). In particular, assignment statements are assignments of references and never copy an object:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">class</span> <span class="fu">C</span>(<span class="kw">var</span> value: Int)</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">val</span> x = <span class="kw">new</span> <span class="fu">C</span>(<span class="dv">42</span>)</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">val</span> y = x</span>
+<span id="cb1-5"><a href="#cb1-5"></a>x.<span class="fu">value</span> = <span class="dv">100</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>y.<span class="fu">value</span>  <span class="co">// 100</span></span></code></pre></div>
+<p>In the code snippet above, <code>x</code> is a <em>reference</em> to an object of type <code>C</code>. The assignment <code>y = x</code> copies this reference into <code>y</code>, which is now another reference to the <em>same object</em> (<em>aliasing</em>). This can be verified by modifying the object that <code>x</code> refers to (changing its value to 100) and observing that the value of the object <code>y</code> refers to has changed (since both variables refer to the same object).</p>
+<p>Programs can check that two variables are references to the same object using <code>eq</code> (and its negation <code>ne</code>):</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a>x eq y         <span class="co">// true</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>x ne y         <span class="co">// false</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a></span>
+<span id="cb2-4"><a href="#cb2-4"></a>x eq <span class="kw">new</span> <span class="fu">C</span>(<span class="dv">1</span>)  <span class="co">// false</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a>x ne <span class="kw">new</span> <span class="fu">C</span>(<span class="dv">2</span>)  <span class="co">// true</span></span></code></pre></div>
+<p><code>eq</code> and <code>ne</code> are methods of class <code>AnyRef</code>, which is the superclass of all (real) objects in Scala. Some types like <code>Int</code> and <code>Unit</code> do not extend <code>AnyRef</code> but <code>AnyVal</code> and do not have access to these methods:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="dv">2</span> eq <span class="dv">3</span>  <span class="co">// cannot be compiled</span></span></code></pre></div>
+<p>The reason is that, for performance reasons, <code>AnyVal</code> types may not be represented as objects in the runtime system (see later notes on extending <code>AnyVal</code>).</p>
+<h3 id="comparing-objects-and-equals">Comparing objects: <code>==</code> and <code>equals</code></h3>
+<p>Methods <code>eq</code> and <code>ne</code> can be used to compare <em>references</em> to objects and decide that two references point to the same objects. Some applications also need to compare two <em>objects</em> to decide if they represent the same entity in the application, something referred to as <em>semantic equality</em> (i.e., two objects “mean the same thing”).</p>
+<p>For instance, a <code>Date</code> object can be created by parsing a string or by specifying a number of milliseconds since Jan 1, 1970:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">val</span> d1 = df.<span class="fu">parse</span>(<span class="st">&quot;Jul 21, 1969, 02:56:15 AM UTC&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="kw">val</span> d2 = <span class="kw">new</span> Date(-14159025000L)</span></code></pre></div>
+<p>This produces two objects that represent the same date:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a>d1 eq d2  <span class="co">// false, two different objects</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>d1 == d2  <span class="co">// true, same date</span></span></code></pre></div>
+<p>Using <code>==</code>, the <em>contents</em> of two objects is examined to decide if they should be considered equal. If the contents change, equality changes:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">val</span> d = d2      <span class="co">// another reference to d2 object</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>d2.<span class="fu">setTime</span>(0L)  <span class="co">// set d2 to Jan 1, 1070</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>d1 == d2        <span class="co">// false</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>d2 eq d         <span class="co">// true</span></span></code></pre></div>
+<p>After <code>d2</code> is modified, it stops being equal to <code>d1</code>. Note that no new object is created (<code>d2</code> remains the same reference <code>d</code>); it is the contents of the object that have changed.</p>
+<p>Method <code>==</code> is defined in class <code>Any</code> to behave as:<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">def</span> ==(that: Any): Boolean = <span class="kw">if</span> (<span class="kw">this</span> eq <span class="kw">null</span>) (that eq <span class="kw">null</span>) <span class="kw">else</span> (<span class="kw">this</span> equals that)</span></code></pre></div>
+<p>It handles <code>null</code> is a special way (<code>null</code> is only equal to <code>null</code>) and forward equality testing of non-null objects to method <code>equals</code>. This means that if <code>o</code> is a non-null object, <code>null == o</code> is false, <code>null == null</code> is true but <code>null equals o</code> and <code>null equals null</code> both throw a <code>NullPointerException</code>. In the class <code>Date</code>, method <code>equals</code> is defined so two date objects are equal if they represent the same date.</p>
+<p>Method <code>==</code> is <code>final</code> and cannot be overridden. To define semantic equality between objects, one instead overrides method <code>equals</code>, as detailed below.</p>
+<h3 id="overriding-equals">Overriding <code>equals</code></h3>
+<p>As an illustration, consider an example of book references in a library:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">class</span> <span class="fu">BookRef</span>(<span class="kw">val</span> title: String, <span class="kw">val</span> author: String, <span class="kw">val</span> edition: Int = <span class="dv">1</span>) {...}</span></code></pre></div>
+<p>Each reference is defined by a title, author and edition. The library application is designed so that two references are considered equal if they have the same title and author (but possibly different editions). A method <code>equals</code> can be implemented as follows:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">equals</span>(obj: Any) = obj <span class="kw">match</span> {</span>
+<span id="cb9-2"><a href="#cb9-2"></a>    <span class="kw">case</span> that: BookRef =&gt; that.<span class="fu">title</span> == <span class="kw">this</span>.<span class="fu">title</span> &amp;&amp; that.<span class="fu">author</span> == <span class="kw">this</span>.<span class="fu">author</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a>    <span class="kw">case</span> _ =&gt; <span class="kw">false</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>  }</span></code></pre></div>
+<p>Note that <code>obj</code> has type <code>Any</code> and the signature of method <code>equals</code> cannot be changed when overriding. Therefore, it is necessary first to check if <code>obj</code> is a <code>BookRef</code> or not.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> If it is, titles and authors are compared. Otherwise, the method returns false to signify that a book reference is never equal to an object that is not a book reference.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<h3 id="storing-objects-in-data-structures">Storing objects in data structures</h3>
+<p>As defined, the class <code>BookRef</code> is incorrect and could result in hard-to-find bugs. Consider the following scenario in which four book references are created are put into a set:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">val</span> b1 = <span class="kw">new</span> <span class="fu">BookRef</span>(<span class="st">&quot;Moby Dick&quot;</span>, <span class="st">&quot;Herman Melville&quot;</span>)</span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="kw">val</span> b2 = <span class="kw">new</span> <span class="fu">BookRef</span>(<span class="st">&quot;A Christmas Carol&quot;</span>, <span class="st">&quot;Charles Dickens&quot;</span>, <span class="dv">3</span>)</span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="kw">val</span> b3 = <span class="kw">new</span> <span class="fu">BookRef</span>(<span class="st">&quot;1984&quot;</span>, <span class="st">&quot;George Orwell&quot;</span>)</span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="kw">val</span> b4 = <span class="kw">new</span> <span class="fu">BookRef</span>(<span class="st">&quot;War and Peace&quot;</span>, <span class="st">&quot;Leo Tolstoy&quot;</span>, <span class="dv">2</span>)</span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="kw">val</span> myBooks = Set(b1, b2, b3, b4)</span></code></pre></div>
+<p>Another book reference <code>b</code> is then created as part of a search:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">val</span> b = <span class="kw">new</span> <span class="fu">BookRef</span>(<span class="st">&quot;Moby Dick&quot;</span>, <span class="st">&quot;Herman Melville&quot;</span>, <span class="dv">2</span>)</span>
+<span id="cb11-2"><a href="#cb11-2"></a>myBooks contains b  <span class="co">// true</span></span></code></pre></div>
+<p><code>myBooks contains b</code> is true because <code>b1</code> and <code>b</code> are semantically equivalent and <code>b1 == b</code> is true. So far, so good.</p>
+<p>A fifth book is created and added to the set:</p>
+<pre><code>val b5 = new BookRef(&quot;Les Miserables&quot;, &quot;Victor Hugo&quot;, 4)
+(myBooks + b5) contains b  // false!</code></pre>
+<p>Remarkably, <code>(myBooks + b5) contains b</code> is false. This makes no sense as <code>myBooks + b5</code> should contains all the book references of <code>myBooks</code> and <code>myBooks contains b</code> is true.</p>
+<p>Further experimentation leads to more confusion:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1"></a>myBooks <span class="fu">subsetOf</span> (myBooks + b5)  <span class="co">// true</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a>(myBooks + b5 - b5) contains b   <span class="co">// false!</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a>(myBooks + b5 - b5) == myBooks   <span class="co">// true</span></span></code></pre></div>
+<p><code>myBooks</code> contains <code>b</code> and is a subset of <code>myBooks + b5</code>, <em>which does not contain <code>b</code></em>. Furthermore, <code>myBooks + b5 - b5</code> is the same set as <code>myBooks</code> but <em>it does not contain <code>b</code></em> while <code>myBooks</code> does!</p>
+<p>The source of the confusion here is that <code>b1</code> and <code>b</code> do not have the same hash codes:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1"></a>b.<span class="fu">hashCode</span> == b1.<span class="fu">hashCode</span>  <span class="co">// false, most likely</span></span></code></pre></div>
+<p>If the set that is used to store the book references is hash-based, <code>b1</code> and <code>b</code> can potentially hash into different buckets, making it impossible for <code>contains</code> to find an object equal to <code>b</code> even though <code>b1 == b</code>. This is especially problematic for a library that intends to use <code>BookRef</code> objects as keys and store its books as a <code>Map[BookRef,File]</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">val</span> library = Map(b1 -&gt; <span class="kw">new</span> File(...), b2 -&gt; <span class="kw">new</span> File(...), ...)</span>
+<span id="cb15-2"><a href="#cb15-2"></a>library.<span class="fu">get</span>(b)  <span class="co">// possibly None</span></span></code></pre></div>
+<p>Why is <code>myBooks contains b</code> true? It could be luck (<code>b1</code> and <code>b</code> could happen to have the same hash code, or still land in the same bucket with different hash codes). But here the explanation is that Scala uses specialized implementations for sets up to four elements and these are not hash-based. Therefore, our book reference can only be lost in a set of at least five books.</p>
+<h3 id="overriding-hashcode">Overriding <code>hashCode</code></h3>
+<p>The lesson here is that, when overriding <code>equals</code>, one should also override <code>hashCode</code> to keep them consistent. The contract to be maintained is:</p>
+<blockquote>
+<p><em>If two objects are equal, they must have the same hashcode.</em></p>
+</blockquote>
+<p>This is only an implication: Two objects can have the same hashcode and not be equal. Hash functions should be designed to minimized these occurrences, though, as they result in <em>collisions</em> in hash tables. As an extreme example, a constant hashcode method that always returns 42 is technically correct (when two objects are equal, they have the same hashcode), but will result in terrible performance (e.g., linear-time retrieval in maps).</p>
+<p>Accordingly, <code>hashCode</code> should be overridden to calculate a value <em>based on the same data used by <code>equals</code></em>. In the book reference example, these would be the author and title of the book:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">override</span> <span class="kw">def</span> hashCode = (title,author).<span class="fu">hashCode</span></span></code></pre></div>
+<p>Adding this method to the <code>BookRef</code> class makes all the weird behaviors observed earlier go away.</p>
+<h3 id="calling">Calling <code>##</code></h3>
+<p>In Scala, equality is defined by overriding <code>equals</code>, but method <code>equals</code> is rarely called directly. Instead, <code>==</code> is used, which called <code>equals</code> after checking for nulls. Similarly, <code>hashCode</code> is the method to override for hash codes, but method <code>##</code>, from class <code>Any</code>, is the method to call. <code>##</code> checks for nulls (<code>null.##</code> is 0, while <code>null.hashCode</code> throws a <code>NullPointerException</code>) and redefines the hash codes of boxed numeric values for consistency with equality:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb17-1"><a href="#cb17-1"></a><span class="fl">1.5</span> + <span class="fl">2.5</span> == <span class="dv">4</span>         <span class="co">// true, even though LHS is Double and RHS is Int</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="fl">4.</span>hashCode             <span class="co">// 4</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a>(<span class="fl">1.5</span> + <span class="fl">2.5</span>).<span class="fu">hashCode</span>   <span class="co">// the hash code of sone java.lang.Double object, not 4</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a>(<span class="fl">1.5</span> + <span class="fl">2.5</span>).##         <span class="co">// 4</span></span></code></pre></div>
+<p>Accordingly, the <code>hashCode</code> method of <code>BookRef</code> could be written:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">override</span> <span class="kw">def</span> hashCode = (title,author).##</span></code></pre></div>
+<h3 id="other-properties-of-equality">Other properties of equality</h3>
+<p>In addition to maintaining consistency between equality and has code, overridden <code>equals</code> methods should satisfy several other properties:</p>
+<ul>
+<li><p><em>Reflexivity.</em> An object should always be equal to itself (i.e., <code>x.equals(x)</code> should be true.). As a consequence, a common pattern when writing <code>equals</code> methods is to first compare the argument to <code>this</code>, bypassing any computation of actual equality:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">override</span> <span class="kw">def</span> <span class="fu">equals</span>(obj: Any) = obj <span class="kw">match</span> {</span>
+<span id="cb19-2"><a href="#cb19-2"></a>  <span class="kw">case</span> that: BookRef =&gt; (that eq <span class="kw">this</span>) || (that.<span class="fu">title</span> == <span class="kw">this</span>.<span class="fu">title</span> &amp;&amp; that.<span class="fu">author</span> == <span class="kw">this</span>.<span class="fu">author</span>)</span>
+<span id="cb19-3"><a href="#cb19-3"></a>  <span class="kw">case</span> _ =&gt; <span class="kw">false</span></span>
+<span id="cb19-4"><a href="#cb19-4"></a>}</span></code></pre></div></li>
+<li><p><em>Symmetry.</em> If <code>x</code> is equal to <code>y</code>, then <code>y</code> is equal to <code>x</code>. Therefore, <code>x.equals(y)</code> and <code>y.equals(x)</code> should always produce the same value.</p></li>
+<li><p><em>Transitivity.</em> If <code>x</code> is equal to <code>y</code> and <code>y</code> is equal to <code>z</code>, then <code>x</code> is equal to <code>z</code>. _ <em>Stability.</em> Unless the state of <code>x</code> or <code>y</code> changes, multiple calls to <code>x.equals(y)</code> should keep producing the same value. In particular, the computation should not rely on mutable data outside of <code>x</code> and <code>y</code> or on randomization.</p></li>
+</ul>
+<p>Note that these properties can be difficult to maintain in the presence of inheritance (see the documentation of <code>scala.Equals</code> for details).</p>
+<h3 id="case-classes">Case classes</h3>
+<p>Recall that case classes automatically override equality (and hash code):</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">case</span> <span class="kw">class</span> Point(x: Int, y: Int)</span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="kw">val</span> p1, p2 = Point(<span class="dv">2</span>,<span class="dv">3</span>)</span>
+<span id="cb20-3"><a href="#cb20-3"></a></span>
+<span id="cb20-4"><a href="#cb20-4"></a>p1 eq p2  <span class="co">// false</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a>p1 == p2  <span class="co">// true</span></span></code></pre></div>
+<p>Of course, <code>p1.##</code> and <code>p2.##</code> are the same number (on this system, it is the same number as <code>(2,3).##</code>, but other Scala implementations could differ).</p>
+<h3 id="equality-and-hash-codes-in-java">Equality and hash codes in Java</h3>
+<p>The case of Java is very similar, except that there are no <code>==</code> and <code>##</code> methods. Instead, Java has two operators <code>==</code> and <code>!=</code> equivalent to Scala’s <code>eq</code> and <code>ne</code> (for reference comparison) and uses <code>equals</code> directly (for object equality).</p>
+<p>In Java, the <code>BookRef</code> class could be written as:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb21-1"><a href="#cb21-1"></a><span class="co">// this is Java</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="at">@Override</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a><span class="kw">public</span> <span class="dt">boolean</span> <span class="fu">equals</span>(<span class="bu">Object</span> obj) {</span>
+<span id="cb21-4"><a href="#cb21-4"></a>  <span class="kw">if</span> (obj <span class="kw">instanceof</span> BookRef) {</span>
+<span id="cb21-5"><a href="#cb21-5"></a>    BookRef that = (BookRef)obj;</span>
+<span id="cb21-6"><a href="#cb21-6"></a>    <span class="kw">return</span> (that == <span class="kw">this</span>) || (that.<span class="fu">title</span>.<span class="fu">equals</span>(<span class="kw">this</span>.<span class="fu">title</span>) &amp;&amp; that.<span class="fu">author</span>.<span class="fu">equals</span>(<span class="kw">this</span>.<span class="fu">author</span>));</span>
+<span id="cb21-7"><a href="#cb21-7"></a>  }</span>
+<span id="cb21-8"><a href="#cb21-8"></a>  <span class="kw">return</span> <span class="kw">false</span>;</span>
+<span id="cb21-9"><a href="#cb21-9"></a>}</span>
+<span id="cb21-10"><a href="#cb21-10"></a></span>
+<span id="cb21-11"><a href="#cb21-11"></a><span class="at">@Override</span></span>
+<span id="cb21-12"><a href="#cb21-12"></a><span class="kw">public</span> <span class="dt">int</span> <span class="fu">hashCode</span>() {</span>
+<span id="cb21-13"><a href="#cb21-13"></a>  <span class="kw">return</span> <span class="dv">31</span> * (title.<span class="fu">hashCode</span>() + <span class="dv">7</span>) + author.<span class="fu">hashCode</span>();</span>
+<span id="cb21-14"><a href="#cb21-14"></a>}</span></code></pre></div>
+<p>Note how method <code>equals</code> is using a type check and a typecast before comparing the <code>title</code> and <code>author</code> fields. Note also that strings must be compared using <code>equals</code> in Java, not <code>==</code>. Java has no tuple types to combine hash codes in a convenient way. Instead, the hash codes of the title and author are combined manually. In general, method <code>hashCode</code> should avoid combining value in ways that are symmetric.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> As written, the method is preferable to <code>title.hashCode() + author.hashCode()</code> or <code>title.hashCode() ^ author.hashCode()</code>.</p>
+<p>Book references can then be instantiated and compared:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb22-1"><a href="#cb22-1"></a><span class="co">// this is Java</span></span>
+<span id="cb22-2"><a href="#cb22-2"></a>var b1 = <span class="kw">new</span> <span class="fu">BookRef</span>(<span class="st">&quot;Moby Dick&quot;</span>, <span class="st">&quot;Herman Melville&quot;</span>);</span>
+<span id="cb22-3"><a href="#cb22-3"></a>var b2 = <span class="kw">new</span> <span class="fu">BookRef</span>(<span class="st">&quot;Moby Dick&quot;</span>, <span class="st">&quot;Herman Melville&quot;</span>, <span class="dv">2</span>);</span>
+<span id="cb22-4"><a href="#cb22-4"></a>b1 == b2                        <span class="co">// false</span></span>
+<span id="cb22-5"><a href="#cb22-5"></a>b1.<span class="fu">equals</span>(b2)                   <span class="co">// true</span></span>
+<span id="cb22-6"><a href="#cb22-6"></a>b1.<span class="fu">hashCode</span>() == b2.<span class="fu">hashCode</span>()  <span class="co">// true</span></span></code></pre></div>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><p>In Scala, <code>eq/ne</code> are <em>reference</em> comparison, like <code>==/!=</code> in Java.</p></li>
+<li><p><em>Semantic equality</em> uses <code>==/!=</code> in Scala. These methods are implemented via calls to <code>equals</code>, which can be overridden.</p></li>
+<li><p>When overriding <code>equals</code> (in Scala or in Java), it is <em>imperative</em> that <code>hashCode</code> also be overridden in such a way that equal objects have the same hash codes. This is achieved by implementing <code>hashCode</code> in terms of the same data used in implementing <code>equals</code>.</p></li>
+<li><p>Furthermore, equality should strive to be <em>reflexive</em> (<span class="math inline"><em>x</em> = <em>x</em></span>), <em>transitive</em> (if <span class="math inline"><em>x</em> = <em>y</em></span> and <span class="math inline"><em>y</em> = <em>z</em></span>, then <span class="math inline"><em>x</em> = <em>z</em></span>) and <em>symmetric</em> (if <span class="math inline"><em>x</em> = <em>y</em></span>, then <span class="math inline"><em>y</em> = <em>x</em></span>).</p></li>
+<li><p><em>Case classes</em> automatically define equality and hash code in terms of the arguments to the primary constructor.</p></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>This is not real Scala code. In particular, <code>this</code> and <code>that</code> might be of type <code>AnyVal</code> and not have an <code>eq</code> method.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>This is one of the few places in Java and Scala where polymorphism won’t do and explicit type checking/casting is necessary.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>Another possibility here would be to throw a <code>ClassCastException</code>. This would make sense in an application where book references are guaranteed not to be compared to other objects.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p>Unless Joe and Jane write each other’s biographies, book references that use the same two strings in reverse order are unlikely; it matters more for other classes, like <code>Point</code> above.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<footer>2020-04-30 at 12:13:56 PM</footer>
+</body>

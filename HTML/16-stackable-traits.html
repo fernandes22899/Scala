@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!-- Generated from 706-stackable-traits.md; DO NOT EDIT! -->
+<html lang="en">
+<head>
+  <meta name="generator" content="pandoc">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>16-stackable-traits</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" type="text/css" href="notes.css"/>
+  </head>
+
+<body>
+<h2 id="stackable-traits">Stackable Traits</h2>
+<h3 id="overriding-methods-in-traits">Overriding methods in traits</h3>
+<p>We have seen that traits can be used to structure an application in multiple modules. In addition to providing a module implementation from scratch, a trait can also override methods to modify an existing implementation, as it exists in the target class or as is provided by another trait. As an illustration of the first case, consider the code below:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">class</span> B {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="kw">def</span> m: String = <span class="st">&quot;B&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>}</span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="kw">trait</span> T1 <span class="kw">extends</span> B {</span>
+<span id="cb1-6"><a href="#cb1-6"></a>  <span class="kw">override</span> <span class="kw">def</span> m = <span class="st">&quot;T1&quot;</span> + <span class="kw">super</span>.<span class="fu">m</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>}</span></code></pre></div>
+<p>Class <code>B</code> defines a behavior for method <code>m</code>, but trait <code>T1</code> modifies it by overriding the method. When trait <code>T1</code> is mixed in class <code>B</code>, the resulting class includes a method <code>m</code> with the modified behavior:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">val</span> b = <span class="kw">new</span> B <span class="kw">with</span> T1</span>
+<span id="cb2-2"><a href="#cb2-2"></a>b.<span class="fu">m</span>  <span class="co">// &quot;T1B&quot;</span></span></code></pre></div>
+<p>Different traits can implement different modifications to method <code>m</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">trait</span> T2 <span class="kw">extends</span> B {</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="kw">override</span> <span class="kw">def</span> m = <span class="st">&quot;T2&quot;</span> + <span class="kw">super</span>.<span class="fu">m</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a>}</span>
+<span id="cb3-4"><a href="#cb3-4"></a></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="kw">val</span> b = <span class="kw">new</span> B <span class="kw">with</span> T2</span>
+<span id="cb3-6"><a href="#cb3-6"></a>b.<span class="fu">m</span>  <span class="co">// &quot;T2B&quot;</span></span></code></pre></div>
+<h3 id="linearization">Linearization</h3>
+<p>Since classes can mix in multiple traits, a class can be extended with several traits that override the <em>same</em> method:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">class</span> B12 <span class="kw">extends</span> B <span class="kw">with</span> T1 <span class="kw">with</span> T2</span></code></pre></div>
+<p>One might wonder what happens in that case. In particular, which transformation is applied? The answer is: <em>both</em>. This is where <em>mixins</em> behave differently from multiple inheritance. The call <code>super.m</code> in trait <code>T2</code> does not refer to <code>m</code> in <code>B</code> (as <code>T2 extends B</code> would suggest) but to <code>m</code> in <code>T1</code>, a trait already mixed in with <code>B</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">val</span> b = <span class="kw">new</span> B12</span>
+<span id="cb5-2"><a href="#cb5-2"></a>b.<span class="fu">m</span>  <span class="co">// &quot;T2T1B&quot;</span></span></code></pre></div>
+<p>In other words, <code>super</code> calls are resolved when traits are mixed in, not when they are compiled. This enables the <em>stacking</em> of transformations demonstrated above (<code>B</code> transformed into <code>T1B</code> transformed into <code>T2T1B</code>). It also means the order in which traits are mixed in is relevant:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">val</span> x = <span class="kw">new</span> B <span class="kw">with</span> T1 <span class="kw">with</span> T2</span>
+<span id="cb6-2"><a href="#cb6-2"></a>x.<span class="fu">m</span>  <span class="co">// &quot;T2T1B&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="kw">val</span> y = <span class="kw">new</span> B <span class="kw">with</span> T2 <span class="kw">with</span> T1</span>
+<span id="cb6-5"><a href="#cb6-5"></a>y.<span class="fu">m</span>  <span class="co">// &quot;T1T2B&quot;</span></span></code></pre></div>
+<p>It can be seen from the example above that a <code>super</code> call from a trait calls the trait <em>to its left</em>. The exact order in which transformations are stacked is controlled by a <em>linearization algorithm</em>, fully specified by the language. The details are a bit complicated, but the key idea is to make sure that <code>super</code> always refers to superclasses or previously mixed traits:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">trait</span> T3 <span class="kw">extends</span> T2 {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">override</span> <span class="kw">def</span> m = <span class="st">&quot;T3&quot;</span> + <span class="kw">super</span>.<span class="fu">m</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a>}</span>
+<span id="cb7-4"><a href="#cb7-4"></a></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="kw">class</span> C <span class="kw">extends</span> B <span class="kw">with</span> T1 <span class="kw">with</span> T3 {</span>
+<span id="cb7-6"><a href="#cb7-6"></a>  <span class="kw">override</span> <span class="kw">def</span> m = <span class="st">&quot;C&quot;</span> + <span class="kw">super</span>.<span class="fu">m</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a>}</span>
+<span id="cb7-8"><a href="#cb7-8"></a></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="kw">val</span> c = <span class="kw">new</span> C</span>
+<span id="cb7-10"><a href="#cb7-10"></a>c.<span class="fu">m</span>  <span class="co">// &quot;CT3T2T1B&quot;</span></span></code></pre></div>
+<p>This example shows how that the behavior of method <code>m</code> in class <code>B</code> is modified in class <code>C</code>, with all the trait transformations applied. Note how transformation <code>T2</code>, as a parent of <code>T3</code>, is inserted between <code>T1</code> and <code>T3</code>.</p>
+<h3 id="transforming-input-and-output-of-methods">Transforming input and output of methods</h3>
+<p>A trait can transform the input of a method <em>before</em> the <code>super</code> call, or can transform the output of a method <em>after</em> the <code>super</code> call, or both. Since the right trait calls into the left trait, input transformations from the rightmost trait happen first while output transformations from the rightmost trait happen last:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">abstract</span> <span class="kw">class</span> B {</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="kw">def</span> <span class="fu">m</span>(s: String) = s</span>
+<span id="cb8-3"><a href="#cb8-3"></a>}</span>
+<span id="cb8-4"><a href="#cb8-4"></a></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="kw">trait</span> T1 <span class="kw">extends</span> B {</span>
+<span id="cb8-6"><a href="#cb8-6"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">m</span>(s: String) = <span class="st">&quot;(&quot;</span> + <span class="kw">super</span>.<span class="fu">m</span>(<span class="st">&quot;+&quot;</span> + s + <span class="st">&quot;+&quot;</span>) + <span class="st">&quot;)&quot;</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a>}</span>
+<span id="cb8-8"><a href="#cb8-8"></a></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="kw">trait</span> T2 <span class="kw">extends</span> B {</span>
+<span id="cb8-10"><a href="#cb8-10"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">m</span>(s: String) = <span class="st">&quot;[&quot;</span> + <span class="kw">super</span>.<span class="fu">m</span>(<span class="st">&quot;*&quot;</span> + s + <span class="st">&quot;*&quot;</span>) + <span class="st">&quot;]&quot;</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a>}</span>
+<span id="cb8-12"><a href="#cb8-12"></a></span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="kw">val</span> x = <span class="kw">new</span> B <span class="kw">with</span> T1 <span class="kw">with</span> T2</span></code></pre></div>
+<p>The call <code>x.m("X")</code> produces the string <code>[(+*X*+)]</code>: The <code>*</code> from <code>T2</code> are added before the <code>+</code> of <code>T1</code> but the parentheses of <code>T1</code> are added before the square brackets of <code>T2</code>. The main thing to remember is that <code>T2</code> code calls <code>T1</code> code, not the other way around.</p>
+<h3 id="providing-and-modifying-implementations">Providing <em>and</em> modifying implementations</h3>
+<p>In the examples above, implementations are written in classes (<code>B</code> and <code>C</code>) and modified in traits. But, as we have seen before, implementations can also be provided by traits as a way to achieve modularity. This can lead to the peculiar situation of a trait specifying a transformation for an implementation that is still missing but will be provided by another trait:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">abstract</span> <span class="kw">class</span> A {</span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="kw">def</span> m: String</span>
+<span id="cb9-3"><a href="#cb9-3"></a>}</span>
+<span id="cb9-4"><a href="#cb9-4"></a></span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="kw">trait</span> S1 <span class="kw">extends</span> A {</span>
+<span id="cb9-6"><a href="#cb9-6"></a>  <span class="kw">abstract</span> <span class="kw">override</span> <span class="kw">def</span> m = <span class="st">&quot;S1&quot;</span> + <span class="kw">super</span>.<span class="fu">m</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a>}</span></code></pre></div>
+<p>Here, class <code>A</code> is abstract and the implementation of method <code>m</code> is missing. Trait <code>S1</code> specifies a transformation of the method as before and uses a call <code>super.m</code>. In the context of traditional inheritance, this call would make no sense since method <code>m</code> is abstract in <code>A</code>. With mixins, the idea is that trait <code>S1</code> applies a modification to an implementation that will come from elsewhere. This is valid Scala, as long as the transformation is declared <code>abstract override</code>.</p>
+<p>Method <code>m</code> can then be implemented in a subclass of <code>A</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">class</span> D <span class="kw">extends</span> A {</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  <span class="kw">def</span> m = <span class="st">&quot;D&quot;</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>}</span>
+<span id="cb10-4"><a href="#cb10-4"></a></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="kw">val</span> d1 = <span class="kw">new</span> D <span class="kw">with</span> S1</span>
+<span id="cb10-6"><a href="#cb10-6"></a>d1.<span class="fu">m</span>  <span class="co">// &quot;S1D&quot;</span></span></code></pre></div>
+<p>Or the implementation can come from another trait, in a modular fashion:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">trait</span> S <span class="kw">extends</span> A {</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">def</span> m = <span class="st">&quot;S&quot;</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a>}</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="kw">val</span> a1 = <span class="kw">new</span> A <span class="kw">with</span> S <span class="kw">with</span> S1</span>
+<span id="cb11-6"><a href="#cb11-6"></a>a1.<span class="fu">m</span>  <span class="co">// &quot;S1S&quot;</span></span></code></pre></div>
+<p>The traits have to be mixed in this order, with <code>S1</code> modifying the implementation provided by <code>S</code>. The reverse order—<code>new A with S1 with S</code>—is rejected at compile-time.</p>
+<footer>2020-03-26 at 11:30:14 AM</footer>
+</body>
